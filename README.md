@@ -8,7 +8,7 @@
 
 *The React version isn't published yet. Until then, [run it locally](#for-developers) — it's one `npm install` away.*
 
-[English](README.md) · [日本語](README.ja.md) · [简体中文](README.zh-CN.md) · [Changelog](CHANGELOG.md) · [🐛 Report a bug](https://github.com/AKI-12138/Infinite-Flight-Dashboard/issues) · [💡 Ideas & feedback](https://github.com/AKI-12138/Infinite-Flight-Dashboard/discussions)
+[English](README.md) · [日本語](README.ja.md) · [简体中文](README.zh-CN.md) · [Changelog](CHANGELOG.md) · [Report a bug](https://github.com/AKI-12138/Infinite-Flight-Dashboard/issues) · [Ideas & feedback](https://github.com/AKI-12138/Infinite-Flight-Dashboard/discussions)
 
 ![Infinite Flight Dashboard — light mode](screenshots/fold-light.png)
 
