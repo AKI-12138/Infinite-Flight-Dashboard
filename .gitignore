@@ -1,0 +1,31 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.gstack/
+
+# 内部資料（公開 repo では非表示・ローカル/開発用）。公開切替に伴い追跡解除（2026-07-05）。
+# CLAUDE.md = Claude 用の長期前提 / docs/ = VISION・PLAN・HISTORY・恒久リファレンス等 / .claude/ = Claude Code 設定
+CLAUDE.md
+docs/
+.claude/

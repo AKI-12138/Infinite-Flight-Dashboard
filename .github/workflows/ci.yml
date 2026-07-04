@@ -1,0 +1,35 @@
+# CI：GitHub に push / Pull Request するたびに自動でビルド・テストを回す。
+# オーナーは今まで通り GitHub Desktop で push するだけ。結果は GitHub の「Actions」タブと
+# コミット横の ✓ / ✗ マークで確認できる（緑＝全部通過、赤＝どこか失敗）。
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. リポジトリのコードを取得
+      - uses: actions/checkout@v4
+
+      # 2. Node.js を用意（22 = LTS。npm キャッシュで 2 回目以降を高速化）
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      # 3. 依存パッケージをロックファイル通りに厳密インストール
+      - run: npm ci
+
+      # 4. 型チェック＋本番ビルド（tsc -b && vite build）
+      - run: npm run build
+
+      # 5. テスト（Vitest・現在 215 件）
+      - run: npm test
+
+      # 6. Lint（oxlint）。警告は出てもビルドは止めない
+      - run: npm run lint

@@ -1,0 +1,87 @@
+import { useEffect, useRef, useState } from 'react';
+import { FilterState } from '../../lib/compute';
+import { FILTER_DEFS, _ADV_FILTER_KEYS, type FilterDef } from '../../lib/filters-config';
+import { filterStore } from '../../lib/filter-store';
+import { useFilterVersion } from '../../hooks/useFilterState';
+import type { FilterOptionsMap } from '../../lib/filter-options';
+import { FilterChip } from './FilterChip';
+
+const _DEF_BY_KEY: Record<string, FilterDef> = Object.fromEntries(FILTER_DEFS.map((d) => [d.key, d]));
+
+// バーに出す 6 チップ（weekday は高度パネルへ移設）。emoji は旧 index.html に合わせる。
+const _BAR_CHIPS: { key: string; emoji: string; title?: string }[] = [
+  { key: 'year', emoji: '🗓️' },
+  { key: 'month', emoji: '📅' },
+  { key: 'airline', emoji: '🏢' },
+  { key: 'aircraft', emoji: '✈️' },
+  { key: 'country', emoji: '🏞️' },
+  { key: 'scope', emoji: '🌐', title: 'Domestic = same country/region, International = crosses borders' },
+];
+
+// 適用中フィルター総数（各軸の選択値数の合計）。
+function totalActiveCount(): number {
+  return FILTER_DEFS.reduce((n, def) => n + ((FilterState as unknown as Record<string, string[]>)[def.stateKey]?.length || 0), 0);
+}
+// 高度パネル内の軸で適用中の数（durationRange は 1 とカウント）。⚙ ボタンのバッジ。
+function advActiveCount(): number {
+  const FS = FilterState as unknown as Record<string, unknown[]>;
+  return _ADV_FILTER_KEYS.reduce((n, k) => n + (k === 'durationRange' ? (FS[k].length ? 1 : 0) : (FS[k]?.length || 0)), 0);
+}
+
+// フィルターバー（旧 index.html の .filter-bar ＋ main.js の toggleFilterBar / sticky shadow / back-to-top）。
+export function FilterBar({ options, onOpenAdvanced }: { options: FilterOptionsMap; onOpenAdvanced: () => void }) {
+  useFilterVersion();
+  const [collapsed, setCollapsed] = useState(true);
+  const barRef = useRef<HTMLDivElement>(null);
+  const backTopRef = useRef<HTMLButtonElement>(null);
+
+  const anyActive = filterStore.isAnyActive();
+  const totalCount = totalActiveCount();
+  const advCount = advActiveCount();
+
+  // sticky で上端に貼り付いたら影（.stuck）／スクロールで back-to-top（.show）。旧 _initFilterStickyShadow。
+  useEffect(() => {
+    let ticking = false;
+    const apply = () => {
+      ticking = false;
+      const bar = barRef.current;
+      let stuck = false;
+      if (bar) { const r = bar.getBoundingClientRect(); stuck = r.height > 0 && r.top <= 0; bar.classList.toggle('stuck', stuck); }
+      // 「上に戻る」：フィルターバーが上端に貼り付いて“ヘッダー化”したら出す
+      // （旧 scrollY>400 は route map まで下げないと出なかった）。
+      if (backTopRef.current) backTopRef.current.classList.toggle('show', stuck);
+    };
+    const onScroll = () => { if (!ticking) { ticking = true; requestAnimationFrame(apply); } };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    apply();
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  return (
+    <div ref={barRef} className={'filter-bar' + (collapsed ? ' collapsed' : '')} id="filterBar">
+      <button type="button" className="filter-toggle-btn" onClick={() => setCollapsed((v) => !v)} title="Show / hide filters">
+        <span>Filters</span>
+        {totalCount > 0 && <span className="filter-active-badge">{totalCount}</span>}
+        <span className="filter-toggle-arrow">▾</span>
+      </button>
+      <button
+        type="button" className="filter-clear filter-clear-collapsed"
+        onClick={() => filterStore.clearAll()} title="Clear all filters"
+        style={{ display: anyActive ? '' : 'none' }}
+      >✕ Clear all</button>
+      <div className="filter-chips-group">
+        {_BAR_CHIPS.map((c) => (
+          <FilterChip key={c.key} def={_DEF_BY_KEY[c.key]} emoji={c.emoji} title={c.title} dataOptions={options[c.key] || []} />
+        ))}
+        <button type="button" className={'adv-filter-btn' + (advCount > 0 ? ' active' : '')} onClick={onOpenAdvanced} title="Presets & advanced filters">
+          <span>⚙️</span>
+          <span className="adv-filter-btn-label">More</span>
+          <span className="adv-filter-plus" aria-hidden="true">＋</span>
+          {advCount > 0 && <span className="adv-filter-badge">{advCount}</span>}
+        </button>
+        <button type="button" className="filter-clear" onClick={() => filterStore.clearAll()} title="Clear all filters" style={{ display: anyActive ? '' : 'none' }}>✕ Clear all</button>
+      </div>
+      <button ref={backTopRef} type="button" className="back-to-top" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} aria-label="Back to top" title="Back to top">↑</button>
+    </div>
+  );
+}

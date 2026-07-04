@@ -1,0 +1,175 @@
+// @vitest-environment jsdom
+//
+// datasource.ts のテスト。旧版に対応する .test.html は無いため新規作成。
+// DataSource（単一境界）の CRUD・採番・重複排除・localStorage 保存/復元・購読を検証する。
+// jsdom 環境で localStorage / sessionStorage を用意し、vi.resetModules() で
+// 「タブを開き直した新規起動」を再現して load() の復元を確認する。
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import type { Flight } from './compute';
+
+type DS = typeof import('./datasource').DataSource;
+let ds: DS;
+
+// 各テストを完全に隔離：ストレージを空にし、モジュール（＝シングルトン状態）を作り直す。
+beforeEach(async () => {
+  localStorage.clear();
+  sessionStorage.clear();
+  vi.resetModules();
+  ds = (await import('./datasource')).DataSource;
+});
+
+// テスト用フライト生成ヘルパ（既定値を差分で上書き）。
+const F = (o: Partial<Flight> = {}): Flight =>
+  ({ date:'2025-01-01', dep:'RJTT', arr:'RJOO', ac:'B738', al:'ANA', t:'1h00m', ...o });
+
+describe('前提：jsdom で localStorage が使える', () => {
+  it('isStorageAvailable() === true', () => expect(ds.isStorageAvailable()).toBe(true));
+});
+
+describe('CRUD と採番', () => {
+  it('addOne → count 1・no=1・dirty', () => {
+    ds.addOne(F());
+    expect(ds.count).toBe(1);
+    expect(ds.flights[0].no).toBe(1);
+    expect(ds.dirty).toBe(true);
+  });
+
+  it('_renumber：日付昇順にソートして no を 1..n で振り直す', () => {
+    ds.addOne(F({ date:'2025-03-01' }));
+    ds.addOne(F({ date:'2025-01-01' }));
+    ds.addOne(F({ date:'2025-02-01' }));
+    expect(ds.flights.map(f => f.date)).toEqual(['2025-01-01','2025-02-01','2025-03-01']);
+    expect(ds.flights.map(f => f.no)).toEqual([1,2,3]);
+  });
+
+  it('addFlights：重複は skip して {added, duplicates} を返す', () => {
+    const a = F({ date:'2025-01-01' });
+    const b = F({ date:'2025-02-01' });
+    const { added, duplicates } = ds.addFlights([a, b, a]); // 3件目は a の重複
+    expect(added.length).toBe(2);
+    expect(duplicates.length).toBe(1);
+    expect(ds.count).toBe(2);
+  });
+
+  it('addFlights({skipDuplicates:false})：重複も追加', () => {
+    const a = F();
+    const r = ds.addFlights([a, a], { skipDuplicates: false });
+    expect(r.added.length).toBe(2);
+    expect(ds.count).toBe(2);
+  });
+
+  it('removeByIds：no で削除し、削除件数を返す', () => {
+    ds.addFlights([F({ date:'2025-01-01' }), F({ date:'2025-02-01' }), F({ date:'2025-03-01' })]);
+    const removed = ds.removeByIds([2]); // 2025-02-01
+    expect(removed).toBe(1);
+    expect(ds.count).toBe(2);
+    expect(ds.flights.map(f => f.date)).toEqual(['2025-01-01','2025-03-01']);
+    expect(ds.flights.map(f => f.no)).toEqual([1,2]); // 振り直し
+  });
+
+  it('clearAll：全消去して件数を返す', () => {
+    ds.addFlights([F({ date:'2025-01-01' }), F({ date:'2025-02-01' })]);
+    expect(ds.clearAll()).toBe(2);
+    expect(ds.count).toBe(0);
+  });
+
+  it('replaceAll：丸ごと入れ替え＋採番＋clean 化', () => {
+    ds.addOne(F());
+    ds.markDirty();
+    ds.replaceAll([F({ date:'2025-05-01' }), F({ date:'2025-04-01' })]);
+    expect(ds.count).toBe(2);
+    expect(ds.flights.map(f => f.date)).toEqual(['2025-04-01','2025-05-01']);
+    expect(ds.dirty).toBe(false); // 取り込み直後は clean
+  });
+
+  it('addAirports：新規のみ追加、既存はスキップ', () => {
+    const added1 = ds.addAirports({ ZZZZ: { lat:1, lng:2, city:'Foo', co:'Japan', ct:'Asia' } });
+    const added2 = ds.addAirports({ ZZZZ: { lat:9, lng:9, city:'Foo2', co:'Japan', ct:'Asia' } }); // 既存
+    expect(added1).toBe(1);
+    expect(added2).toBe(0);
+    expect(ds.customAirports.ZZZZ.city).toBe('Foo'); // 上書きされない
+  });
+});
+
+describe('localStorage 保存/復元（新規起動を再現）', () => {
+  it('addOne → 別インスタンスで load() すると復元される', async () => {
+    ds.addOne(F({ date:'2025-05-01', arr:'RJCC' }));
+    ds.addAirports({ ZZZZ: { lat:1, lng:2, city:'Foo', co:'Japan', ct:'Asia' } });
+
+    // タブを開き直した新規起動を再現：モジュールを作り直す（localStorage は残る）
+    vi.resetModules();
+    const fresh = (await import('./datasource')).DataSource;
+    expect(fresh.count).toBe(0); // load 前はメモリ空
+
+    const ok = await fresh.load();
+    expect(ok).toBe(true);
+    expect(fresh.count).toBe(1);
+    expect(fresh.flights[0].arr).toBe('RJCC');
+    expect(fresh.customAirports.ZZZZ.city).toBe('Foo');
+    expect(fresh.dirty).toBe(false); // 復元直後は clean
+  });
+
+  it('データ無しで load() → false', async () => {
+    const ok = await ds.load();
+    expect(ok).toBe(false);
+  });
+
+  it('hasStoredData / storedDataSummary', () => {
+    expect(ds.hasStoredData()).toBe(false);
+    ds.addFlights([F({ date:'2025-01-01' }), F({ date:'2025-07-15' })]);
+    expect(ds.hasStoredData()).toBe(true);
+    const sum = ds.storedDataSummary();
+    expect(sum?.count).toBe(2);
+    expect(sum?.latestDate).toBe('2025-07-15');
+    expect(sum?.savedAt instanceof Date).toBe(true);
+  });
+
+  it('clearStorage：保存を消す', () => {
+    ds.addOne(F());
+    expect(ds.hasStoredData()).toBe(true);
+    ds.clearStorage();
+    expect(ds.hasStoredData()).toBe(false);
+  });
+});
+
+describe('購読（React useSyncExternalStore 用）', () => {
+  it('subscribe：変更で listener が発火、unsubscribe で止まる', () => {
+    let calls = 0;
+    const unsub = ds.subscribe(() => { calls++; });
+    ds.addOne(F());
+    expect(calls).toBeGreaterThan(0);
+    const after = calls;
+    unsub();
+    ds.addOne(F({ date:'2025-02-02' }));
+    expect(calls).toBe(after); // 解除後は増えない
+  });
+
+  it('getVersion：変更のたびに増える', () => {
+    const v0 = ds.getVersion();
+    ds.addOne(F());
+    expect(ds.getVersion()).toBeGreaterThan(v0);
+  });
+});
+
+describe('ファイル名ヘルパ', () => {
+  it('sanitizeFilenamePrefix：許可外を _ に、空は null', async () => {
+    const { sanitizeFilenamePrefix } = await import('./datasource');
+    expect(sanitizeFilenamePrefix('my log!')).toBe('my_log_');
+    expect(sanitizeFilenamePrefix('   ')).toBe(null);
+    expect(sanitizeFilenamePrefix('ok-name_1')).toBe('ok-name_1');
+  });
+
+  it('buildExportFilename：prefix_YYYY-MM-DD.csv', async () => {
+    const { buildExportFilename } = await import('./datasource');
+    expect(buildExportFilename('mylog')).toMatch(/^mylog_\d{4}-\d{2}-\d{2}\.csv$/);
+  });
+
+  it('getExportPrefix / setExportPrefix：往復と既定値', async () => {
+    const mod = await import('./datasource');
+    expect(mod.getExportPrefix('flights')).toBe('flightslog'); // 既定
+    mod.setExportPrefix('flights', 'mylog');
+    expect(mod.getExportPrefix('flights')).toBe('mylog');
+    mod.setExportPrefix('flights', ''); // 空 → 既定に戻る
+    expect(mod.getExportPrefix('flights')).toBe('flightslog');
+  });
+});
