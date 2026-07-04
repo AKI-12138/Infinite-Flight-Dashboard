@@ -4,9 +4,9 @@
 
 **A beautiful flight log dashboard for [Infinite Flight](https://infiniteflight.com) pilots.**
 
-### 🚧 Live link coming soon
+### → [**Open the Dashboard**](https://infinite-flight-dashboard.vercel.app) ←
 
-*The React version isn't published yet. Until then, [run it locally](#for-developers) — it's one `npm install` away.*
+`aki-12138.github.io/Infinite-Flight-Dashboard`
 
 [English](README.md) · [日本語](README.ja.md) · [简体中文](README.zh-CN.md) · [Changelog](CHANGELOG.md) · [Report a bug](https://github.com/AKI-12138/Infinite-Flight-Dashboard/issues) · [Ideas & feedback](https://github.com/AKI-12138/Infinite-Flight-Dashboard/discussions)
 

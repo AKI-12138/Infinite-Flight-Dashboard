@@ -4,9 +4,9 @@
 
 **为 [Infinite Flight](https://infiniteflight.com) 飞行员打造的精美、飞行纪录可视化面板。**
 
-### 🚧 公开链接即将上线
+### → [**打开飞行纪录可视化面板**](https://infinite-flight-dashboard.vercel.app) ←
 
-*React 版本尚未发布。在此之前，你可以[在本地运行](#给开发者) — 只需一句 `npm install`。*
+`aki-12138.github.io/Infinite-Flight-Dashboard`
 
 [English](README.md) · [日本語](README.ja.md) · [简体中文](README.zh-CN.md) · [更新日志](CHANGELOG.md) · [报告 Bug](https://github.com/AKI-12138/Infinite-Flight-Dashboard/issues) · [意见与反馈](https://github.com/AKI-12138/Infinite-Flight-Dashboard/discussions)
 

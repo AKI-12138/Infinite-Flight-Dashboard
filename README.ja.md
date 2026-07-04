@@ -4,9 +4,9 @@
 
 **[Infinite Flight](https://infiniteflight.com) パイロットのための、フライトログダッシュボード。**
 
-### 🚧 公開リンクは近日公開
+### → [**ダッシュボードを開く**](https://infinite-flight-dashboard.vercel.app) ←
 
-*React 版はまだ公開していません。それまでは[ローカルで実行](#開発者の方へ)できます — `npm install` するだけ。*
+`aki-12138.github.io/Infinite-Flight-Dashboard`
 
 [English](README.md) · [日本語](README.ja.md) · [简体中文](README.zh-CN.md) · [変更履歴](CHANGELOG.md) · [バグ報告](https://github.com/AKI-12138/Infinite-Flight-Dashboard/issues) · [アイデア・ご意見](https://github.com/AKI-12138/Infinite-Flight-Dashboard/discussions)
 
