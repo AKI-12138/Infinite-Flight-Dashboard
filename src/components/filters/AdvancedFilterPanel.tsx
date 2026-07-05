@@ -7,20 +7,12 @@ import type { FilterOptionsMap } from '../../lib/filter-options';
 import { showToast } from '../../lib/toast';
 import { FilterChip } from './FilterChip';
 import { SavePresetModal } from './SavePresetModal';
+import { CHIP_SECTIONS } from './chip-meta';
 
 const _DEF_BY_KEY: Record<string, FilterDef> = Object.fromEntries(FILTER_DEFS.map((d) => [d.key, d]));
 
-// 高度パネルのカテゴリ構成（旧 index.html の adv-section）。key＝FILTER_DEFS の key、emoji は markup 準拠。
-type ChipSpec = { key: string; emoji: string; title?: string };
-const _SECTIONS: { label: string; chips: ChipSpec[] }[] = [
-  { label: 'Date', chips: [{ key: 'year', emoji: '🗓️' }, { key: 'month', emoji: '📅' }, { key: 'weekday', emoji: '📆' }] },
-  { label: 'Airport', chips: [{ key: 'airports', emoji: '📍' }, { key: 'depAirport', emoji: '🛫' }, { key: 'arrAirport', emoji: '🛬' }] },
-  { label: 'Cities', chips: [{ key: 'city', emoji: '🏙️' }, { key: 'depCity', emoji: '🛫' }, { key: 'arrCity', emoji: '🛬' }] },
-  { label: 'Countries / Regions', chips: [{ key: 'country', emoji: '🏞️' }, { key: 'depCountry', emoji: '🛫' }, { key: 'arrCountry', emoji: '🛬' }, { key: 'scope', emoji: '🌐', title: 'Domestic = same country/region, International = crosses borders' }] },
-  { label: 'Continents', chips: [{ key: 'continent', emoji: '🗺️' }, { key: 'depContinent', emoji: '🌍' }, { key: 'arrContinent', emoji: '🌏' }, { key: 'contScope', emoji: '🧭' }] },
-  { label: 'Aircraft / Airline', chips: [{ key: 'aircraft', emoji: '✈️' }, { key: 'airline', emoji: '🏢' }] },
-  { label: 'Time', chips: [{ key: 'duration', emoji: '⏱️' }] },
-];
+// 高度パネルのカテゴリ構成は chip-meta に集約（バーのカスタマイズと共用）。
+const _SECTIONS = CHIP_SECTIONS;
 
 // ⚙️ 高度フィルターパネル（旧 #advFilterOverlay）。プリセット＋Saved＋全軸チップ。
 // 背景クリックでは閉じない（誤操作でフィルタを失わない）。✕ / ESC / Done で閉じる。

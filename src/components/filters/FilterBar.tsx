@@ -5,18 +5,9 @@ import { filterStore } from '../../lib/filter-store';
 import { useFilterVersion } from '../../hooks/useFilterState';
 import type { FilterOptionsMap } from '../../lib/filter-options';
 import { FilterChip } from './FilterChip';
+import { CHIP_META } from './chip-meta';
 
 const _DEF_BY_KEY: Record<string, FilterDef> = Object.fromEntries(FILTER_DEFS.map((d) => [d.key, d]));
-
-// バーに出す 6 チップ（weekday は高度パネルへ移設）。emoji は旧 index.html に合わせる。
-const _BAR_CHIPS: { key: string; emoji: string; title?: string }[] = [
-  { key: 'year', emoji: '🗓️' },
-  { key: 'month', emoji: '📅' },
-  { key: 'airline', emoji: '🏢' },
-  { key: 'aircraft', emoji: '✈️' },
-  { key: 'country', emoji: '🏞️' },
-  { key: 'scope', emoji: '🌐', title: 'Domestic = same country/region, International = crosses borders' },
-];
 
 // 適用中フィルター総数（各軸の選択値数の合計）。
 function totalActiveCount(): number {
@@ -38,6 +29,8 @@ export function FilterBar({ options, onOpenAdvanced }: { options: FilterOptionsM
   const anyActive = filterStore.isAnyActive();
   const totalCount = totalActiveCount();
   const advCount = advActiveCount();
+  // 常時表示チップはユーザー設定（フェーズA）。未カスタマイズなら既定の6軸。
+  const barKeys = filterStore.getBarChips();
 
   // sticky で上端に貼り付いたら影（.stuck）／スクロールで back-to-top（.show）。旧 _initFilterStickyShadow。
   useEffect(() => {
@@ -70,9 +63,12 @@ export function FilterBar({ options, onOpenAdvanced }: { options: FilterOptionsM
         style={{ display: anyActive ? '' : 'none' }}
       >✕ Clear all</button>
       <div className="filter-chips-group">
-        {_BAR_CHIPS.map((c) => (
-          <FilterChip key={c.key} def={_DEF_BY_KEY[c.key]} emoji={c.emoji} title={c.title} dataOptions={options[c.key] || []} />
-        ))}
+        {barKeys.map((key) => {
+          const def = _DEF_BY_KEY[key];
+          const meta = CHIP_META[key];
+          if (!def || !meta) return null;
+          return <FilterChip key={key} def={def} emoji={meta.emoji} title={meta.title} dataOptions={options[key] || []} />;
+        })}
         <button type="button" className={'adv-filter-btn' + (advCount > 0 ? ' active' : '')} onClick={onOpenAdvanced} title="Presets & advanced filters">
           <span>⚙️</span>
           <span className="adv-filter-btn-label">More</span>

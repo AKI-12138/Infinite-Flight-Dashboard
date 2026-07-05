@@ -46,6 +46,49 @@ function _persistCustomPresets() {
 }
 let _customPresets: CustomPreset[] = _loadCustomPresets();
 
+// ============================ BAR CHIPS（バーの常時表示チップ・カスタマイズ） ============================
+// フェーズA：バーに常時出すフィルタチップをユーザーが選択（最大6・順序記憶）。
+// 保持するのは「FILTER_DEFS の key の順序付き配列」。表示メタ（絵文字等）は components/filters/chip-meta。
+export const MAX_BAR_CHIPS = 6;
+// 既定＝旧・静的版と同じ6チップ（未カスタマイズのユーザーは従来どおりの見た目）。
+export const DEFAULT_BAR_CHIPS = ['year', 'month', 'airline', 'aircraft', 'country', 'scope'];
+const _BAR_CHIPS_KEY = 'if-dashboard:bar-chips:v1';
+const _VALID_CHIP_KEYS = new Set(FILTER_DEFS.map((d) => d.key));
+
+// 内部表現：null＝「未カスタマイズ（既定6を使う）」、配列＝ユーザーのカスタム選択。
+// この二値を分けることで、カスタマイズ画面は「既定なら空・カスタム済みならその内容」で開ける
+// （＝既定の6つを"選択済み"として見せない）。
+// 保存値を検証：有効な key のみ・重複排除・最大6。空になったら null（＝既定）へ丸める。
+function _sanitizeBarChips(arr: unknown): string[] | null {
+  if (!Array.isArray(arr)) return null;
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const k of arr) {
+    if (typeof k === 'string' && _VALID_CHIP_KEYS.has(k) && !seen.has(k)) {
+      seen.add(k);
+      out.push(k);
+      if (out.length >= MAX_BAR_CHIPS) break;
+    }
+  }
+  return out.length ? out : null;
+}
+function _loadBarChips(): string[] | null {
+  if (!STORAGE_AVAILABLE) return null;
+  try {
+    const raw = localStorage.getItem(_BAR_CHIPS_KEY);
+    if (raw == null) return null;              // 未カスタマイズ＝既定
+    return _sanitizeBarChips(JSON.parse(raw)); // カスタマイズ済み（空・壊れは null＝既定）
+  } catch { return null; }
+}
+function _persistBarChips() {
+  if (!STORAGE_AVAILABLE) return;
+  try {
+    if (_barChips == null) localStorage.removeItem(_BAR_CHIPS_KEY); // 既定は「保存なし」で表す
+    else localStorage.setItem(_BAR_CHIPS_KEY, JSON.stringify(_barChips));
+  } catch { /* 保存できなくても致命的でない */ }
+}
+let _barChips: string[] | null = _loadBarChips();
+
 // 効いている軸だけを取り出したスナップショット（保存用）。
 function _captureFilterState(): Record<string, string[]> {
   const snap: Record<string, string[]> = {};
@@ -246,6 +289,26 @@ export const filterStore = {
   deleteCustomPreset(id: string) {
     _customPresets = _customPresets.filter((p) => p.id !== id);
     _persistCustomPresets();
+    _emit();
+  },
+
+  // ---- バーの常時表示チップ（カスタマイズ）----
+  // バー描画用：実効リスト（未カスタマイズなら既定6）。コピーを返す＝呼び出し側の誤変異を防ぐ。
+  getBarChips(): string[] { return (_barChips ?? DEFAULT_BAR_CHIPS).slice(); },
+  // カスタマイズ画面の下書き初期値用：カスタム済みならその配列、未カスタマイズなら null。
+  // （null のとき画面は空で開く＝既定6を"選択済み"として見せない）。
+  getCustomBarChips(): string[] | null { return _barChips ? _barChips.slice() : null; },
+  // 画面の Done で確定（下書きをまとめて保存）。有効 key のみ・重複排除・最大6。
+  // 空にすると null＝既定に戻る。URL/フィルタには影響しないので _emit のみ。
+  setBarChips(keys: string[]) {
+    _barChips = _sanitizeBarChips(keys); // 検証＋空→null（＝既定）
+    _persistBarChips();
+    _emit();
+  },
+  // 既定に戻す（カスタムを破棄）。
+  resetBarChips() {
+    _barChips = null;
+    _persistBarChips();
     _emit();
   },
 };

@@ -32,7 +32,7 @@ Built for IF pilots who want to actually *see* their journey: which aircraft the
 - **Beautiful charts for everything** — your top aircraft, top airlines, top routes, top airports, top countries; plus flights per year, per month, per weekday
 - **A world map of your routes** — every flight drawn as a great-circle line, your hubs and airports marked
 - **Spin your routes on a 3D globe** — auto-rotating; drag to inspect from any angle, or pause the spin
-- **Powerful filtering** — a quick bar for the essentials (year, month, airline, aircraft, country, scope) plus an **⚙ Advanced filters** panel for everything else: departure / arrival airports, cities, countries and continents, within-vs-across-continent, and flight duration (buckets or a custom range) — with searchable menus, one-click **presets**, and your own **saveable presets**. Or just click any chart bar to drill in. Built-in year-over-year comparison shows how your flying has grown
+- **Powerful filtering** — a **customizable** quick bar (pick up to 6 chips; defaults: year, month, airline, aircraft, country, scope) plus an **⚙ Advanced filters** panel for everything else: departure / arrival airports, cities, countries and continents, within-vs-across-continent, and flight duration (buckets or a custom range) — with searchable menus, one-click **presets**, and your own **saveable presets**. Or just click any chart bar to drill in. Built-in year-over-year comparison shows how your flying has grown
 - **Easy import** — paste your flight log in almost any format. The dashboard figures out dates, aircraft codes, and airline names automatically
 - **190 airports built-in** — major airports worldwide come pre-loaded; add custom ones if you fly somewhere unusual
 - **Data check** — see which airports or aircraft in your log aren't recognized (those quietly drop off the map and out of the country counts), add any missing airport in one click, and look up whether any airport is in the dataset
@@ -195,6 +195,8 @@ Filtering has two layers that work together.
 
 - 🗓 **Year** · 📅 **Month** · 🏢 **Airline** · ✈️ **Aircraft** · 🏞 **Country/Region** · 🌐 **Scope** (All / Domestic / International)
 
+**Make the bar yours** — open **⚙ Settings → 🧰 Customize filter bar** to choose which chips live on the quick bar (up to 6, from all 20 filters including departure / arrival splits). Tick the ones you want and press **Done** — nothing changes until you do; select none to fall back to the default six.
+
 **⚙ Advanced filters** — the **⚙ More** button (right of the bar) opens a panel with the full set, grouped by category:
 
 - **Airport / City / Country / Continent** — each filterable by **departure**, **arrival**, or **either**
@@ -231,8 +233,9 @@ Your choice persists across sessions.
 
 ## Data & Privacy
 
-- **100% local.** Your flights are stored in your browser's `localStorage`. There is no server, no analytics, no cookies, no third-party calls (other than CDN font/library loads).
+- **Your flight data stays on your device.** Your flights are stored in your browser's `localStorage` and are **never uploaded** — there's no server and no cloud copy of your log.
 - **No account.** No sign-up, no login.
+- **Privacy-friendly analytics only.** The site uses cookieless [Vercel Web Analytics](https://vercel.com/docs/analytics) for aggregate visitor counts and page views — no cookies, no personal data, no cross-site tracking, and it never touches your flight data.
 - **Easy backup.** Open the **≡ menu → 📤 Export** anytime to download a CSV of your flights (and optionally your custom airports).
 - **Easy migration.** Drop your exported CSV on a new device → **Import** → done.
 - **Easy wipe.** Open the **≡ menu → 🗑 Clear all** to delete everything, with a confirmation dialog.
@@ -281,7 +284,7 @@ npm test         # run the test suite (Vitest)
 - **Heavy libraries wrapped for React** — [Leaflet](https://leafletjs.com/) (2D route map), [Chart.js](https://www.chartjs.org/) (charts), [Globe.gl](https://globe.gl/) (3D globe)
 - **Single data boundary** — all reads and writes go through one `DataSource` module, so a future backend ([Supabase](https://supabase.com/) is planned) can be swapped in without touching the UI
 - **Normalization at the edge** — every input (dates, ICAO / IATA codes, aircraft, airlines) is normalized on the way in, so the internal store is always canonical
-- **Tests** — the pure logic (normalize / parse / compute / filters) is covered by Vitest
+- **Tests** — the pure logic (normalize / parse / compute / filters) plus key UI interactions are covered by Vitest + Testing Library
 
 A more detailed developer guide may come later.
 

@@ -4,6 +4,18 @@ User-facing highlights for each version of **Infinite Flight Dashboard**. The ve
 matches the number in the dashboard footer. This is a summary of notable changes — smaller or
 internal-only updates may be grouped.
 
+## v2.1 — 2026-07-05
+Make the filter bar your own.
+
+- **Customize the filter bar.** Open **⚙ Settings → 🧰 Customize filter bar** and choose which
+  filters sit on the bar for one-tap access — up to **6**, from the full set of 20 (including
+  departure / arrival splits). Everything else stays in **⚙ More**.
+- **Your order, remembered.** Chips appear in the order you tick them, and your choice is saved on
+  your device — it's still there next time you open the dashboard.
+- **Nothing changes until you're done.** Tick the filters you want and press **Done** to update the
+  bar; close without saving to leave it exactly as it was. Select none (or **↺ Clear selection**) to
+  fall back to the default six.
+
 ## v2.0 — 2026-07-02
 A big upgrade to filtering.
 

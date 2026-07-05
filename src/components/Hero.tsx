@@ -20,6 +20,7 @@ export interface HeroProps {
   onImport: () => void;
   onExport: () => void;
   onClearAll: () => void;
+  onCustomizeBar: () => void;
 }
 
 type MenuId = 'data' | 'settings' | null;
@@ -32,7 +33,7 @@ const THEME_OPT_META: Record<ThemePref, { ico: string; label: string; sub?: stri
 };
 
 export function Hero({
-  flights, theme, onAddFlight, onSearch, onDataCheck, onImport, onExport, onClearAll,
+  flights, theme, onAddFlight, onSearch, onDataCheck, onImport, onExport, onClearAll, onCustomizeBar,
 }: HeroProps) {
   const [openMenu, setOpenMenu] = useState<MenuId>(null);
   const [saveStatusOpen, setSaveStatusOpen] = useState(false);
@@ -149,6 +150,13 @@ export function Hero({
                     </button>
                   );
                 })}
+
+                <div className="header-menu-divider" role="separator"></div>
+                <div className="header-menu-label">Filter bar</div>
+                {/* バーに常時出すフィルタチップの選択（フェーズA）。 */}
+                <button className="header-menu-item" role="menuitem" onClick={() => run(onCustomizeBar)}>
+                  <span className="header-menu-ico" aria-hidden="true">🧰</span> Customize filter bar
+                </button>
 
                 <div className="header-menu-divider" role="separator"></div>
                 <div className="header-menu-label">Status</div>

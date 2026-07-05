@@ -1819,6 +1819,36 @@ body:not(.is-empty) #emptyState { display:none; }
   .adv-filter-btn-label{display:none;}  /* 狭幅では ⚙ のみ */
 }
 
+/* ===================== CUSTOMIZE FILTER BAR モーダル（フェーズA） ===================== */
+/* 高度パネルのデザイン言語を流用。各軸は「チェックボックス付きピル」で on/off するだけ
+   （フィルタの展開・適用はしない）。選択中はバー順を示す番号バッジを出す。 */
+.barcust-intro{font-size:13px;color:var(--text-2);line-height:1.6;margin:0 0 12px;}
+.barcust-count{font-size:12px;color:var(--text-3);margin:0 0 16px;}
+.barcust-count-num{font-weight:700;color:var(--text-2);}
+.barcust-count-num.is-max{color:var(--accent);}
+.barcust-chips{display:flex;flex-wrap:wrap;gap:8px;}
+.barcust-chip{
+  display:inline-flex;align-items:center;gap:8px;
+  appearance:none;padding:6px 12px;
+  background:var(--bg-card);border:1px solid var(--border);border-radius:20px;
+  font-family:'Outfit';font-size:12px;font-weight:500;color:var(--text-2);
+  cursor:pointer;transition:all 0.2s;user-select:none;
+}
+.barcust-chip:hover{border-color:var(--border-hover);color:var(--text);}
+.barcust-chip.is-on{background:rgba(var(--accent-rgb),0.12);border-color:rgba(var(--accent-rgb),0.4);color:var(--accent);}
+/* 満杯（6個）のときの未選択チップは追加不可＝薄く・カーソルで示す。 */
+.barcust-chip.is-disabled{opacity:0.4;cursor:not-allowed;}
+.barcust-chip.is-disabled:hover{border-color:var(--border);color:var(--text-2);}
+.barcust-chip .cb{width:16px;height:16px;}
+.barcust-chip.is-disabled .cb{cursor:not-allowed;}
+.barcust-chip-emoji{flex-shrink:0;}
+/* バーでの並び順を示す番号（チェックした順）。 */
+.barcust-chip-order{
+  display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;
+  min-width:16px;height:16px;padding:0 4px;border-radius:8px;
+  background:var(--accent);color:#fff;font-size:10px;font-weight:700;line-height:1;
+}
+
 /* ===================== YoY CARDS ===================== */
 .yoy-section{ max-width:1360px;margin:0 auto;padding:0 32px 16px; }
 .yoy-grid{ display:grid;grid-template-columns:repeat(4,1fr);gap:12px; }
