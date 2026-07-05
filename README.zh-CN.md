@@ -6,7 +6,7 @@
 
 ### → [**打开飞行纪录可视化面板**](https://infinite-flight-dashboard.vercel.app) ←
 
-`aki-12138.github.io/Infinite-Flight-Dashboard`
+`infinite-flight-dashboard.vercel.app`
 
 [English](README.md) · [日本語](README.ja.md) · [简体中文](README.zh-CN.md) · [更新日志](CHANGELOG.md) · [报告 Bug](https://github.com/AKI-12138/Infinite-Flight-Dashboard/issues) · [意见与反馈](https://github.com/AKI-12138/Infinite-Flight-Dashboard/discussions)
 
@@ -45,7 +45,9 @@
 
 ## 怎么开始用
 
-发布之后，你只需在任意现代浏览器打开一个链接即可 — 无需安装、无需注册。**（公开链接即将上线；在此之前请参见[给开发者](#给开发者)在本地运行。）**
+在任意现代浏览器打开这个链接即可 — 无需安装、无需注册：
+
+**→ [infinite-flight-dashboard.vercel.app](https://infinite-flight-dashboard.vercel.app)**
 
 第一次打开时，面板是空的，会显示两个按钮 — **Import CSV**（已有飞行记录的人）或 **Add your first flight**（从第一条记录开始的人）。下面这份指南会逐项介绍进入之后能做的事情。
 

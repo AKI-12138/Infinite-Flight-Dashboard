@@ -6,7 +6,7 @@
 
 ### → [**Open the Dashboard**](https://infinite-flight-dashboard.vercel.app) ←
 
-`aki-12138.github.io/Infinite-Flight-Dashboard`
+`infinite-flight-dashboard.vercel.app`
 
 [English](README.md) · [日本語](README.ja.md) · [简体中文](README.zh-CN.md) · [Changelog](CHANGELOG.md) · [Report a bug](https://github.com/AKI-12138/Infinite-Flight-Dashboard/issues) · [Ideas & feedback](https://github.com/AKI-12138/Infinite-Flight-Dashboard/discussions)
 
@@ -45,7 +45,9 @@ Built for IF pilots who want to actually *see* their journey: which aircraft the
 
 ## How to start using it
 
-Once it's published, you'll just open a link in any modern browser — no install, no signup. **(The public link is coming soon; for now, see [For developers](#for-developers) to run it locally.)**
+Just open this link in any modern browser — no install, no signup:
+
+**→ [infinite-flight-dashboard.vercel.app](https://infinite-flight-dashboard.vercel.app)**
 
 The first time you open it, you'll see an empty dashboard with two buttons — **Import CSV** (if you already have a flight log) or **Add your first flight** (start fresh). The rest of this guide explains everything you can do once you're in.
 

@@ -6,7 +6,7 @@
 
 ### → [**ダッシュボードを開く**](https://infinite-flight-dashboard.vercel.app) ←
 
-`aki-12138.github.io/Infinite-Flight-Dashboard`
+`infinite-flight-dashboard.vercel.app`
 
 [English](README.md) · [日本語](README.ja.md) · [简体中文](README.zh-CN.md) · [変更履歴](CHANGELOG.md) · [バグ報告](https://github.com/AKI-12138/Infinite-Flight-Dashboard/issues) · [アイデア・ご意見](https://github.com/AKI-12138/Infinite-Flight-Dashboard/discussions)
 
@@ -45,7 +45,9 @@ Infinite Flight のフライトログを、見やすいチャート、世界地�
 
 ## 使い始め方
 
-公開されたら、モダンブラウザでリンクを開くだけ — インストール不要・サインアップ不要になります。**（公開リンクは近日公開。それまでは[開発者の方へ](#開発者の方へ)を見てローカルで実行してください。）**
+モダンブラウザでこのリンクを開くだけ — インストール不要・サインアップ不要：
+
+**→ [infinite-flight-dashboard.vercel.app](https://infinite-flight-dashboard.vercel.app)**
 
 最初に開くと、ダッシュボードは空っぽで 2 つのボタンが表示されます — **Import CSV**（フライトログがある人）か **Add your first flight**（最初の 1 件から始める人）。以下のガイドで、入った後に何ができるかを順番に説明します。
 
