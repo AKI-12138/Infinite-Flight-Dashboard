@@ -1,5 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { DataSource, type StoredFlight } from '../lib/datasource';
+import { memoStore } from '../lib/memo-store';
+import { openFlightMemo } from '../lib/memo-events';
 import { parseMin } from '../lib/compute';
 import { fmtHM } from '../lib/format';
 import { filterFlightsByQuery } from '../lib/flight-search';
@@ -14,8 +16,8 @@ import { pushEscape } from '../lib/escape-stack';
 // フライトログテーブル（旧 render-table.js + index.html の .card.table-section）。
 // 描画・ソート・選択・検索・削除（確認つき）・フルスクリーン拡大。
 // 削除は必ず ConfirmDialog（requestConfirm）を経由する＝破壊的操作の確認を壊さない。
-const SORT_KEYS = ['no', 'date', 'dep', 'ac', 'al', 't'] as const;
-const HEADERS = ['#', 'Date', 'Route', 'Aircraft', 'Airline', 'Duration'];
+const SORT_KEYS = ['no', 'date', 'dep', 'ac', 'al', 't', 'notes'] as const;
+const HEADERS = ['#', 'Date', 'Route', 'Aircraft', 'Airline', 'Duration', 'Notes'];
 
 export function FlightLog({ flights }: { flights: StoredFlight[] }) {
   // 既定は # 降順＝直近（新しい日付）のフライトが上（旧版 render-table の sortCol=0/sortAsc=false と同じ）。
@@ -25,6 +27,8 @@ export function FlightLog({ flights }: { flights: StoredFlight[] }) {
   const [fullscreen, setFullscreen] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
   const savedScroll = useRef(0);
+  // メモの追加/削除で行の 📝 表示と Notes 列ソートを更新するための購読。
+  const memoVersion = useSyncExternalStore(memoStore.subscribe, memoStore.getVersion, memoStore.getVersion);
 
   // ヘッダ ≡「Search flights」→ 拡大して検索欄にフォーカス。
   useEffect(() => _setFocusSearchListener(() => {
@@ -63,11 +67,18 @@ export function FlightLog({ flights }: { flights: StoredFlight[] }) {
     arr.sort((a, b) => {
       if (key === 'no') return sort.asc ? a.no - b.no : b.no - a.no;
       if (key === 't') return sort.asc ? parseMin(a.t) - parseMin(b.t) : parseMin(b.t) - parseMin(a.t);
+      if (key === 'notes') {
+        // Notes 列は初回クリック（asc）で「記入あり」が上＝見たい並びを先に出す。同値は元の順（安定ソート）。
+        const av = memoStore.has(a.id) ? 1 : 0; const bv = memoStore.has(b.id) ? 1 : 0;
+        return sort.asc ? bv - av : av - bv;
+      }
       const av = String(a[key]); const bv = String(b[key]);
       return sort.asc ? av.localeCompare(bv) : bv.localeCompare(av);
     });
     return arr;
-  }, [searched, sort]);
+    // memoVersion：メモの追加/削除で Notes 列ソートを再計算（memoStore は外部ストアなので依存に含める）
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searched, sort, memoVersion]);
 
   // 選択状態（表示中の行に対して）。
   const displayedNos = rows.map((r) => r.no);
@@ -99,9 +110,12 @@ export function FlightLog({ flights }: { flights: StoredFlight[] }) {
   function clearSelection() { setSelectedIds(new Set()); }
 
   function deleteOne(f: StoredFlight) {
+    // メモ付きフライトはメモも一緒に消えることを明記（破壊的操作の確認を壊さない）。
+    const hasNote = memoStore.has(f.id);
     requestConfirm({
       title: `Delete Flight #${f.no}?`,
-      message: <>Remove <strong>{f.dep} → {f.arr}</strong> on {f.date} ({f.ac}, {f.al})?<br />This cannot be undone.</>,
+      message: <>Remove <strong>{f.dep} → {f.arr}</strong> on {f.date} ({f.ac}, {f.al})?
+        {hasNote && <><br />Its saved flight notes will be deleted too.</>}<br />This cannot be undone.</>,
       confirmLabel: '🗑️ Delete',
       onConfirm: () => { DataSource.removeByIds([f.no]); setSelectedIds(new Set()); showToast('🗑️ 1 flight deleted', 'red'); },
     });
@@ -111,9 +125,11 @@ export function FlightLog({ flights }: { flights: StoredFlight[] }) {
     const ids = [...selectedIds];
     const cnt = ids.length;
     if (cnt === 0) return;
+    const memoCnt = flights.filter((f) => selectedIds.has(f.no) && memoStore.has(f.id)).length;
     requestConfirm({
       title: `Delete ${cnt} Flight${cnt > 1 ? 's' : ''}?`,
-      message: <>This will permanently remove <strong>{cnt} flight{cnt > 1 ? 's' : ''}</strong> from your log.<br />This action cannot be undone.</>,
+      message: <>This will permanently remove <strong>{cnt} flight{cnt > 1 ? 's' : ''}</strong> from your log.
+        {memoCnt > 0 && <><br />{memoCnt} saved flight note{memoCnt > 1 ? 's' : ''} will be deleted too.</>}<br />This action cannot be undone.</>,
       confirmLabel: '🗑️ Delete',
       onConfirm: () => { DataSource.removeByIds(ids); setSelectedIds(new Set()); showToast(`🗑️ ${cnt} flights deleted`, 'red'); },
     });
@@ -188,8 +204,9 @@ export function FlightLog({ flights }: { flights: StoredFlight[] }) {
             <tbody>
               {rows.map((f) => {
                 const isSel = selectedIds.has(f.no);
+                const hasNote = memoStore.has(f.id);
                 return (
-                  <tr key={f.no} className={isSel ? 'selected' : ''}>
+                  <tr key={f.id} className={isSel ? 'selected' : ''}>
                     <td className="cb-wrap">
                       <input type="checkbox" className="cb" checked={isSel} onChange={(e) => toggleRow(f.no, e.target.checked)} />
                     </td>
@@ -199,6 +216,11 @@ export function FlightLog({ flights }: { flights: StoredFlight[] }) {
                     <td><span className="aircraft-tag">{f.ac}</span></td>
                     <td className="airline-tag">{f.al}</td>
                     <td className="time-tag">{f.t}</td>
+                    <td className="note-cell">
+                      {/* Notes 専用列：記入あり＝📝（入り口）／なし＝＋（追加）。常時表示。 */}
+                      <button className={'row-note-btn' + (hasNote ? ' has-note' : ' row-note-add')} onClick={() => openFlightMemo(f)}
+                        title={hasNote ? 'View flight notes' : 'Add flight notes'}>{hasNote ? '📝' : '+'}</button>
+                    </td>
                     <td><button className="row-delete-btn" onClick={() => deleteOne(f)} title="Delete">✕</button></td>
                   </tr>
                 );

@@ -10,9 +10,20 @@
 //   - グローバル `let flights` は廃止。読み取りは DataSource.flights か React フック経由。
 import type { Flight } from './compute';
 import { AP } from '../data/airports';
+import { memoStore } from './memo-store';
 
-// 保存されるフライトは通し番号 no を持つ（日付順に採番）。
-export interface StoredFlight extends Flight { no: number; }
+// 保存されるフライトは通し番号 no（日付順に採番＝振り直される）と、
+// 安定 ID id（追加時に一度だけ発行・以後不変）を持つ。メモ機能（memo-store）は id で紐づける
+// （no は _renumber で別フライトを指しうるため紐づけに使えない）。id は CSV には出さない。
+export interface StoredFlight extends Flight { no: number; id: string; }
+
+// 安定 ID の発行。crypto.randomUUID が無い環境（古いブラウザ・非 https）向けのフォールバック付き。
+function _newId(): string {
+  try {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
+  } catch { /* fall through */ }
+  return 'f-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+}
 // カスタム空港（内蔵 DB に無い空港。parse の manual 追加や既存カスタム）。
 export interface CustomAirport { lat: number; lng: number; city: string; co: string; ct: string; }
 export type ExportKind = 'flights' | 'airports';
@@ -173,9 +184,10 @@ export const DataSource = {
   markClean(){ _dirty = false; _notify(); },
   markDirty(){ _dirty = true;  _notify(); },
 
-  // フライト一覧を丸ごと入れ替え（フル CSV 再読込で使用）
-  replaceAll(newFlights: Flight[]){
-    _flights = newFlights.map(f => ({...f, no: 0}));
+  // フライト一覧を丸ごと入れ替え（フル CSV 再読込・フルバックアップ復元で使用）。
+  // 入力に id が付いていれば維持する（フルバックアップ復元でメモとの紐づけを保つため）。
+  replaceAll(newFlights: (Flight & { id?: string })[]){
+    _flights = newFlights.map(f => ({...f, no: 0, id: f.id || _newId()}));
     _renumber();
     _dirty = false;
     _persistAfterChange();
@@ -191,7 +203,7 @@ export const DataSource = {
       if(skipDuplicates && existing.has(_key(f))){
         duplicates.push(f);
       } else {
-        _flights.push({...f, no:0});
+        _flights.push({...f, no:0, id:_newId()});
         existing.add(_key(f));
         added.push(f);
       }
@@ -205,21 +217,27 @@ export const DataSource = {
     return {added, duplicates};
   },
 
-  addOne(f: Flight){
-    _flights.push({...f, no:0});
+  // 追加した 1 件（id 付き）を返す＝Add Flight 直後に「メモを書く」導線で使う。
+  addOne(f: Flight): StoredFlight {
+    const stored: StoredFlight = {...f, no:0, id:_newId()};
+    _flights.push(stored);
     _renumber();
     _dirty = true;
     _persistAfterChange();
     _notify();
+    return stored;
   },
 
   removeByIds(ids: number[]): number {
     const set = new Set(ids);
     const before = _flights.length;
+    // 消えるフライトのメモも道連れに削除（メモだけ残ると孤児データになる）。
+    const removedFlightIds = _flights.filter(f => set.has(f.no)).map(f => f.id);
     _flights = _flights.filter(f => !set.has(f.no));
     _renumber();
     const removed = before - _flights.length;
     if(removed){
+      memoStore.deleteMany(removedFlightIds);
       _dirty = true;
       _persistAfterChange();
     }
@@ -231,6 +249,7 @@ export const DataSource = {
     const n = _flights.length;
     _flights = [];
     if(n){
+      memoStore.clearAll();  // 全消去はメモも全消去（Clear All の意図＝丸ごとリセット）
       _dirty = true;
       _persistAfterChange();
     }
@@ -301,7 +320,9 @@ export const DataSource = {
         // 自動保存を抑止しながら一括復元（ロード中の重複書き込みを防ぐ）
         _autoSaveEnabled = false;
         _flights.length = 0;
-        arr.forEach((f: StoredFlight) => _flights.push({...f}));
+        // 旧フォーマット（id 無しで保存されたデータ）はここで id を採番＝一度きりのマイグレーション。
+        // 次の保存で id 付きで書き戻されるため、以後は同じ id が維持される。
+        arr.forEach((f: StoredFlight) => _flights.push({...f, id: f.id || _newId()}));
         _customAirports = (aps && typeof aps === 'object') ? aps : {};
         _mergeCustomIntoAP();   // 復元したカスタム空港を AP に戻す（地図・カウントへ反映）
         _renumber();
@@ -317,13 +338,14 @@ export const DataSource = {
     }
   },
 
-  // 明示的に localStorage を消す（ヘッダ Clear ボタン等から呼ばれる想定）
+  // 明示的に localStorage を消す（ヘッダ Clear ボタン等から呼ばれる想定）。メモも道連れ。
   clearStorage(){
     if(!STORAGE_AVAILABLE) return;
     try {
       localStorage.removeItem(_STORAGE_KEY_FLIGHTS);
       localStorage.removeItem(_STORAGE_KEY_AIRPORTS);
       localStorage.removeItem(_STORAGE_KEY_SAVED_AT);
+      memoStore.clearStorage();
     } catch(e) {
       console.warn('Failed to clear localStorage:', e);
     }

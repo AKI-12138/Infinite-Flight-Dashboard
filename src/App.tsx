@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { Analytics } from '@vercel/analytics/react';
-import { DataSource } from './lib/datasource';
+import { DataSource, type StoredFlight } from './lib/datasource';
+import { _setMemoOpenListener } from './lib/memo-events';
 import { useFlights } from './hooks/useDataSource';
 import { useTheme } from './hooks/useTheme';
 import { useFilterVersion } from './hooks/useFilterState';
@@ -28,12 +29,14 @@ import { BulkImportModal } from './components/modals/BulkImportModal';
 import { ExportModal } from './components/modals/ExportModal';
 import { DataCheckModal } from './components/modals/DataCheckModal';
 import { AddAirportModal } from './components/modals/AddAirportModal';
+import { FlightMemoModal } from './components/modals/FlightMemoModal';
+import { SelfCheckModal } from './components/modals/SelfCheckModal';
 
 // 手順5-1〜5-5：レイアウト外枠＋ヘッダ＋統計カード＋空状態＋ダッシュボード＋地図＋フィルターバー。
 // アプリのバージョン表記（フッター下部に表示）。旧・静的版と同じ「vX.Y」を手動で維持する。
 // ⚠️ これは旧版の cache-busting `?v=YYYYMMDD` とは無関係（キャッシュ破棄は Vite のハッシュが担当）。
 //    純粋に「ユーザーに見せるバージョン札」＝リリースの区切りで手で上げる（CHANGELOG.md の最新版と一致させる）。
-const APP_VERSION = 'v2.1';
+const APP_VERSION = 'v2.2';
 
 function App() {
   const flights = useFlights();          // DataSource 変化で自動更新（＝全フライト）
@@ -42,13 +45,16 @@ function App() {
   const [advOpen, setAdvOpen] = useState(false);
   const [customizeBarOpen, setCustomizeBarOpen] = useState(false);
   // 入力系モーダル（5-6/5-7）。import は空状態導線からサンプル差し込みで開くことがある。
-  const [modal, setModal] = useState<null | 'add' | 'import' | 'export' | 'datacheck'>(null);
+  const [modal, setModal] = useState<null | 'add' | 'import' | 'export' | 'datacheck' | 'selfcheck'>(null);
   const [importSample, setImportSample] = useState(false);
   const openImport = (sample = false) => { setImportSample(sample); setModal('import'); };
   // Add Airport は Data check の「+ Add」から上に開く（Data check は背後に残す）＝独立 state。
   const [addAirport, setAddAirport] = useState<{ open: boolean; icao: string }>({ open: false, icao: '' });
   // 復元モーダル：新セッション＋保存データありのときだけ開く（判定は module ロード時に確定）。
   const [restoreOpen, setRestoreOpen] = useState(INITIAL_RESTORE.mode === 'modal');
+  // フライトメモ：FlightLog の行 📝／Add Flight の「Add + Notes」→ memo-events 経由でここが開く。
+  const [memoFlight, setMemoFlight] = useState<StoredFlight | null>(null);
+  useEffect(() => _setMemoOpenListener(setMemoFlight), []);
 
   // 復元判定に従う。silent＝module 初期化時に同期ロード済み（restore.ts でちらつき防止）／
   // modal＝ユーザー選択待ち／none＝空状態。ここでは URL 由来のフィルタだけ初期化する。
@@ -125,6 +131,7 @@ function App() {
         onExport={() => setModal('export')}
         onClearAll={confirmDeleteAll}
         onCustomizeBar={() => setCustomizeBarOpen(true)}
+        onSelfCheck={() => setModal('selfcheck')}
       />
       {/* フィルターバーはデータがある時だけ（空状態では CSS でも隠れる）。選択肢は全件から。 */}
       {hasData && <FilterBar options={options} onOpenAdvanced={() => setAdvOpen(true)} />}
@@ -145,6 +152,8 @@ function App() {
         onAddAirport={(icao) => setAddAirport({ open: true, icao })} />
       <AddAirportModal open={addAirport.open} initialIcao={addAirport.icao}
         onClose={() => setAddAirport((s) => ({ ...s, open: false }))} />
+      <FlightMemoModal flight={memoFlight} onClose={() => setMemoFlight(null)} />
+      <SelfCheckModal open={modal === 'selfcheck'} onClose={() => setModal(null)} />
     </>
   );
 }

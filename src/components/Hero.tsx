@@ -21,6 +21,7 @@ export interface HeroProps {
   onExport: () => void;
   onClearAll: () => void;
   onCustomizeBar: () => void;
+  onSelfCheck: () => void;
 }
 
 type MenuId = 'data' | 'settings' | null;
@@ -33,7 +34,7 @@ const THEME_OPT_META: Record<ThemePref, { ico: string; label: string; sub?: stri
 };
 
 export function Hero({
-  flights, theme, onAddFlight, onSearch, onDataCheck, onImport, onExport, onClearAll, onCustomizeBar,
+  flights, theme, onAddFlight, onSearch, onDataCheck, onImport, onExport, onClearAll, onCustomizeBar, onSelfCheck,
 }: HeroProps) {
   const [openMenu, setOpenMenu] = useState<MenuId>(null);
   const [saveStatusOpen, setSaveStatusOpen] = useState(false);
@@ -178,6 +179,11 @@ export function Hero({
                     >
                       <span className="save-status-icon header-menu-ico" aria-hidden="true">{unrec > 0 ? '⚠️' : '✓'}</span>
                       <span>{unrec > 0 ? `${unrec} unrecognized` : 'All data recognized'}</span>
+                    </button>
+                    {/* セルフチェック：アプリ内診断（保存/整合性/ロジック/往復）のパネルを開く。 */}
+                    <button className="header-menu-item" id="selfCheckStatus" role="menuitem"
+                      title="Run app self-check" onClick={() => run(onSelfCheck)}>
+                      <span className="header-menu-ico" aria-hidden="true">🛠️</span> Function-test
                     </button>
                   </>
                 )}

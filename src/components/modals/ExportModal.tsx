@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { DataSource, EXPORT_PREFIX_DEFAULTS, getExportPrefix, setExportPrefix, buildExportFilename } from '../../lib/datasource';
+import { memoStore } from '../../lib/memo-store';
+import { buildFullBackup, buildBackupFilename } from '../../lib/backup';
 import { buildFlightCSV, buildAirportCSV } from '../../lib/parse';
 import { downloadTextFile } from '../../lib/download';
 import { showToast } from '../../lib/toast';
@@ -7,12 +9,16 @@ import { useModalKeyboard } from '../../hooks/useModalKeyboard';
 
 // ↓ Export（旧 #exportOverlay + executeExport）。Flight Log / Custom Airports をそれぞれ選んで DL。
 // 出力は DataSource 経由＝正規化済み（ICAO 4字・正式エアライン名）。背景クリック / ✕ / ESC で閉じる。
+// フルバックアップ（JSON）はフライト＋カスタム空港＋フライトメモを 1 ファイルに保存
+// （CSV と違いメモとの紐づけ＝内部 ID も保存されるので、復元してもメモが外れない）。
 export function ExportModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const fCount = DataSource.count;
   const aCount = Object.keys(DataSource.customAirports).length;
+  const mCount = memoStore.count;
 
   const [wantF, setWantF] = useState(true);
   const [wantA, setWantA] = useState(false);
+  const [wantB, setWantB] = useState(false);
   const [fPrefix, setFPrefix] = useState('');
   const [aPrefix, setAPrefix] = useState('');
 
@@ -21,6 +27,7 @@ export function ExportModal({ open, onClose }: { open: boolean; onClose: () => v
     if (!open) return;
     setWantF(fCount > 0);
     setWantA(aCount > 0);
+    setWantB(false);
     setFPrefix(getExportPrefix('flights'));
     setAPrefix(getExportPrefix('airports'));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -29,7 +36,7 @@ export function ExportModal({ open, onClose }: { open: boolean; onClose: () => v
   if (!open) return null;
 
   function execute() {
-    if (!wantF && !wantA) { showToast('Select at least one file', 'red'); return; }
+    if (!wantF && !wantA && !wantB) { showToast('Select at least one file', 'red'); return; }
     setExportPrefix('flights', fPrefix);
     setExportPrefix('airports', aPrefix);
     let n = 0;
@@ -44,7 +51,13 @@ export function ExportModal({ open, onClose }: { open: boolean; onClose: () => v
         n++;
       }
     }
-    if (wantF) DataSource.markClean();
+    if (wantB && fCount > 0) {
+      downloadTextFile(buildBackupFilename(),
+        buildFullBackup(DataSource.flights, DataSource.customAirports, memoStore.all()),
+        'application/json;charset=utf-8;');
+      n++;
+    }
+    if (wantF || wantB) DataSource.markClean();
     onClose();
     if (n > 0) showToast(`✓ Exported ${n} file${n > 1 ? 's' : ''}`);
   }
@@ -85,6 +98,20 @@ export function ExportModal({ open, onClose }: { open: boolean; onClose: () => v
             <input type="text" className="export-filename-input" maxLength={40} placeholder="airports"
               autoComplete="off" spellCheck={false} value={aPrefix} onChange={(e) => setAPrefix(e.target.value)} />
             <span className="export-filename-preview">{buildExportFilename(aPrefix)}</span>
+          </div>
+
+          <label className="export-option">
+            <input type="checkbox" className="cb" checked={wantB} disabled={fCount === 0} onChange={(e) => setWantB(e.target.checked)} />
+            <span className="export-option-text">
+              <strong>Full Backup (JSON)</strong>
+              <span className="export-option-detail">
+                {fCount} flight{fCount === 1 ? '' : 's'} + {mCount} note{mCount === 1 ? '' : 's'} + {aCount} airport{aCount === 1 ? '' : 's'} · restore via Import
+              </span>
+            </span>
+          </label>
+          <div className="export-filename-row">
+            <span className="export-filename-label">File:</span>
+            <span className="export-filename-preview">{buildBackupFilename()}</span>
           </div>
 
           <div className="modal-actions">

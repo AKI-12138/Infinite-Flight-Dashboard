@@ -91,6 +91,65 @@ describe('CRUD と採番', () => {
   });
 });
 
+describe('安定 ID（メモ機能の紐づけ基盤）', () => {
+  it('addOne / addFlights / replaceAll：全フライトに一意な id が付く', () => {
+    ds.addOne(F({ date:'2025-01-01' }));
+    ds.addFlights([F({ date:'2025-02-01' }), F({ date:'2025-03-01' })]);
+    const ids = ds.flights.map(f => f.id);
+    expect(ids.every(id => typeof id === 'string' && id.length > 0)).toBe(true);
+    expect(new Set(ids).size).toBe(3); // 一意
+  });
+
+  it('addOne は id 付きの StoredFlight を返す（Add + Notes 導線用）', () => {
+    const stored = ds.addOne(F());
+    expect(stored.id).toBeTruthy();
+    expect(ds.flights[0].id).toBe(stored.id);
+  });
+
+  it('_renumber で no が振り直されても id は変わらない', () => {
+    const a = ds.addOne(F({ date:'2025-03-01' }));
+    ds.addOne(F({ date:'2025-01-01' })); // 追加で a の no は 1→2 にずれる
+    const after = ds.flights.find(f => f.id === a.id)!;
+    expect(after.no).toBe(2);
+    expect(after.id).toBe(a.id);
+  });
+
+  it('replaceAll：入力に id があれば維持する（フルバックアップ復元）', () => {
+    ds.replaceAll([{ ...F(), id: 'keep-me' }]);
+    expect(ds.flights[0].id).toBe('keep-me');
+  });
+
+  it('load()：id 無しの旧データにも id を採番する（マイグレーション）', async () => {
+    // 旧フォーマット（id 無し）を直接 localStorage に置いて復元させる
+    localStorage.setItem('if-dashboard:flights:v1', JSON.stringify([{ ...F(), no: 1 }]));
+    vi.resetModules();
+    const fresh = (await import('./datasource')).DataSource;
+    await fresh.load();
+    expect(fresh.flights[0].id).toBeTruthy();
+  });
+});
+
+describe('メモとの削除連動', () => {
+  it('removeByIds：消えたフライトのメモも消える（残った便のメモは残る）', async () => {
+    const { memoStore } = await import('./memo-store');
+    const a = ds.addOne(F({ date:'2025-01-01' }));
+    const b = ds.addOne(F({ date:'2025-02-01' }));
+    memoStore.save(a.id, { notes: 'A' });
+    memoStore.save(b.id, { notes: 'B' });
+    ds.removeByIds([a.no]);
+    expect(memoStore.has(a.id)).toBe(false);
+    expect(memoStore.has(b.id)).toBe(true);
+  });
+
+  it('clearAll：メモも全消去', async () => {
+    const { memoStore } = await import('./memo-store');
+    const a = ds.addOne(F());
+    memoStore.save(a.id, { notes: 'A' });
+    ds.clearAll();
+    expect(memoStore.count).toBe(0);
+  });
+});
+
 describe('localStorage 保存/復元（新規起動を再現）', () => {
   it('addOne → 別インスタンスで load() すると復元される', async () => {
     ds.addOne(F({ date:'2025-05-01', arr:'RJCC' }));

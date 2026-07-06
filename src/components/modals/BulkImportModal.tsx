@@ -1,9 +1,12 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { DataSource } from '../../lib/datasource';
+import { memoStore } from '../../lib/memo-store';
 import { AP } from '../../data/airports';
 import { parseBulkFlights, parseBulkAirports } from '../../lib/parse';
+import { parseFullBackup, looksLikeBackup } from '../../lib/backup';
 import { SAMPLE_FLIGHT_CSV, SAMPLE_AIRPORT_CSV } from '../../data/sample';
 import { downloadTextFile } from '../../lib/download';
+import { requestConfirm } from '../../lib/confirm';
 import { showToast } from '../../lib/toast';
 import { useModalKeyboard } from '../../hooks/useModalKeyboard';
 
@@ -11,6 +14,8 @@ type Tab = 'flights' | 'airports';
 
 // 📥 Bulk Import（旧 #bulkOverlay + executeBulkImport / preview*）。Flights / Airports の2タブ。
 // ファイル選択・Paste・サンプル読込・DL・プレビュー・重複排除つき取込。背景クリックでは閉じない。
+// Flights タブはフルバックアップ JSON（Export の Full Backup で保存したもの）も自動判別し、
+// その場合は「丸ごと復元（現在のデータを置き換え・メモの紐づけも復元）」として動く。
 export function BulkImportModal({ open, onClose, initialSample }: { open: boolean; onClose: () => void; initialSample?: boolean }) {
   const [tab, setTab] = useState<Tab>('flights');
   const [flightsText, setFlightsText] = useState('');
@@ -38,7 +43,10 @@ export function BulkImportModal({ open, onClose, initialSample }: { open: boolea
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  const fParsed = useMemo(() => (flightsText.trim() ? parseBulkFlights(flightsText) : []), [flightsText]);
+  // フルバックアップ JSON の自動判別（Flights タブのみ）。backupLike=それらしいが壊れている場合の表示用。
+  const backupLike = looksLikeBackup(flightsText);
+  const backup = useMemo(() => (backupLike ? parseFullBackup(flightsText) : null), [backupLike, flightsText]);
+  const fParsed = useMemo(() => (flightsText.trim() && !backupLike ? parseBulkFlights(flightsText) : []), [flightsText, backupLike]);
   const aParsed = useMemo(() => (airportsText.trim() ? parseBulkAirports(airportsText, DataSource.customAirports) : []), [airportsText]);
 
   if (!open) return null;
@@ -70,8 +78,32 @@ export function BulkImportModal({ open, onClose, initialSample }: { open: boolea
     }
   }
 
+  // フルバックアップの復元：現在のフライト・メモを丸ごと置き換える（破壊的＝必ず確認を出す）。
+  // フライトは id 付きで復元されるのでメモとの紐づけが保たれる。カスタム空港は追加マージ（既存は残す）。
+  function restoreBackup() {
+    if (!backup) { alert('This JSON is not a valid Infinite Flight Dashboard backup file.'); return; }
+    const b = backup;
+    const cur = DataSource.count;
+    const noteCnt = Object.keys(b.memos).length;
+    requestConfirm({
+      title: 'Restore Full Backup?',
+      message: <>This will <strong>replace your current {cur} flight{cur === 1 ? '' : 's'} and all flight notes</strong> with
+        the backup ({b.flights.length} flight{b.flights.length === 1 ? '' : 's'}, {noteCnt} note{noteCnt === 1 ? '' : 's'}
+        {b.exportedAt ? `, saved ${b.exportedAt.slice(0, 10)}` : ''}).<br />This cannot be undone.</>,
+      confirmLabel: '↺ Restore',
+      onConfirm: () => {
+        DataSource.replaceAll(b.flights);
+        DataSource.addAirports(b.customAirports);
+        memoStore.replaceAll(b.memos);
+        onClose();
+        showToast(`✓ Backup restored — ${b.flights.length} flight${b.flights.length === 1 ? '' : 's'}, ${noteCnt} note${noteCnt === 1 ? '' : 's'}`);
+      },
+    });
+  }
+
   function importNow() {
     if (tab === 'flights') {
+      if (backupLike) { restoreBackup(); return; }
       const valid = fParsed.filter((r) => r.valid);
       if (valid.length === 0) { alert('No valid flights to import.'); return; }
       const unknownAPs = new Set<string>();
@@ -132,12 +164,13 @@ export function BulkImportModal({ open, onClose, initialSample }: { open: boolea
               onPaste={() => paste('flights')}
               onSample={() => { setFlightsText(SAMPLE_FLIGHT_CSV); showToast('👀 Sample data loaded — review it, then click Import'); }}
               onDownloadSample={() => { downloadTextFile('IF_Flight_Log_sample.csv', SAMPLE_FLIGHT_CSV); showToast('⬇️ Sample CSV downloaded'); }}
-              accept=".csv,.tsv,.txt"
+              accept=".csv,.tsv,.txt,.json"
+              fileButtonLabel="📂 Select CSV / backup file"
               placeholder={FLIGHTS_PLACEHOLDER}
               textRef={fTextRef}
               hint={<FlightsHint />}
-              count={<FlightsCount parsed={fParsed} />}
-              preview={<FlightsPreview parsed={fParsed} />}
+              count={backupLike ? <BackupSummary backup={backup} /> : <FlightsCount parsed={fParsed} />}
+              preview={backupLike ? null : <FlightsPreview parsed={fParsed} />}
             />
           ) : (
             <BulkTab
@@ -156,7 +189,9 @@ export function BulkImportModal({ open, onClose, initialSample }: { open: boolea
 
           <div className="modal-actions" style={{ marginTop: 16 }}>
             <button className="btn-outline" onClick={onClose}>Cancel</button>
-            <button className="btn-primary" onClick={importNow}>{isAir ? 'Import Airports' : 'Import Flights'}</button>
+            <button className="btn-primary" onClick={importNow}>
+              {isAir ? 'Import Airports' : (backupLike ? '↺ Restore Backup' : 'Import Flights')}
+            </button>
           </div>
         </div>
       </div>
@@ -165,17 +200,18 @@ export function BulkImportModal({ open, onClose, initialSample }: { open: boolea
 }
 
 // 1タブ分の共通レイアウト（ファイル/Paste/サンプル/textarea/hint/count/preview）。
-function BulkTab({ text, setText, fileName, fileRef, onFile, onPaste, onSample, onDownloadSample, accept, placeholder, textRef, hint, count, preview }: {
+// fileButtonLabel：Flights タブはバックアップ JSON も受けるのでボタン文言を差し替えられるようにする。
+function BulkTab({ text, setText, fileName, fileRef, onFile, onPaste, onSample, onDownloadSample, accept, fileButtonLabel = '📂 Select CSV file', placeholder, textRef, hint, count, preview }: {
   text: string; setText: (v: string) => void; fileName: string;
   fileRef: React.RefObject<HTMLInputElement | null>; onFile: (f: File | undefined) => void;
   onPaste: () => void; onSample: () => void; onDownloadSample: () => void;
-  accept: string; placeholder: string; textRef?: React.RefObject<HTMLTextAreaElement | null>;
+  accept: string; fileButtonLabel?: string; placeholder: string; textRef?: React.RefObject<HTMLTextAreaElement | null>;
   hint: React.ReactNode; count: React.ReactNode; preview: React.ReactNode;
 }) {
   return (
     <div>
       <div className="file-upload-row">
-        <button type="button" className="file-upload-btn" onClick={() => fileRef.current?.click()}>📂 Select CSV file</button>
+        <button type="button" className="file-upload-btn" onClick={() => fileRef.current?.click()}>{fileButtonLabel}</button>
         <input ref={fileRef} type="file" accept={accept} style={{ display: 'none' }}
           onChange={(e) => onFile(e.target.files?.[0])} />
         <span className="file-upload-name">{fileName}</span>
@@ -200,6 +236,28 @@ function BulkTab({ text, setText, fileName, fileRef, onFile, onPaste, onSample, 
   );
 }
 
+// ---- Full backup: 判別時のサマリー（CSV の件数表示の代わりに出す） ----
+function BackupSummary({ backup }: { backup: ReturnType<typeof parseFullBackup> }) {
+  if (!backup) {
+    return (
+      <div className="bulk-count" style={{ display: 'flex' }}>
+        <span className="invalid">✕ Looks like a backup JSON, but it's not valid — re-export it and try again</span>
+      </div>
+    );
+  }
+  const noteCnt = Object.keys(backup.memos).length;
+  const apCnt = Object.keys(backup.customAirports).length;
+  return (
+    <div className="bulk-count" style={{ display: 'flex' }}>
+      <span className="valid">💾 Full backup detected</span>
+      <span>✈️ {backup.flights.length} flight{backup.flights.length === 1 ? '' : 's'}</span>
+      <span>📝 {noteCnt} note{noteCnt === 1 ? '' : 's'}</span>
+      <span>🛬 {apCnt} custom airport{apCnt === 1 ? '' : 's'}</span>
+      {backup.exportedAt && <span style={{ color: 'var(--text-3)' }}>saved {backup.exportedAt.slice(0, 10)}</span>}
+    </div>
+  );
+}
+
 // ---- Flights: hint / count / preview ----
 function FlightsHint() {
   return (
@@ -209,7 +267,8 @@ function FlightsHint() {
       Date: <code>2025-06-01</code> <code>2025/6/1</code> <code>25-06-01</code> <code>20250601</code> — all OK<br />
       Time: <code>1h30m</code> <code>1:30</code> <code>90m</code> <code>1h30</code> <code>1.5h</code> — all OK<br />
       📋 Paste an exported CSV directly (comment lines <code>#</code> and header are auto-skipped)<br />
-      🔁 Duplicate flights (same date, route, aircraft, airline, time) are removed automatically
+      🔁 Duplicate flights (same date, route, aircraft, airline, time) are removed automatically<br />
+      💾 <strong>Full Backup (JSON)</strong> from Export works here too — auto-detected, restores flights <em>and</em> their notes
     </div>
   );
 }

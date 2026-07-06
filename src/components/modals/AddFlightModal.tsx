@@ -2,6 +2,7 @@ import { useState, useEffect, type KeyboardEvent } from 'react';
 import { DataSource } from '../../lib/datasource';
 import type { Flight } from '../../lib/compute';
 import { normalizeAirport, normalizeAircraft, normalizeAirline, normalizeTime } from '../../lib/normalize';
+import { openFlightMemo } from '../../lib/memo-events';
 import { showToast } from '../../lib/toast';
 import { useModalKeyboard } from '../../hooks/useModalKeyboard';
 import { AutocompleteInput } from './AutocompleteInput';
@@ -38,7 +39,9 @@ export function AddFlightModal({ open, onClose, flights }: { open: boolean; onCl
     }
   };
 
-  function submit() {
+  // withNotes=true は「Add + Notes」：追加した直後にそのフライトのメモパネルを開く
+  // （メモは保存済みフライトの id に紐づくため、必ず「保存 → メモ」の順になる）。
+  function submit(withNotes = false) {
     const depN = normalizeAirport(dep) || '';
     const arrN = normalizeAirport(arr) || '';
     const acN = normalizeAircraft(aircraft) || '';
@@ -50,10 +53,11 @@ export function AddFlightModal({ open, onClose, flights }: { open: boolean; onCl
     if (!date || !depN || !arrN || !acN || !alN || (h === 0 && m === 0)) { alert('Please fill in all fields.'); return; }
     const combined = `${h}h${String(m).padStart(2, '0')}m`;
     const t = normalizeTime(combined) || combined;
-    DataSource.addOne({ date, dep: depN, arr: arrN, ac: acN, al: alN, t });
+    const stored = DataSource.addOne({ date, dep: depN, arr: arrN, ac: acN, al: alN, t });
     reset();
     onClose();
     showToast('✓ Flight added successfully');
+    if (withNotes) openFlightMemo(stored);
   }
 
   return (
@@ -95,7 +99,9 @@ export function AddFlightModal({ open, onClose, flights }: { open: boolean; onCl
           </div>
           <div className="modal-actions">
             <button className="btn-outline" onClick={onClose}>Cancel</button>
-            <button className="btn-primary" onClick={submit}>Add Flight</button>
+            {/* 追加してそのまま詳細メモ（v-speed・時刻・燃料など）を書く導線 */}
+            <button className="btn-outline" onClick={() => submit(true)} title="Add this flight, then write detailed notes for it">📝 Add + Notes</button>
+            <button className="btn-primary" onClick={() => submit()}>Add Flight</button>
           </div>
         </div>
       </div>

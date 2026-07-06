@@ -1,7 +1,7 @@
-// ブラウザでテキストを .csv 等としてダウンロードさせる（旧 parse.js の _download）。
+// ブラウザでテキストを .csv / .json 等としてダウンロードさせる（旧 parse.js の _download）。
 // Blob + object URL + 一時 <a> クリック。UI 層専用（DOM 依存なのでロジック層には置かない）。
-export function downloadTextFile(filename: string, content: string): void {
-  const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+export function downloadTextFile(filename: string, content: string, mime = 'text/csv;charset=utf-8;'): void {
+  const blob = new Blob([content], { type: mime });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;

@@ -36,12 +36,23 @@ function computeItems(type: ACType, value: string, flights: Flight[]): ACItem[] 
   return data.filter((d) => d.code.toUpperCase().includes(q) || d.detail.toUpperCase().includes(q)).slice(0, 10);
 }
 
+// 汎用候補（suggestions 指定時）：与えられた文字列リストから入力で絞る。
+// Add Flight の固定 4 種（空港/機材/…）と違い、呼び出し側が候補を自由に組める（メモの「過去の入力値」用）。
+function computeFromSuggestions(suggestions: string[], value: string): ACItem[] {
+  const q = value.toUpperCase().trim();
+  const hits = q.length === 0
+    ? suggestions.slice(0, 8)
+    : suggestions.filter((s) => s.toUpperCase().includes(q) && s !== value).slice(0, 8);
+  return hits.map((s) => ({ code: s, detail: '' }));
+}
+
 export interface AutocompleteInputProps {
   id: string;
-  type: ACType;
+  type?: ACType;               // suggestions を使う場合は省略可
   value: string;
   onChange: (v: string) => void;
-  flights: Flight[];
+  flights?: Flight[];          // type 使用時のみ必要
+  suggestions?: string[];      // 汎用候補（指定時は type/flights より優先）
   label?: string;
   wrapClassName?: string;      // 既定 'form-group ac-wrap'
   placeholder?: string;
@@ -51,8 +62,9 @@ export interface AutocompleteInputProps {
 }
 
 // Add Flight フォーム用の autocomplete 入力（旧 render.js の acUpdate/_acShow/acSelect/acHide の React 化）。
+// suggestions を渡すと汎用の「候補つきテキスト入力」としても使える（フライトメモの過去値候補）。
 export function AutocompleteInput({
-  id, type, value, onChange, flights,
+  id, type, value, onChange, flights = [], suggestions,
   label, wrapClassName = 'form-group ac-wrap', placeholder, maxLength, inputMode, uppercase,
 }: AutocompleteInputProps) {
   const [open, setOpen] = useState(false);
@@ -62,7 +74,7 @@ export function AutocompleteInput({
   const listRef = useRef<HTMLDivElement>(null);
 
   const refresh = (v: string) => {
-    const next = computeItems(type, v, flights);
+    const next = suggestions ? computeFromSuggestions(suggestions, v) : (type ? computeItems(type, v, flights) : []);
     setItems(next);
     setOpen(next.length > 0);
     setActive(-1); // 入力が変わったらハイライトをリセット
@@ -114,7 +126,8 @@ export function AutocompleteInput({
 
   return (
     <div className={wrapClassName}>
-      {label && <span className="form-label">{label}</span>}
+      {/* label 要素で入力と紐づけ（クリックでフォーカス・スクリーンリーダー・テストの getByLabelText） */}
+      {label && <label className="form-label" htmlFor={id}>{label}</label>}
       <input
         ref={inputRef}
         id={id}
