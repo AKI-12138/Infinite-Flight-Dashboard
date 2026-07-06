@@ -257,7 +257,7 @@ function FlightsPreview({ parsed }: { parsed: ReturnType<typeof parseBulkFlights
 function AirportsHint() {
   return (
     <div className="bulk-hint">
-      <strong>Quick mode:</strong> enter ICAO codes only → auto-resolved from built-in DB (190 airports)<br />
+      <strong>Quick mode:</strong> enter ICAO codes only → auto-resolved from built-in DB (hundreds of airports)<br />
       <strong>Manual mode (6 columns):</strong> <code>icao,lat,lng,city,country,continent</code> — for airports not in the DB<br />
       Separators: <code>,</code> / <code>、</code> / TAB — all OK<br />
       📋 Lines starting with <code>#</code> are comments (ignored)
@@ -314,7 +314,7 @@ date,dep,arr,aircraft,airline,duration
 # Separators: comma (,) / Japanese comma (、) / TAB are all accepted`;
 
 const AIRPORTS_PLACEHOLDER = `# IF_Airports v1
-# Quick mode: just ICAO codes (auto-resolved from built-in DB of 190 airports)
+# Quick mode: just ICAO codes (auto-resolved from built-in DB of hundreds of airports)
 RJNK
 RKPC
 KJFK

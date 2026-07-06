@@ -34,7 +34,7 @@ Built for IF pilots who want to actually *see* their journey: which aircraft the
 - **Spin your routes on a 3D globe** — auto-rotating; drag to inspect from any angle, or pause the spin
 - **Powerful filtering** — a **customizable** quick bar (pick up to 6 chips; defaults: year, month, airline, aircraft, country, scope) plus an **⚙ Advanced filters** panel for everything else: departure / arrival airports, cities, countries and continents, within-vs-across-continent, and flight duration (buckets or a custom range) — with searchable menus, one-click **presets**, and your own **saveable presets**. Or just click any chart bar to drill in. Built-in year-over-year comparison shows how your flying has grown
 - **Easy import** — paste your flight log in almost any format. The dashboard figures out dates, aircraft codes, and airline names automatically
-- **190 airports built-in** — major airports worldwide come pre-loaded; add custom ones if you fly somewhere unusual
+- **Hundreds of airports built-in** — major airports worldwide come pre-loaded; add custom ones if you fly somewhere unusual
 - **Data check** — see which airports or aircraft in your log aren't recognized (those quietly drop off the map and out of the country counts), add any missing airport in one click, and look up whether any airport is in the dataset
 - **Quick search** — find specific flights instantly with simple queries like `RJTT→KJFK B77W 2025`
 - **Light and dark themes** — pick one, or let it follow your phone's setting
@@ -104,7 +104,7 @@ Click **Add Flight** to save.
 
 ### Adding a custom airport
 
-The app ships with **190 airports** built-in (major hubs worldwide). If you fly to a minor or military field that's not recognized, you'll see "Unknown airport" markers on the map. To fix that, add the airport manually.
+The app ships with **hundreds of airports** built-in (major hubs worldwide). If you fly to a minor or military field that's not recognized, you'll see "Unknown airport" markers on the map. To fix that, add the airport manually.
 
 **The easy way (one airport):** open the **≡ menu → 🩺 Data check**, find the unrecognized airport in the list, and click **+ Add**. A small form opens with the ICAO code already filled in — enter the coordinates, city, country, and continent, then save. There's a link right in the form to look the coordinates up.
 
