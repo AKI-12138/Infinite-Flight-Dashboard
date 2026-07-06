@@ -151,31 +151,36 @@ export function Hero({
                   );
                 })}
 
-                <div className="header-menu-divider" role="separator"></div>
-                <div className="header-menu-label">Filter bar</div>
-                {/* バーに常時出すフィルタチップの選択（フェーズA）。 */}
-                <button className="header-menu-item" role="menuitem" onClick={() => run(onCustomizeBar)}>
-                  <span className="header-menu-ico" aria-hidden="true">🧰</span> Customize filter bar
-                </button>
+                {/* 空状態（データ未読み込み）では Filter bar / Status を隠し、テーマ切替のみにする。 */}
+                {allFlights.length > 0 && (
+                  <>
+                    <div className="header-menu-divider" role="separator"></div>
+                    <div className="header-menu-label">Filter bar</div>
+                    {/* バーに常時出すフィルタチップの選択（フェーズA）。 */}
+                    <button className="header-menu-item" role="menuitem" onClick={() => run(onCustomizeBar)}>
+                      <span className="header-menu-ico" aria-hidden="true">🧰</span> Customize filter bar
+                    </button>
 
-                <div className="header-menu-divider" role="separator"></div>
-                <div className="header-menu-label">Status</div>
-                {/* 保存ステータス：クリックで詳細ポップアップ。状態で色（is-error/is-disabled）を切替。 */}
-                <button
-                  className={'header-menu-item is-status' + saveMeta.cls} id="saveStatus" role="menuitem"
-                  title="Click for details" onClick={() => run(() => setSaveStatusOpen(true))}
-                >
-                  <span className="save-status-icon header-menu-ico" aria-hidden="true">{saveMeta.ico}</span>
-                  <span>{saveMeta.label}</span>
-                </button>
-                {/* データ収録ステータス：全部収録済み＝緑✓／未収録あり＝⚠️ N。クリックで Data check。 */}
-                <button
-                  className={'header-menu-item is-status' + (unrec > 0 ? ' is-warn' : '')} id="dataStatus" role="menuitem"
-                  title="Open data check" onClick={() => run(onDataCheck)}
-                >
-                  <span className="save-status-icon header-menu-ico" aria-hidden="true">{unrec > 0 ? '⚠️' : '✓'}</span>
-                  <span>{unrec > 0 ? `${unrec} unrecognized` : 'All data recognized'}</span>
-                </button>
+                    <div className="header-menu-divider" role="separator"></div>
+                    <div className="header-menu-label">Status</div>
+                    {/* 保存ステータス：クリックで詳細ポップアップ。状態で色（is-error/is-disabled）を切替。 */}
+                    <button
+                      className={'header-menu-item is-status' + saveMeta.cls} id="saveStatus" role="menuitem"
+                      title="Click for details" onClick={() => run(() => setSaveStatusOpen(true))}
+                    >
+                      <span className="save-status-icon header-menu-ico" aria-hidden="true">{saveMeta.ico}</span>
+                      <span>{saveMeta.label}</span>
+                    </button>
+                    {/* データ収録ステータス：全部収録済み＝緑✓／未収録あり＝⚠️ N。クリックで Data check。 */}
+                    <button
+                      className={'header-menu-item is-status' + (unrec > 0 ? ' is-warn' : '')} id="dataStatus" role="menuitem"
+                      title="Open data check" onClick={() => run(onDataCheck)}
+                    >
+                      <span className="save-status-icon header-menu-ico" aria-hidden="true">{unrec > 0 ? '⚠️' : '✓'}</span>
+                      <span>{unrec > 0 ? `${unrec} unrecognized` : 'All data recognized'}</span>
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           </div>
