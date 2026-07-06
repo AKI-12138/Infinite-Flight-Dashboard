@@ -200,6 +200,7 @@ export const AP: Record<string, AirportEntry> = {
   LIMC:{iata:"MXP",lat:45.6306,lng:8.7231,city:"Milan(MXP)",co:"Italy",ct:"Europe"},
   LIML:{iata:"LIN",lat:45.4494,lng:9.2783,city:"Milan(LIN)",co:"Italy",ct:"Europe"},
   LIRF:{iata:"FCO",lat:41.8003,lng:12.2389,city:"Rome(FCO)",co:"Italy",ct:"Europe"},
+  LIRN:{iata:"NAP",lat:40.8844,lng:14.2908,city:"Napoli",co:"Italy",ct:"Europe"},
   LICC:{iata:"CTA",lat:37.4666,lng:15.0638,city:"Catania",co:"Italy",ct:"Europe"},
   LKPR:{iata:"PRG",lat:50.1008,lng:14.2600,city:"Prague",co:"Czech Republic",ct:"Europe"},
   LOWW:{iata:"VIE",lat:48.1103,lng:16.5697,city:"Vienna",co:"Austria",ct:"Europe"},
