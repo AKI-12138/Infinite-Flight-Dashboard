@@ -24,8 +24,6 @@ dist-ssr
 *.sw?
 .gstack/
 
-# 内部資料（公開 repo では非表示・ローカル/開発用）。公開切替に伴い追跡解除（2026-07-05）。
-# CLAUDE.md = Claude 用の長期前提 / docs/ = VISION・PLAN・HISTORY・恒久リファレンス等 / .claude/ = Claude Code 設定
 CLAUDE.md
 docs/
 .claude/
