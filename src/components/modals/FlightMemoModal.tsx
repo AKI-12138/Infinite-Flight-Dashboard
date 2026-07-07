@@ -179,7 +179,7 @@ function MemoEditForm({ flight, draft, setField }: {
   flight: StoredFlight; draft: Record<string, string>; setField: (k: string, v: string) => void;
 }) {
   // 過去の入力値からの候補（開いている間は固定＝編集中の値で候補が揺れない）。
-  const suggestionMap = useMemo(() => buildSuggestionMap(flight), [flight]);
+  const suggestionMap = useMemo(() => buildSuggestionMap(), [flight]);
   return (
     <div>
       {MEMO_SECTIONS.map((sec, i) => (
@@ -213,10 +213,61 @@ function MemoInput({ def, value, suggestions, onChange }: {
       </div>
     );
   }
+  // 日付：Add Flight の Date と同じネイティブ日付ピッカー（カレンダー UI・値は YYYY-MM-DD）。
+  if (def.type === 'date') {
+    return (
+      <div className={'form-group' + (def.half ? '' : ' memo-full')}>
+        <label className="form-label" htmlFor={id}>{label}</label>
+        <input id={id} type="date" className="form-input" value={value} onChange={(e) => onChange(e.target.value)} />
+      </div>
+    );
+  }
+  // 時刻（HH:MM）／所要時間（h+m）：Add Flight の Flight Time と同じ「2箱＋固定候補」。
+  if (def.type === 'clock' || def.type === 'duration') {
+    return <MemoTimePair def={def} label={label} value={value} onChange={onChange} />;
+  }
   return (
     <AutocompleteInput id={id} label={label} value={value} onChange={onChange}
       suggestions={suggestions} placeholder={def.placeholder}
       wrapClassName={'form-group ac-wrap' + (def.half ? '' : ' memo-full')} />
+  );
+}
+
+// 時刻/所要時間の2箱入力。表示中は箱ごとのローカル値（入力の自由度優先）、
+// draft へは常に正準形（clock "09:15"／duration "1h05m"・"12m"）で書き戻す。
+// Cancel 復帰などで外から value が変わったときはローカルを作り直す。
+function MemoTimePair({ def, label, value, onChange }: {
+  def: MemoFieldDef; label: string; value: string; onChange: (v: string) => void;
+}) {
+  const isClock = def.type === 'clock';
+  const split = isClock ? splitClock : splitDuration;
+  const combine = isClock ? combineClock : combineDuration;
+  const [a, setA] = useState(() => split(value)[0]);
+  const [b, setB] = useState(() => split(value)[1]);
+  // 外部からの値変更（Cancel の巻き戻し・別フライトへの切替）と同期する。
+  useEffect(() => {
+    if (combine(a, b) !== (value || '')) {
+      const [na, nb] = split(value);
+      setA(na); setB(nb);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value]);
+  const update = (na: string, nb: string) => { setA(na); setB(nb); onChange(combine(na, nb)); };
+  const id = 'memo-' + def.key;
+  return (
+    <div className={'form-group' + (def.half ? '' : ' memo-full')}>
+      <label className="form-label" htmlFor={id + '-h'}>{label}</label>
+      <div className="flight-time-input">
+        <AutocompleteInput id={id + '-h'} wrapClassName="ac-wrap" inputMode="numeric" maxLength={2}
+          placeholder={isClock ? '09' : '0'} value={a} onChange={(v) => update(v, b)}
+          suggestions={isClock ? CLOCK_HOURS : DUR_HOURS} />
+        <span className="time-unit">{isClock ? ':' : 'h'}</span>
+        <AutocompleteInput id={id + '-m'} wrapClassName="ac-wrap" inputMode="numeric" maxLength={2}
+          placeholder={isClock ? '15' : '0'} value={b} onChange={(v) => update(a, v)}
+          suggestions={isClock ? CLOCK_MINUTES : DUR_MINUTES} />
+        {!isClock && <span className="time-unit">m</span>}
+      </div>
+    </div>
   );
 }
 

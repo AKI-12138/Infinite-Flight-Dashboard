@@ -11,8 +11,8 @@
 // 単位を返す唯一の窓口。将来 kg/lb・nm/km などを設定で切り替えるときは、
 // getMemoUnit() の中身を「localStorage の設定を読んで返す」に差し替えるだけ
 // （フィールド定義は unit キーを持つだけなので変更不要）。
-export type MemoUnitKey = 'speed' | 'distance' | 'weight';
-export const MEMO_UNIT_DEFAULTS: Record<MemoUnitKey, string> = { speed: 'kt', distance: 'nm', weight: 'kg' };
+export type MemoUnitKey = 'speed' | 'distance' | 'weight' | 'vspeed' | 'gforce';
+export const MEMO_UNIT_DEFAULTS: Record<MemoUnitKey, string> = { speed: 'kt', distance: 'nm', weight: 'kg', vspeed: 'fpm', gforce: 'G' };
 export function getMemoUnit(key: MemoUnitKey): string {
   return MEMO_UNIT_DEFAULTS[key];
 }
@@ -115,6 +115,9 @@ export const MEMO_SECTIONS: MemoSectionDef[] = [
       { key: 'v2',       label: 'V2',  placeholder: '158', half: true, unit: 'speed' },
       { key: 'vref',     label: 'VREF / VAPP', placeholder: '138', half: true, unit: 'speed' },
       { key: 'distance', label: 'Flight distance', placeholder: '520', half: true, unit: 'distance' },
+      // 着陸品質（IF が着陸時に表示する 2 値）：接地時の降下率と G。
+      { key: 'tdRate',   label: 'Touchdown rate', placeholder: '-250', half: true, unit: 'vspeed' },
+      { key: 'gForce',   label: 'Landing G',      placeholder: '1.32', half: true, unit: 'gforce' },
     ],
   },
   {

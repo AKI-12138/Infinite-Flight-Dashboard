@@ -4,6 +4,31 @@ User-facing highlights for each version of **Infinite Flight Dashboard**. The ve
 matches the number in the dashboard footer. This is a summary of notable changes — smaller or
 internal-only updates may be grouped.
 
+## v2.2 — 2026-07-08
+Write the story of each flight.
+
+- **Flight Notes.** Every flight now has its own notes page: open it from the new **Notes column**
+  in the Flight Log (**📝** = has notes, **+** = add), or add a flight with **📝 Add + Notes** to
+  write them right away. Record what stats can't hold — flight number, callsign, registration,
+  pilot, OUT/OFF/ON/IN times (local **and** UTC, with dates), taxi out/in, V-speeds, distance,
+  touchdown rate and landing G, passengers, cargo, fuel, route, SID/STAR, runways, METARs, and
+  free-form notes.
+- **Fill in only what you want.** Every field is optional. Type plain numbers and units (kt / nm /
+  kg) are added automatically on display; times snap to a clean HH:MM. Previously used values are
+  suggested as you type. Notes never affect your stats or CSV.
+- **Sort by notes.** Click the **Notes** column header to bring flights with notes to the top.
+- **Full Backup (JSON).** **Export → Full Backup** saves flights, custom airports *and* notes in
+  one file; drop it into **Import** (auto-detected) to restore everything — notes stay linked to
+  their flights. CSV export/import keeps working exactly as before.
+- **Function-test.** **⚙ Settings → Status → Function-test** runs a quick health check of the app
+  in your browser (storage, data integrity, notes linkage, logic, round-trips, airport database)
+  and shows only what failed — with a one-tap **Report a bug** link.
+- **Bigger airport database.** Built-in airports roughly doubled, with much better coverage of
+  Africa, South America, Oceania, Eastern Europe, and famous smaller fields (Innsbruck, Lukla,
+  Sint Maarten, Aspen …).
+- **Year chart stays readable as the years add up.** The *Flights per Year* card now shows your
+  most recent 10 years; expand it (⛶) to scroll through your full history.
+
 ## v2.1 — 2026-07-05
 Make the filter bar your own.
 

@@ -33,7 +33,10 @@ Built for IF pilots who want to actually *see* their journey: which aircraft the
 - **A world map of your routes** — every flight drawn as a great-circle line, your hubs and airports marked
 - **Spin your routes on a 3D globe** — auto-rotating; drag to inspect from any angle, or pause the spin
 - **Powerful filtering** — a **customizable** quick bar (pick up to 6 chips; defaults: year, month, airline, aircraft, country, scope) plus an **⚙ Advanced filters** panel for everything else: departure / arrival airports, cities, countries and continents, within-vs-across-continent, and flight duration (buckets or a custom range) — with searchable menus, one-click **presets**, and your own **saveable presets**. Or just click any chart bar to drill in. Built-in year-over-year comparison shows how your flying has grown
+- **Flight notes for every flight** — a 📝 notes page per flight for what stats can't hold: flight number, callsign, registration, OUT/OFF/ON/IN times (local & UTC), taxi times, V-speeds, distance, load & fuel, route, SID/STAR, runways, METARs, and free notes. Every field is optional; notes never affect your stats or CSV. Sort the Flight Log by which flights have notes
 - **Easy import** — paste your flight log in almost any format. The dashboard figures out dates, aircraft codes, and airline names automatically
+- **Full backup in one file** — export flights, custom airports *and* notes as a single JSON; drop it into Import on any device to restore everything
+- **Built-in function-test** — ⚙ Settings → **Function-test** checks the app's health right in your browser (storage, data integrity, logic) and shows only what failed, with a bug-report link
 - **Hundreds of airports built-in** — major airports worldwide come pre-loaded; add custom ones if you fly somewhere unusual
 - **Data check** — see which airports or aircraft in your log aren't recognized (those quietly drop off the map and out of the country counts), add any missing airport in one click, and look up whether any airport is in the dataset
 - **Quick search** — find specific flights instantly with simple queries like `RJTT→KJFK B77W 2025`
@@ -61,7 +64,7 @@ The header keeps just one primary button plus two compact menus:
 
 - **+ Add Flight** — the main action, always visible
 - **≡ menu** — Search flights · Data check · Import · Export · Clear all
-- **⚙️ settings** — theme (Auto / Light / Dark) and a Status section (auto-save + data check)
+- **⚙️ settings** — theme (Auto / Light / Dark), filter-bar customization, and a Status section (auto-save · data check · function-test)
 
 ### Importing flights from CSV
 
@@ -100,7 +103,22 @@ Click **+ Add Flight** (header) or **+ Add your first flight** (empty state). Fi
 | Aircraft | `B772` | ICAO type code |
 | Airline | `ANA` | IATA code or full name; auto-normalized |
 
-Click **Add Flight** to save.
+Click **Add Flight** to save — or **📝 Add + Notes** to save and immediately write detailed notes for that flight (see below).
+
+### Flight notes
+
+Every flight can carry its own notes — the details your stats can't hold. Open them from the **Notes column** in the Flight Log: **📝** means the flight has notes (click to view), **+** adds new ones. Click the **Notes** column header to sort flights with notes to the top.
+
+What you can record (all fields optional — fill in only what you want):
+
+- **Flight info** — flight number, callsign, registration, pilot
+- **Times** — departure / arrival dates and OUT / OFF / ON / IN times, each in local *and* UTC, plus taxi out / in
+- **Performance** — V1 / VR / V2 / VREF, flight distance, touchdown rate and landing G
+- **Load & fuel** — passengers, cargo, fuel on board, fuel used
+- **Route & procedures** — full route, SID / STAR, runways, METARs
+- **Free notes** — anything else
+
+Handy touches: type plain numbers and units (kt / nm / kg) appear automatically; times snap to clean `HH:MM`; previously used values are suggested as you type. Notes are stored on your device alongside your flights, never affect your stats, and stay out of the CSV. To back them up, use **Export → Full Backup (JSON)** — restoring that file brings your flights *and* notes back, still linked. Deleting a flight deletes its notes too (the confirmation dialog will remind you).
 
 ### Adding a custom airport
 
@@ -236,8 +254,8 @@ Your choice persists across sessions.
 - **Your flight data stays on your device.** Your flights are stored in your browser's `localStorage` and are **never uploaded** — there's no server and no cloud copy of your log.
 - **No account.** No sign-up, no login.
 - **Privacy-friendly analytics only.** The site uses cookieless [Vercel Web Analytics](https://vercel.com/docs/analytics) for aggregate visitor counts and page views — no cookies, no personal data, no cross-site tracking, and it never touches your flight data.
-- **Easy backup.** Open the **≡ menu → 📤 Export** anytime to download a CSV of your flights (and optionally your custom airports).
-- **Easy migration.** Drop your exported CSV on a new device → **Import** → done.
+- **Easy backup.** Open the **≡ menu → 📤 Export** anytime to download a CSV of your flights (and optionally your custom airports), or a **Full Backup (JSON)** that also includes your flight notes.
+- **Easy migration.** Drop your exported CSV — or the Full Backup JSON, which keeps your notes linked — on a new device → **Import** → done.
 - **Easy wipe.** Open the **≡ menu → 🗑 Clear all** to delete everything, with a confirmation dialog.
 
 If you ever want to know "is my data really saved here?", open the **⚙️ settings menu** — the **Status** section tells you the current storage state (and flags any unrecognized data).

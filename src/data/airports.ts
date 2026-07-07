@@ -295,7 +295,7 @@ export const AP: Record<string, AirportEntry> = {
   LROP:{iata:"OTP",lat:44.5711,lng:26.0850,city:"Bucharest",co:"Romania",ct:"Europe"},
   LSGG:{iata:"GVA",lat:46.2381,lng:6.1089,city:"Geneva",co:"Switzerland",ct:"Europe"},
   LSZH:{iata:"ZRH",lat:47.4647,lng:8.5492,city:"Zurich",co:"Switzerland",ct:"Europe"},
-  LXGB:{iata:"GIB",lat:36.1512,lng:-5.3467,city:"Gibraltar",co:"Gibraltar(UK)",ct:"Europe"},
+  LXGB:{iata:"GIB",lat:36.1511,lng:-5.3497,city:"Gibraltar",co:"Gibraltar(UK)",ct:"Europe"},
   LYBE:{iata:"BEG",lat:44.8184,lng:20.3091,city:"Belgrade",co:"Serbia",ct:"Europe"},
   LZIB:{iata:"BTS",lat:48.1702,lng:17.2127,city:"Bratislava",co:"Slovakia",ct:"Europe"},
   UKBB:{iata:"KBP",lat:50.3450,lng:30.8947,city:"Kyiv",co:"Ukraine",ct:"Europe"},

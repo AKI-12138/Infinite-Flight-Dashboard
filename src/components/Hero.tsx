@@ -4,6 +4,7 @@ import { THEME_CYCLE, THEME_LABELS, type ThemePref } from '../lib/theme';
 import type { UseTheme } from '../hooks/useTheme';
 import { useFlights, useDataSourceStatus } from '../hooks/useDataSource';
 import { unrecognizedCount } from '../lib/data-check';
+import { runSelfChecks } from '../lib/self-check';
 import { StatsGrid } from './StatsGrid';
 import { SaveStatusModal, type SaveState } from './SaveStatusModal';
 
@@ -47,6 +48,14 @@ export function Hero({
   // データ収録ステータス（旧 _updateDataStatus）：未収録（空港＋機材）の総数。全フライトから算出。
   const allFlights = useFlights();
   const unrec = unrecognizedCount(allFlights);
+  // Function-test（セルフチェック）：設定メニューを開いたときだけ実行し、上の Status 項目と同じ
+  // ✓/⚠️ アイコンで結果を出す（数 ms の軽量診断・アイコンの見た目を Status 群で統一）。
+  // ⚠️ 必ず useEffect で実行する：チェックにはメモ保存の読み書き（＝購読者への通知）が含まれるため、
+  //    レンダー中に呼ぶと「レンダー中に他コンポーネントを更新した」という React エラーになる。
+  const [selfCheckFails, setSelfCheckFails] = useState(0);
+  useEffect(() => {
+    if (openMenu === 'settings') setSelfCheckFails(runSelfChecks().filter((r) => !r.ok).length);
+  }, [openMenu]);
 
   // メニュー外クリック / ESC で閉じる（旧 closeHeaderMenus 相当）。
   useEffect(() => {
@@ -180,10 +189,15 @@ export function Hero({
                       <span className="save-status-icon header-menu-ico" aria-hidden="true">{unrec > 0 ? '⚠️' : '✓'}</span>
                       <span>{unrec > 0 ? `${unrec} unrecognized` : 'All data recognized'}</span>
                     </button>
-                    {/* セルフチェック：アプリ内診断（保存/整合性/ロジック/往復）のパネルを開く。 */}
-                    <button className="header-menu-item" id="selfCheckStatus" role="menuitem"
-                      title="Run app self-check" onClick={() => run(onSelfCheck)}>
-                      <span className="header-menu-ico" aria-hidden="true">🛠️</span> Function-test
+                    {/* Function-test（セルフチェック）：アイコンは上の Status 項目と同じ ✓/⚠️ で結果連動。
+                        クリックで診断パネルを開く。 */}
+                    <button
+                      className={'header-menu-item is-status' + (selfCheckFails > 0 ? ' is-warn' : '')}
+                      id="selfCheckStatus" role="menuitem"
+                      title="Open function-test details" onClick={() => run(onSelfCheck)}
+                    >
+                      <span className="save-status-icon header-menu-ico" aria-hidden="true">{selfCheckFails > 0 ? '⚠️' : '✓'}</span>
+                      <span>{selfCheckFails > 0 ? `Function-test: ${selfCheckFails} failed` : 'Function-test'}</span>
                     </button>
                   </>
                 )}

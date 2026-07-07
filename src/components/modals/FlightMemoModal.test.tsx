@@ -29,8 +29,28 @@ describe('FlightMemoModal', () => {
     expect(screen.getByRole('button', { name: 'Save Notes' })).toBeInTheDocument();
     expect(screen.getByLabelText('V1 (kt)')).toBeInTheDocument(); // 単位つき項目はラベルに (kt) を明示
     expect(screen.getByLabelText('Departure runway')).toBeInTheDocument();
-    expect(screen.getByLabelText('Departure date · LOC')).toBeInTheDocument(); // 日付（LOC/UTC）も Times に
-    expect(screen.getByLabelText('Arrival date · UTC')).toBeInTheDocument();
+    // 日付（LOC/UTC）はネイティブ日付ピッカー
+    expect(screen.getByLabelText('Departure date · LOC')).toHaveAttribute('type', 'date');
+    expect(screen.getByLabelText('Arrival date · UTC')).toHaveAttribute('type', 'date');
+  });
+
+  it('時刻（HH:MM）は2箱入力＝箱に入れると正準形 "09:05" で保存される', () => {
+    render(<FlightMemoModal flight={FLIGHT} onClose={() => {}} />);
+    // ラベルは時間側の箱（-h）に紐づく。分側は id で取得。
+    fireEvent.change(screen.getByLabelText('Pushback (OUT) · LOC'), { target: { value: '9' } });
+    fireEvent.change(document.getElementById('memo-outLoc-m')!, { target: { value: '5' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save Notes' }));
+    expect(memoStore.get('test-id')?.fields.outLoc).toBe('09:05');
+  });
+
+  it('Taxi out/in は h+m の2箱＝分だけなら "12m"、1時間超は "1h05m" で保存される', () => {
+    render(<FlightMemoModal flight={FLIGHT} onClose={() => {}} />);
+    fireEvent.change(document.getElementById('memo-taxiOut-m')!, { target: { value: '12' } });
+    fireEvent.change(screen.getByLabelText('Taxi in'), { target: { value: '1' } });   // h 箱
+    fireEvent.change(document.getElementById('memo-taxiIn-m')!, { target: { value: '5' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save Notes' }));
+    expect(memoStore.get('test-id')?.fields.taxiOut).toBe('12m');
+    expect(memoStore.get('test-id')?.fields.taxiIn).toBe('1h05m');
   });
 
   it('記入して Save → memo-store に保存され閲覧モードへ（空項目は保存されない・数値には単位を自動付与）', () => {
