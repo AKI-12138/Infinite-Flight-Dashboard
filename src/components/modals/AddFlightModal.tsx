@@ -8,6 +8,12 @@ import { useModalKeyboard } from '../../hooks/useModalKeyboard';
 import { AutocompleteInput } from './AutocompleteInput';
 import { FlightMemoModal } from './FlightMemoModal';
 
+// 今日の日付（ローカル）を 'YYYY-MM-DD' で返す。Date 欄の初期値＝毎回選ぶ手間を省く（オーナー指定 2026-07-11）。
+function todayStr(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 // ✈️ Add New Flight（旧 #modalOverlay + addFlight）。外側クリックでは閉じない（入力中の誤クリック防止）。
 // 閉じるのは ✕ / ESC のみ。値は境界（normalize*）で正準化してから DataSource.addOne。
 export function AddFlightModal({ open, onClose, flights }: { open: boolean; onClose: () => void; flights: Flight[] }) {
@@ -25,9 +31,10 @@ export function AddFlightModal({ open, onClose, flights }: { open: boolean; onCl
 
   // 未確定のまま閉じた入力を持ち越さない：開くたびにフォームをまっさらにする。
   // （✕/Cancel/ESC で閉じても reset は走らず、`return null` でもアンマウントされない＝useState が残るため）
+  // Date だけは「今日」を初期値に（記録するのは大抵その日のフライト＝選ぶ手間を省く）。
   useEffect(() => {
     if (!open) return;
-    setDate(''); setTimeH(''); setTimeM(''); setDep(''); setArr(''); setAircraft(''); setAirline('');
+    setDate(todayStr()); setTimeH(''); setTimeM(''); setDep(''); setArr(''); setAircraft(''); setAirline('');
     setDraftFlight(null);
   }, [open]);
 

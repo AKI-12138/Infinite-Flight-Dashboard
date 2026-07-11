@@ -1916,9 +1916,9 @@ body:not(.is-empty) #emptyState { display:none; }
 /* チップの並び：フィルター欄と同じ横並び（wrap）。チップ自体は .filter-chip-multi を流用。 */
 .adv-chips{display:flex;flex-wrap:wrap;gap:8px;}
 
-/* 期間（date range）行：Date セクションのチップ列の下（2026-07-11）。
+/* 期間（date range）行：Date セクションのチップ列の上（2026-07-11）。
    ネイティブ日付ピッカー2つ＋クリア ✕。狭い画面では wrap して縦に落ちる。 */
-.adv-date-range{display:flex;align-items:center;gap:8px;margin-top:12px;flex-wrap:wrap;}
+.adv-date-range{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
 .adv-date-range-label{font-size:12px;font-weight:600;color:var(--text-2);flex-shrink:0;}
 .adv-date-input{width:auto;flex:0 1 165px;min-width:130px;padding:8px 10px;font-size:14px;min-height:38px;}
 .adv-date-clear{

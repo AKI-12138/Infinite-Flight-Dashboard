@@ -4,6 +4,31 @@ User-facing highlights for each version of **Infinite Flight Dashboard**. The ve
 matches the number in the dashboard footer. This is a summary of notable changes — smaller or
 internal-only updates may be grouped.
 
+## v2.3 — 2026-07-11
+The post-flight ritual: your notes become a real paper logbook page.
+
+- **Notes now read like a paper logbook.** The viewing mode recreates the ritual of writing
+  up a flight after landing: every entry sits on a dotted ruled line, free text (route,
+  METARs, notes) is written on notebook rules, and in light theme the page is cream paper.
+- **The flight fills itself in.** Date, From / To (with city names), Aircraft, Airline, and
+  air time now appear automatically from your log — and **Taxi total** sums taxi out + in for
+  you. Auto fields always match the flight, no re-typing.
+- **UTC works itself out.** Enter local times only; UTC times *and* dates are computed from
+  each airport's real timezone — daylight saving and date-line crossings included. Airports
+  the app doesn't know fall back to manual input.
+- **Smarter callsign & flight-number input.** Both fields suggest airline codes as you type,
+  with *your flight's airline first* — IATA prefixes for flight numbers (NH…), radio callsigns
+  and ICAO codes for callsigns (JAPANAIR / JAL). Free typing still works for anything else.
+- **Write notes first, then add the flight.** **Add Notes** in the Add-Flight window now opens
+  the notes page *before* saving; the flight is added when you press **Add Flight** there.
+- **Filter by period.** Advanced filters gain a **from – to date range** (either side can be
+  left open). It combines with all other filters and stays in the URL for sharing.
+- **Charts, your way.** The **Continents** card gets a **Pie / Bar** toggle, and **Flights per
+  Month / Weekday** get **Line / Bar** — same colors, same click-to-filter, and your choice is
+  remembered.
+
+Plus assorted small fixes and refinements throughout.
+
 ## v2.2 — 2026-07-08
 Write the story of each flight.
 

@@ -66,11 +66,32 @@ describe('FlightMemoModal', () => {
     fireEvent.change(screen.getByLabelText('V1 (kt)'), { target: { value: '148' } });
     fireEvent.change(screen.getByLabelText('Free notes'), { target: { value: 'smooth landing' } });
     fireEvent.click(screen.getByRole('button', { name: 'Save Notes' }));
-    expect(memoStore.get('test-id')?.fields).toEqual({ v1: '148', notes: 'smooth landing' }); // 保存は素の値
+    // 保存は素の値。日付（LOC）はフライトの日付で先埋めされた分も保存される（2026-07-11）。
+    expect(memoStore.get('test-id')?.fields).toEqual({
+      v1: '148', notes: 'smooth landing', depDateLoc: '2025-01-01', arrDateLoc: '2025-01-01',
+    });
     // 閲覧モードに切り替わる：Edit ボタンが出て、数値だけの V1 は「148 kt」と単位つきで表示される
     expect(screen.getByRole('button', { name: '✏️ Edit' })).toBeInTheDocument();
     expect(screen.getByText('148 kt')).toBeInTheDocument();
     expect(screen.getByText('smooth landing')).toBeInTheDocument();
+  });
+
+  // ---- 日付の先埋め（オーナー指定 2026-07-11）----
+  it('新規メモ：日付（LOC）はフライトの日付で先埋め・そのまま ✕ なら確認なしで閉じる・そのまま Save なら何も保存しない', () => {
+    const onClose = vi.fn();
+    render(<FlightMemoModal flight={FLIGHT} onClose={onClose} />);
+    expect(screen.getByLabelText('Departure date · LOC')).toHaveValue('2025-01-01');
+    expect(screen.getByLabelText('Arrival date · LOC')).toHaveValue('2025-01-01');
+    // 先埋めだけでは dirty にならない＝✕ で確認なしに閉じる
+    fireEvent.click(screen.getByRole('button', { name: '✕' }));
+    expect(onClose).toHaveBeenCalledTimes(1);
+    // 先埋めのまま Save → 「日付だけのメモ」は作らない
+    cleanup();
+    const onClose2 = vi.fn();
+    render(<FlightMemoModal flight={FLIGHT} onClose={onClose2} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Save Notes' }));
+    expect(memoStore.get('test-id')).toBeFalsy();
+    expect(onClose2).toHaveBeenCalledTimes(1);
   });
 
   it('メモ有りで開くと閲覧モード（全項目表示・未入力は空欄 —）', () => {
@@ -126,8 +147,16 @@ describe('FlightMemoModal', () => {
     render(<FlightMemoModal flight={{ ...FLIGHT, id: '' }} onClose={() => {}} draftMode onCommit={onCommit} />);
     fireEvent.change(screen.getByLabelText('V1 (kt)'), { target: { value: '148' } });
     fireEvent.click(screen.getByRole('button', { name: 'Add Flight' }));
-    expect(onCommit).toHaveBeenCalledWith({ v1: '148' });
+    // 先埋めの日付（LOC）も一緒に渡る（2026-07-11）
+    expect(onCommit).toHaveBeenCalledWith({ v1: '148', depDateLoc: '2025-01-01', arrDateLoc: '2025-01-01' });
     expect(Object.keys(memoStore.all())).toHaveLength(0); // 保存は親（AddFlightModal）の責務
+  });
+
+  it('draftMode: 先埋めのまま Add Flight → メモ無し（{}）で確定＝日付だけのメモは作らない', () => {
+    const onCommit = vi.fn();
+    render(<FlightMemoModal flight={{ ...FLIGHT, id: '' }} onClose={() => {}} draftMode onCommit={onCommit} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Add Flight' }));
+    expect(onCommit).toHaveBeenCalledWith({});
   });
 
   it('draftMode: 何も書かず Back → 確認なしで onClose（＝フォームへ戻る）', () => {

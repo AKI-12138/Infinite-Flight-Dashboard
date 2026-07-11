@@ -46,6 +46,16 @@ function computeFromSuggestions(suggestions: string[], value: string): ACItem[] 
   return hits.map((s) => ({ code: s, detail: '' }));
 }
 
+// 説明つき汎用候補（suggestionItems 指定時）：code＋detail の両方で絞る。
+// 選択で入るのは code のみ（例：「NH — All Nippon Airways」を選ぶと "NH" が入り、続けて数字を打てる）。
+function computeFromItems(items: ACItem[], value: string): ACItem[] {
+  const q = value.toUpperCase().trim();
+  if (q.length === 0) return items.slice(0, 8);
+  return items
+    .filter((d) => (d.code.toUpperCase().includes(q) || d.detail.toUpperCase().includes(q)) && d.code !== value)
+    .slice(0, 10);
+}
+
 export interface AutocompleteInputProps {
   id: string;
   type?: ACType;               // suggestions を使う場合は省略可
@@ -53,6 +63,7 @@ export interface AutocompleteInputProps {
   onChange: (v: string) => void;
   flights?: Flight[];          // type 使用時のみ必要
   suggestions?: string[];      // 汎用候補（指定時は type/flights より優先）
+  suggestionItems?: ACItem[];  // 説明つき汎用候補（code＋detail。suggestions よりさらに優先）
   label?: string;
   wrapClassName?: string;      // 既定 'form-group ac-wrap'
   placeholder?: string;
@@ -64,7 +75,7 @@ export interface AutocompleteInputProps {
 // Add Flight フォーム用の autocomplete 入力（旧 render.js の acUpdate/_acShow/acSelect/acHide の React 化）。
 // suggestions を渡すと汎用の「候補つきテキスト入力」としても使える（フライトメモの過去値候補）。
 export function AutocompleteInput({
-  id, type, value, onChange, flights = [], suggestions,
+  id, type, value, onChange, flights = [], suggestions, suggestionItems,
   label, wrapClassName = 'form-group ac-wrap', placeholder, maxLength, inputMode, uppercase,
 }: AutocompleteInputProps) {
   const [open, setOpen] = useState(false);
@@ -74,7 +85,9 @@ export function AutocompleteInput({
   const listRef = useRef<HTMLDivElement>(null);
 
   const refresh = (v: string) => {
-    const next = suggestions ? computeFromSuggestions(suggestions, v) : (type ? computeItems(type, v, flights) : []);
+    const next = suggestionItems
+      ? computeFromItems(suggestionItems, v)
+      : (suggestions ? computeFromSuggestions(suggestions, v) : (type ? computeItems(type, v, flights) : []));
     setItems(next);
     setOpen(next.length > 0);
     setActive(-1); // 入力が変わったらハイライトをリセット

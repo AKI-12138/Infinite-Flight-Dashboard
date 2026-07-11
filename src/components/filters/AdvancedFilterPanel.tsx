@@ -102,13 +102,13 @@ export function AdvancedFilterPanel({ open, onClose, options }: { open: boolean;
             {_SECTIONS.map((sec, i) => (
               <div key={sec.label}>
                 <div className="adv-section-label">{sec.label}</div>
+                {/* 期間（date range）は Date セクションのチップ列の上の専用行（チップではなく範囲入力・オーナー指定 2026-07-11） */}
+                {sec.label === 'Date' && <DateRangeRow />}
                 <div className="adv-chips">
                   {sec.chips.map((c) => (
                     <FilterChip key={c.key} def={_DEF_BY_KEY[c.key]} emoji={c.emoji} title={c.title} dataOptions={options[c.key] || []} />
                   ))}
                 </div>
-                {/* 期間（date range）は Date セクション直下の専用行（チップではなく範囲入力・オーナー指定 2026-07-11） */}
-                {sec.label === 'Date' && <DateRangeRow />}
                 {i < _SECTIONS.length - 1 && <hr className="adv-divider" />}
               </div>
             ))}

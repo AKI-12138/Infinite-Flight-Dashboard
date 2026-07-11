@@ -4,8 +4,10 @@ import { useModalKeyboard } from '../../hooks/useModalKeyboard';
 // チャートカードの ⛶ で開く拡大表示（旧 #continentsOverlay / #yearOverlay / #monthOverlay / #weekdayOverlay）。
 // 中身のチャートは既存のチャートコンポーネントをそのまま大きい器で再描画する（フィルタ追従）。
 // overlayClass / panelClass で CSS を出し分け（continents-* と chart-* で別デザイン）。
-export function ChartExpandOverlay({ open, overlayClass, panelClass, title, onClose, children }: {
-  open: boolean; overlayClass: string; panelClass: string; title: string; onClose: () => void; children: ReactNode;
+// actions＝✕ の左に置く追加アクション（表示形式トグル等・2026-07-11）。
+export function ChartExpandOverlay({ open, overlayClass, panelClass, title, onClose, actions, children }: {
+  open: boolean; overlayClass: string; panelClass: string; title: string; onClose: () => void;
+  actions?: ReactNode; children: ReactNode;
 }) {
   const modalRef = useModalKeyboard(open, onClose);
 
@@ -16,6 +18,7 @@ export function ChartExpandOverlay({ open, overlayClass, panelClass, title, onCl
       <div className={panelClass}>
         <div className={panelClass + '-header'}>
           <h3>{title}</h3>
+          {actions}
           <button className="btn-close" onClick={onClose}>✕</button>
         </div>
         <div className={panelClass + '-body'}>{children}</div>

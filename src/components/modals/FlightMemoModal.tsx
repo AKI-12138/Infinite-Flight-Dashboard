@@ -9,6 +9,7 @@ import { requestConfirm } from '../../lib/confirm';
 import { showToast } from '../../lib/toast';
 import { useModalKeyboard } from '../../hooks/useModalKeyboard';
 import { AutocompleteInput } from './AutocompleteInput';
+import { airlineCodeSuggestions, type CodeItem } from '../../lib/airline-codes';
 
 // 編集フォームの候補リスト：全メモを走査して「同じ項目に過去入力した値」を頻度順で集める
 // （Add Flight の autocomplete と同じ操作感）。text 項目用（date/clock/duration は専用入力）。
@@ -52,25 +53,29 @@ export function FlightMemoModal({ flight, onClose, draftMode = false, onCommit }
   const open = flight !== null;
   const [mode, setMode] = useState<'view' | 'edit'>('view');
   const [draft, setDraft] = useState<Record<string, string>>({});
-  // 開いた時点の保存済み fields（dirty 判定と Cancel の戻し先）。null = メモ無し。
+  // 開いた時点の保存済み fields（Cancel の戻し先）。null = メモ無し。
   const [saved, setSaved] = useState<Record<string, string> | null>(null);
+  // dirty 判定の基準＝開いた時点の内容。新規メモは日付が先埋めされるため saved と別に持つ
+  // （先埋めだけの状態を「未保存の変更」にしない・オーナー指定 2026-07-11）。
+  const [baseline, setBaseline] = useState<Record<string, string>>({});
 
   // 開くたびに保存済みメモを読み、無ければ編集モード・あれば閲覧モードで開く。
-  // draftMode はフライト未保存＝メモも存在しないので、常にまっさらの編集モード。
+  // 新規（メモ無し・draftMode）は日付（LOC）をそのフライトの日付で先埋め＝毎回選ぶ手間を省く。
   useEffect(() => {
     if (!flight) return;
-    if (draftMode) { setSaved(null); setDraft({}); setMode('edit'); return; }
+    const prefill = { depDateLoc: flight.date, arrDateLoc: flight.date };
+    if (draftMode) { setSaved(null); setDraft({ ...prefill }); setBaseline(prefill); setMode('edit'); return; }
     const memo = memoStore.get(flight.id);
-    const fields = memo ? { ...memo.fields } : {};
     setSaved(memo ? memo.fields : null);
-    setDraft(fields);
+    setDraft(memo ? { ...memo.fields } : { ...prefill });
+    setBaseline(memo ? memo.fields : prefill);
     setMode(memo ? 'view' : 'edit');
   }, [flight, draftMode]);
 
   // 未保存の変更があるか（編集モードのみ意味を持つ）。正準形どうしで比較する。
   const isDirty = () => {
     const a = cleanMemoFields(draft);
-    const b = saved ?? {};
+    const b = cleanMemoFields(baseline);
     const keys = new Set([...Object.keys(a), ...Object.keys(b)]);
     return [...keys].some((k) => (a[k] || '') !== (b[k] || ''));
   };
@@ -104,7 +109,14 @@ export function FlightMemoModal({ flight, onClose, draftMode = false, onCommit }
   const save = () => {
     // draftMode：memo-store には触れず、親（AddFlightModal）にフィールドを渡して
     // フライト＋メモを一緒に確定してもらう（閉じる処理も親側）。
-    if (draftMode) { onCommit?.(cleanMemoFields(draft)); return; }
+    // 先埋め（日付）から何も変えていなければ「メモ無し」として渡す＝空メモを作らない。
+    if (draftMode) { onCommit?.(isDirty() ? cleanMemoFields(draft) : {}); return; }
+    // 新規メモで先埋めから変更なし＝実質空。保存せず閉じる（日付だけのメモを作らない）。
+    if (!saved && !isDirty()) {
+      onClose();
+      showToast('Notes were empty — nothing saved');
+      return;
+    }
     memoStore.save(flight.id, draft);
     const clean = cleanMemoFields(draft);
     if (Object.keys(clean).length === 0) {
@@ -114,6 +126,7 @@ export function FlightMemoModal({ flight, onClose, draftMode = false, onCommit }
     }
     setSaved(clean);
     setDraft({ ...clean });
+    setBaseline(clean);
     setMode('view');
     showToast('✓ Flight notes saved');
   };
@@ -195,6 +208,17 @@ function MemoEditForm({ flight, draft, setField }: {
 }) {
   // 過去の入力値からの候補（開いている間は固定＝編集中の値で候補が揺れない）。
   const suggestionMap = useMemo(() => buildSuggestionMap(), [flight]);
+  // 便名/Callsign のコード候補（オーナー指定 2026-07-11）：
+  // 自便のエアラインのコード → 過去の入力値 → 他社コード の順（code で重複排除）。自由入力は維持。
+  const codeItems = useMemo(() => {
+    const build = (key: 'flightNo' | 'callsign'): CodeItem[] => {
+      const { own, others } = airlineCodeSuggestions(key, flight.al);
+      const history: CodeItem[] = (suggestionMap[key] ?? []).map((s) => ({ code: s, detail: '' }));
+      const seen = new Set<string>();
+      return [...own, ...history, ...others].filter((d) => !seen.has(d.code) && (seen.add(d.code), true));
+    };
+    return { flightNo: build('flightNo'), callsign: build('callsign') } as Record<string, CodeItem[]>;
+  }, [flight, suggestionMap]);
   return (
     <div>
       {MEMO_SECTIONS.map((sec, i) => (
@@ -209,7 +233,8 @@ function MemoEditForm({ flight, draft, setField }: {
               return useComputed
                 ? <MemoComputedItem key={f.key} def={f} value={cv!} />
                 : <MemoInput key={f.key} def={f} value={draft[f.key] ?? ''}
-                    suggestions={suggestionMap[f.key] ?? []} onChange={(v) => setField(f.key, v)} />;
+                    suggestions={suggestionMap[f.key] ?? []} items={codeItems[f.key]}
+                    onChange={(v) => setField(f.key, v)} />;
             })}
           </div>
           {i < MEMO_SECTIONS.length - 1 && <hr className="adv-divider" />}
@@ -230,8 +255,8 @@ function MemoComputedItem({ def, value }: { def: MemoFieldDef; value: string }) 
   );
 }
 
-function MemoInput({ def, value, suggestions, onChange }: {
-  def: MemoFieldDef; value: string; suggestions: string[]; onChange: (v: string) => void;
+function MemoInput({ def, value, suggestions, items, onChange }: {
+  def: MemoFieldDef; value: string; suggestions: string[]; items?: CodeItem[]; onChange: (v: string) => void;
 }) {
   const id = 'memo-' + def.key;
   // 単位つき項目はラベルに (kt) 等を明示＝「数値だけでよい」ことが分かる。
@@ -260,7 +285,7 @@ function MemoInput({ def, value, suggestions, onChange }: {
   }
   return (
     <AutocompleteInput id={id} label={label} value={value} onChange={onChange}
-      suggestions={suggestions} placeholder={def.placeholder}
+      suggestions={suggestions} suggestionItems={items} placeholder={def.placeholder}
       wrapClassName={'form-group ac-wrap' + (def.half ? '' : ' memo-full')} />
   );
 }

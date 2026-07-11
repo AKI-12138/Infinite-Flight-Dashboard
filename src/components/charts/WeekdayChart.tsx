@@ -3,6 +3,7 @@ import { cssVar, chartGrid, chartTick } from '../../lib/charts';
 import { bucketLines } from '../../lib/chart-bucket';
 import type { Flight } from '../../lib/compute';
 import { useChart } from './useChart';
+import type { ChartMode } from '../../hooks/useChartMode';
 
 const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
@@ -16,31 +17,16 @@ function weekdayIndex(date: string): number {
 // インデックスは Mon=0..Sun=6（compute.ts の wd と同じ ISO 風）。
 // large=true（⛶ 拡大）では旧 _renderWeekdayLargeChart 相当：太線・大きい点＋
 // リッチツールチップ（bucketLines）＋クリックでドリルダウン（onDrill）。
-export function WeekdayChart({ wd, themePref, large = false, flights = [], onDrill }: {
+// mode='bar'（2026-07-11）は棒に切り替え（YearChart と同じ塗り＋縁の流儀・同じシアン）。
+// 曜日は本来カテゴリ比較なので棒の方が教科書的に正しい形＝切り替えの価値が高い。
+export function WeekdayChart({ wd, themePref, large = false, flights = [], onDrill, mode = 'default' }: {
   wd: Record<number, number>; themePref: string;
-  large?: boolean; flights?: Flight[]; onDrill?: (value: string) => void;
+  large?: boolean; flights?: Flight[]; onDrill?: (value: string) => void; mode?: ChartMode;
 }) {
   const data = WEEKDAYS.map((_, i) => wd?.[i] || 0);
   const line = cssVar('--cyan');
-  const ref = useChart((): ChartConfiguration<'line'> => ({
-    type: 'line',
-    data: {
-      labels: WEEKDAYS,
-      datasets: [{
-        data,
-        borderColor: line,
-        backgroundColor: large ? 'rgba(0,212,255,0.10)' : 'rgba(0,212,255,0.08)',
-        fill: true,
-        tension: 0.4,
-        pointRadius: large ? 7 : 5,
-        pointHoverRadius: large ? 9 : undefined,
-        borderWidth: large ? 3 : undefined,
-        pointBackgroundColor: line,
-        pointBorderColor: cssVar('--chart-point-border'),
-        pointBorderWidth: 2,
-      }],
-    },
-    options: {
+  const ref = useChart((): ChartConfiguration<'line'> | ChartConfiguration<'bar'> => {
+    const options: ChartConfiguration<'line'>['options'] = {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
@@ -55,7 +41,44 @@ export function WeekdayChart({ wd, themePref, large = false, flights = [], onDri
         onClick: (_e, els) => { if (els.length) { const i = els[0].index; setTimeout(() => onDrill(String(i)), 0); } },
         onHover: (e, els) => { const c = e.native?.target as HTMLElement | undefined; if (c) c.style.cursor = els.length ? 'pointer' : 'default'; },
       } : {}),
-    },
-  }), [wd, themePref, large, flights]);
+    };
+    if (mode === 'bar') {
+      return {
+        type: 'bar',
+        data: {
+          labels: WEEKDAYS,
+          datasets: [{
+            data,
+            backgroundColor: line + '70',
+            borderColor: line,
+            borderWidth: 1.5,
+            borderRadius: large ? 8 : 5,
+            barPercentage: 0.55,
+          }],
+        },
+        options: options as ChartConfiguration<'bar'>['options'],
+      };
+    }
+    return {
+      type: 'line',
+      data: {
+        labels: WEEKDAYS,
+        datasets: [{
+          data,
+          borderColor: line,
+          backgroundColor: large ? 'rgba(0,212,255,0.10)' : 'rgba(0,212,255,0.08)',
+          fill: true,
+          tension: 0.4,
+          pointRadius: large ? 7 : 5,
+          pointHoverRadius: large ? 9 : undefined,
+          borderWidth: large ? 3 : undefined,
+          pointBackgroundColor: line,
+          pointBorderColor: cssVar('--chart-point-border'),
+          pointBorderWidth: 2,
+        }],
+      },
+      options,
+    };
+  }, [wd, themePref, large, flights, mode]);
   return <canvas ref={ref} />;
 }

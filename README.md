@@ -29,11 +29,11 @@ Built for IF pilots who want to actually *see* their journey: which aircraft the
 ## What you can do
 
 - **See your stats at a glance** — total flights, hours, aircraft used, countries visited, all up top
-- **Beautiful charts for everything** — your top aircraft, top airlines, top routes, top airports, top countries; plus flights per year, per month, per weekday
+- **Beautiful charts for everything** — your top aircraft, top airlines, top routes, top airports, top countries; plus flights per year, per month, per weekday. The Continents card switches between **pie and bar**, Month / Weekday between **line and bar** — your choice is remembered
 - **A world map of your routes** — every flight drawn as a great-circle line, your hubs and airports marked
 - **Spin your routes on a 3D globe** — auto-rotating; drag to inspect from any angle, or pause the spin
 - **Powerful filtering** — a **customizable** quick bar (pick up to 6 chips; defaults: year, month, airline, aircraft, country, scope) plus an **⚙ Advanced filters** panel for everything else: departure / arrival airports, cities, countries and continents, within-vs-across-continent, and flight duration (buckets or a custom range) — with searchable menus, one-click **presets**, and your own **saveable presets**. Or just click any chart bar to drill in. Built-in year-over-year comparison shows how your flying has grown
-- **Flight notes for every flight** — a 📝 notes page per flight for what stats can't hold: flight number, callsign, registration, OUT/OFF/ON/IN times (local & UTC), taxi times, V-speeds, distance, load & fuel, route, SID/STAR, runways, METARs, and free notes. Every field is optional; notes never affect your stats or CSV. Sort the Flight Log by which flights have notes
+- **Flight notes for every flight** — a 📝 notes page per flight, styled like a paper logbook, for what stats can't hold: flight number & callsign (airline-aware suggestions), registration, OUT/OFF/ON/IN times — type local, **UTC is computed automatically** from each airport's timezone — taxi times (total auto-summed), V-speeds, cruise altitude & Mach, distance, load & fuel, route, SID/STAR, runways, METARs, and free notes. Date, route, aircraft and airline fill in from your log automatically. Every field is optional; notes never affect your stats or CSV. Sort the Flight Log by which flights have notes
 - **Easy import** — paste your flight log in almost any format. The dashboard figures out dates, aircraft codes, and airline names automatically
 - **Full backup in one file** — export flights, custom airports *and* notes as a single JSON; drop it into Import on any device to restore everything
 - **Built-in function-test** — ⚙ Settings → **Function-test** checks the app's health right in your browser (storage, data integrity, logic) and shows only what failed, with a bug-report link
@@ -103,22 +103,25 @@ Click **+ Add Flight** (header) or **+ Add your first flight** (empty state). Fi
 | Aircraft | `B772` | ICAO type code |
 | Airline | `ANA` | IATA code or full name; auto-normalized |
 
-Click **Add Flight** to save — or **📝 Add + Notes** to save and immediately write detailed notes for that flight (see below).
+Click **Add Flight** to save — or **Add Notes** to write detailed notes first: the flight is added when you press **Add Flight** on the notes page, and **Back** returns you to this form with your inputs intact (see below).
 
 ### Flight notes
 
-Every flight can carry its own notes — the details your stats can't hold. Open them from the **Notes column** in the Flight Log: **📝** means the flight has notes (click to view), **+** adds new ones. Click the **Notes** column header to sort flights with notes to the top.
+Every flight can carry its own notes — the details your stats can't hold, written up the way real pilots do: notes recreate the **post-flight ritual of filling in a paper logbook**, one more piece of the real flying experience. Open them from the **Notes column** in the Flight Log: **📝** means the flight has notes (click to view), **+** adds new ones. Click the **Notes** column header to sort flights with notes to the top. The viewing mode looks like a **paper logbook page** — entries on ruled lines, free text on notebook rules.
 
-What you can record (all fields optional — fill in only what you want):
+![Flight notes — a paper logbook page](screenshots/notes-logbook-light.png)
 
-- **Flight info** — flight number, callsign, registration, pilot
-- **Times** — departure / arrival dates and OUT / OFF / ON / IN times, each in local *and* UTC, plus taxi out / in
-- **Performance** — V1 / VR / V2 / VREF, flight distance, touchdown rate and landing G
+The basics fill themselves in: **date, From / To (with city names), aircraft, airline, and air time** come straight from your log, so they always match the flight. What you can record on top (all fields optional — fill in only what you want):
+
+- **Flight info** — flight number and callsign (suggested from your flight's airline: IATA prefix like `NH`, radio callsign like `JAPANAIR` — free typing still works), registration, pilot
+- **Times** — departure / arrival dates and OUT / OFF / ON / IN times: **enter local only, UTC times and dates are computed automatically** from each airport's real timezone (daylight saving and date-line crossings included; unknown airports fall back to manual). Taxi out / in, with the **total summed automatically**
+- **Performance** — V1 / VR / V2 / VREF, cruise altitude and cruise Mach, flight distance, touchdown rate and landing G
 - **Load & fuel** — passengers, cargo, fuel on board, fuel used
-- **Route & procedures** — full route, SID / STAR, runways, METARs
+- **Route & procedures** — full route, SID / STAR, runways
+- **Weather** — departure / arrival METARs
 - **Free notes** — anything else
 
-Handy touches: type plain numbers and units (kt / nm / kg) appear automatically; times snap to clean `HH:MM`; previously used values are suggested as you type. Notes are stored on your device alongside your flights, never affect your stats, and stay out of the CSV. To back them up, use **Export → Full Backup (JSON)** — restoring that file brings your flights *and* notes back, still linked. Deleting a flight deletes its notes too (the confirmation dialog will remind you).
+Handy touches: type plain numbers and units (kt / nm / kg) appear automatically, with thousands separators on display (`42790` → `42,790 kg`); times snap to clean `HH:MM`; previously used values are suggested as you type. Notes are stored on your device alongside your flights, never affect your stats, and stay out of the CSV. To back them up, use **Export → Full Backup (JSON)** — restoring that file brings your flights *and* notes back, still linked. Deleting a flight deletes its notes too (the confirmation dialog will remind you).
 
 ### Adding a custom airport
 
@@ -220,6 +223,7 @@ Filtering has two layers that work together.
 - **Airport / City / Country / Continent** — each filterable by **departure**, **arrival**, or **either**
 - **Continental scope** — within a single continent vs across continents
 - **Flight duration** — pick buckets (under 1h · 1–3h · 3–6h · 6–10h · 10h+) or type a **custom hour range**
+- **Period** — a **from – to date range** (leave either side open for "since…" / "until…"); it combines with every other filter and stays in the URL for sharing
 - …plus Date (Year / Month / Weekday) and Aircraft / Airline, so everything lives in one place
 
 Handy touches in the panel:

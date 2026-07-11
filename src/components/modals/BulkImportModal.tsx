@@ -165,7 +165,7 @@ export function BulkImportModal({ open, onClose, initialSample }: { open: boolea
               onSample={() => { setFlightsText(SAMPLE_FLIGHT_CSV); showToast('👀 Sample data loaded — review it, then click Import'); }}
               onDownloadSample={() => { downloadTextFile('IF_Flight_Log_sample.csv', SAMPLE_FLIGHT_CSV); showToast('⬇️ Sample CSV downloaded'); }}
               accept=".csv,.tsv,.txt,.json"
-              fileButtonLabel="📂 Select CSV / backup file"
+              fileButtonLabel="📂 Select CSV / Backup file"
               placeholder={FLIGHTS_PLACEHOLDER}
               textRef={fTextRef}
               hint={<FlightsHint />}
