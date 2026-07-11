@@ -157,14 +157,8 @@ export function FlightMemoModal({ flight, onClose, draftMode = false, onCommit }
           <button className="btn-close" onClick={closeAttempt}>✕</button>
         </div>
         <div className="modal-body adv-modal-body">
-          {/* どのフライトのメモか（ログと同じタグ表現で） */}
-          <div className="memo-flight-line">
-            <span className="route-tag">{flight.dep} → {flight.arr}</span>
-            <span className="date-tag">{flight.date}</span>
-            <span className="aircraft-tag">{flight.ac}</span>
-            <span className="airline-tag">{flight.al}</span>
-            <span className="time-tag">{flight.t}</span>
-          </div>
+          {/* どのフライトのメモかは、シート内の自動項目（Route/Date/Aircraft/Airline/air time）が
+              示すため、上部のタグ行は廃止（オーナー指定 2026-07-11）。 */}
           <p className="memo-intro">
             {mode === 'edit'
               ? (draftMode
@@ -173,7 +167,7 @@ export function FlightMemoModal({ flight, onClose, draftMode = false, onCommit }
               : 'Saved notes for this flight. Notes never affect your stats or CSV.'}
           </p>
 
-          {mode === 'edit' ? <MemoEditForm flight={flight} draft={draft} setField={setField} /> : <MemoViewBody fields={saved ?? {}} />}
+          {mode === 'edit' ? <MemoEditForm flight={flight} draft={draft} setField={setField} /> : <MemoViewBody fields={saved ?? {}} flight={flight} />}
 
           <div className="modal-actions adv-actions">
             {mode === 'edit' ? (
@@ -208,7 +202,7 @@ function MemoEditForm({ flight, draft, setField }: {
           <div className="adv-section-label">{sec.label}</div>
           <div className="memo-grid">
             {sec.fields.map((f) => f.computed
-              ? <MemoComputedItem key={f.key} def={f} fields={draft} />
+              ? <MemoComputedItem key={f.key} def={f} fields={draft} flight={flight} />
               : <MemoInput key={f.key} def={f} value={draft[f.key] ?? ''}
                   suggestions={suggestionMap[f.key] ?? []} onChange={(v) => setField(f.key, v)} />)}
           </div>
@@ -219,10 +213,10 @@ function MemoEditForm({ flight, draft, setField }: {
   );
 }
 
-// 自動計算項目（Taxi total 等）の編集モード表示：入力欄と同じ位置に読み取り専用で live 表示。
-// 値は保存されない（他項目からの導出のみ）＝「auto」バッジでそれを示す。
-function MemoComputedItem({ def, fields }: { def: MemoFieldDef; fields: Record<string, string> }) {
-  const v = def.computed!(fields);
+// 自動項目（Taxi total・フライト本体由来の Route/Date 等）の編集モード表示：
+// 入力欄と同じ位置に読み取り専用で live 表示。値は保存されない（導出のみ）＝「auto」バッジでそれを示す。
+function MemoComputedItem({ def, fields, flight }: { def: MemoFieldDef; fields: Record<string, string>; flight: StoredFlight }) {
+  const v = def.computed!(fields, flight);
   return (
     <div className={'form-group' + (def.half ? '' : ' memo-full')}>
       <span className="form-label">{def.label} <span className="memo-auto-tag">auto</span></span>
@@ -308,7 +302,7 @@ function MemoTimePair({ def, label, value, onChange }: {
 // 「記入済みのディスパッチ用紙」の見立て（オーナー指定 2026-07-11）：
 // 紙面（.memo-sheet）の上に、ラベル → 点線リーダー → 値 の記入行が並ぶ。
 // 自由記述（Route・METAR・Notes）は罫線ノートの升目に書かれた体（.memo-view-block）。
-function MemoViewBody({ fields }: { fields: Record<string, string> }) {
+function MemoViewBody({ fields, flight }: { fields: Record<string, string>; flight: StoredFlight }) {
   return (
     <div className="memo-sheet">
       {MEMO_SECTIONS.map((sec, i) => (
@@ -316,7 +310,7 @@ function MemoViewBody({ fields }: { fields: Record<string, string> }) {
           <div className="adv-section-label">{sec.label}</div>
           <div className="memo-grid">
             {sec.fields.map((f) => {
-              const raw = f.computed ? f.computed(fields) : (fields[f.key] || '').trim();
+              const raw = f.computed ? f.computed(fields, flight) : (fields[f.key] || '').trim();
               const shown = raw ? formatMemoValue(f, raw) : '';
               const isBlock = f.type === 'textarea';
               return (

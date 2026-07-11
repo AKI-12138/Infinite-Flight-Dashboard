@@ -15,7 +15,9 @@ import { STORAGE_AVAILABLE } from './datasource';
 export const DUR_MAX_SENTINEL = 100000;
 
 // ---- string[] 軸を汎用に触るためのビュー（durationRange＝number[] だけ別扱い）----
-type StrKey = Exclude<keyof FilterStateShape, 'durationRange'>;
+// dateRange は string[] なので FS 経由の汎用コード（capture/apply/count）にそのまま乗るが、
+// チップの toggle 対象ではないので StrKey からは外す。
+type StrKey = Exclude<keyof FilterStateShape, 'durationRange' | 'dateRange'>;
 const FS = FilterState as unknown as Record<string, string[]>;
 
 // ---- version + subscribe ----
@@ -137,6 +139,8 @@ function _writeFiltersToURL() {
   put('contScope', FilterState.contScope);
   put('duration', FilterState.durations);
   if (FilterState.durationRange.length === 2) params.set('durRange', FilterState.durationRange.join('-'));
+  // 期間は日付自体にハイフンを含むため区切りは '..'（例: dateRange=2021-07-01..2022-07-01）。
+  if (FilterState.dateRange.length === 2) params.set('dateRange', FilterState.dateRange.join('..'));
   const qs = params.toString();
   history.replaceState(null, '', qs ? '?' + qs : location.pathname);
 }
@@ -171,6 +175,20 @@ function _readFiltersFromURL() {
   FilterState.durations = _parseCSVParam(p.get('duration')).filter((v) => validDur.has(v));
   const dr = (p.get('durRange') || '').split('-').map((s) => parseInt(s, 10));
   FilterState.durationRange = (dr.length === 2 && dr.every((n) => Number.isFinite(n) && n >= 0) && dr[0] <= dr[1]) ? dr : [];
+  FilterState.dateRange = _parseDateRangeParam(p.get('dateRange'));
+}
+
+// URL の dateRange（"from..to"・片側空可）を検証して [from, to] か [] を返す。
+const _ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+function _parseDateRangeParam(raw: string | null): string[] {
+  if (!raw) return [];
+  const parts = raw.split('..');
+  if (parts.length !== 2) return [];
+  const [lo, hi] = parts.map((s) => s.trim());
+  const ok = (s: string) => s === '' || _ISO_DATE.test(s);
+  if (!ok(lo) || !ok(hi) || (!lo && !hi)) return [];
+  if (lo && hi && lo > hi) return [hi, lo]; // 逆転は入れ替えて救済
+  return [lo, hi];
 }
 
 // ---- 時間ヘルパー（duration カスタム範囲・旧 _hoursToMin / _minToHours）----
@@ -213,6 +231,17 @@ export const filterStore = {
     _commit();
   },
 
+  // 期間（'YYYY-MM-DD' 2つ・ネイティブ date input の値）。両方空なら解除。
+  // 片側だけなら開区間（〜まで／〜から）。from > to は入れ替えて救済（0件で悩ませない）。
+  setDateRange(fromRaw: string, toRaw: string) {
+    const from = _ISO_DATE.test(fromRaw) ? fromRaw : '';
+    const to = _ISO_DATE.test(toRaw) ? toRaw : '';
+    if (!from && !to) FilterState.dateRange = [];
+    else if (from && to && from > to) FilterState.dateRange = [to, from];
+    else FilterState.dateRange = [from, to];
+    _commit();
+  },
+
   // duration カスタム範囲（時間文字列）。両方空なら解除。入れたらバケット選択はクリア。
   setDurationRange(minRaw: string, maxRaw: string) {
     if (minRaw.trim() === '' && maxRaw.trim() === '') {
@@ -248,6 +277,7 @@ export const filterStore = {
   clearAll() {
     FILTER_DEFS.forEach((def) => { FS[def.stateKey] = []; });
     FilterState.durationRange = [];
+    FilterState.dateRange = [];
     _commit();
   },
 

@@ -16,7 +16,7 @@ function optSearchText(def: FilterDef, value: string, label: string): string {
   return t.toLowerCase();
 }
 
-type StrKey = Exclude<keyof FilterStateShape, 'durationRange'>;
+type StrKey = Exclude<keyof FilterStateShape, 'durationRange' | 'dateRange'>;
 
 // 1 つのフィルタ軸のドロップダウン中身（旧 _renderFilterMenu の React 化）。
 // options（データ由来）は親から受け取る。fixedOptions を持つ軸は def から読む。

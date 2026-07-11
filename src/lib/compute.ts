@@ -51,6 +51,7 @@ export function _durationBucket(mins: number): string | null{
 // months: ['01'..'12'] のゼロ埋め文字列配列（空 = 全月）。`f.date.slice(5,7)` と直接比較するため。
 // weekdays: ['0'..'6'] = Mon..Sun の文字列配列（空 = 全曜日）。
 // フィルタ状態の型。各軸は配列（空＝絞り込みなし）。durationRange のみ数値ペア。
+// dateRange は ['YYYY-MM-DD','YYYY-MM-DD']（from/to・片側 '' で開区間）。[] = 無効。
 export interface FilterStateShape {
   years: string[]; airlines: string[]; aircraft: string[]; countries: string[];
   scope: string[]; months: string[]; weekdays: string[];
@@ -59,6 +60,7 @@ export interface FilterStateShape {
   depCities: string[]; arrCities: string[]; depCountries: string[]; arrCountries: string[];
   depContinents: string[]; arrContinents: string[];
   contScope: string[]; durations: string[]; durationRange: number[];
+  dateRange: string[];
 }
 export const FilterState: FilterStateShape = {
   years: [],
@@ -88,6 +90,7 @@ export const FilterState: FilterStateShape = {
   contScope: [],      // ['intra','inter'] 多選択＝大陸内／大陸間（scope と同型）
   durations: [],      // DURATION_BUCKETS の key 多選択
   durationRange: [],  // カスタム範囲 [loMin, hiMin]（分）。[] = 無効。あればバケットより優先（①(b)）
+  dateRange: [],      // 期間 [from, to]（'YYYY-MM-DD'・片側 '' で開区間）。[] = 無効（2026-07-11）
 };
 
 export function _flightCountry(f: FlightEndpoints): string[]{
@@ -202,6 +205,12 @@ function _buildPredicates(): Array<(f: Flight) => boolean>{
       return FilterState.weekdays.includes(String(w));
     });
   }
+  // 期間（from〜to・両端含む）。日付は正準形 'YYYY-MM-DD' なので文字列比較で大小が決まる。
+  // 片側 '' は開区間（〜まで／〜から）。年・月フィルタとは独立に積む（全軸と同じ AND 交差）。
+  if(FilterState.dateRange.length === 2){
+    const lo = FilterState.dateRange[0], hi = FilterState.dateRange[1];
+    preds.push(f => (!lo || f.date >= lo) && (!hi || f.date <= hi));
+  }
   // ── 共有計算層（フェーズY）の軸。既定 [] のときは述語を積まない＝挙動不変。
   // airports は「dep か arr のどちらかが一致」（countries と同型）。空港/都市クリックのドリルダウン用。
   if(FilterState.airports.length){
@@ -288,7 +297,8 @@ export function isAnyFilterActive(){
       || FilterState.arrContinents.length>0
       || FilterState.contScope.length>0
       || FilterState.durations.length>0
-      || FilterState.durationRange.length>0;
+      || FilterState.durationRange.length>0
+      || FilterState.dateRange.length>0;
 }
 
 // =============================== COMPARE STATE ===============================

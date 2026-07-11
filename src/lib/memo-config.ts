@@ -17,6 +17,9 @@ export function getMemoUnit(key: MemoUnitKey): string {
   return MEMO_UNIT_DEFAULTS[key];
 }
 
+// computed に渡すフライト本体（メモではなくログ側のデータ）。compute.ts の Flight と同形。
+export interface MemoFlightSrc { date: string; dep: string; arr: string; ac: string; al: string; t: string; }
+
 export interface MemoFieldDef {
   key: string;
   label: string;
@@ -26,9 +29,9 @@ export interface MemoFieldDef {
   type?: 'text' | 'textarea' | 'date' | 'clock' | 'duration'; // 省略時 text
   half?: boolean;             // true = 2カラムグリッドの半分幅（連続する half は横に並ぶ）
   unit?: MemoUnitKey;         // 数値だけの入力に表示時へ自動付与する単位
-  // 自動計算項目（Taxi total 等）：他の項目から導出して表示するだけで、保存はしない。
+  // 自動項目：他のメモ項目 or フライト本体から導出して表示するだけで、保存はしない。
   // 編集モードでは読み取り専用表示になる（FlightMemoModal が分岐）。
-  computed?: (fields: Record<string, string>) => string;
+  computed?: (fields: Record<string, string>, flight?: MemoFlightSrc) => string;
 }
 
 export interface MemoSectionDef {
@@ -37,12 +40,26 @@ export interface MemoSectionDef {
   fields: MemoFieldDef[];
 }
 
+// 桁区切りの自動付与（表示のみ・オーナー指定 2026-07-11）："42790" → "42,790"。
+// 素の数値（区切りなし）だけ対象。"34,000"・"8 400" 等ユーザーが書いた区切りはそのまま尊重。
+function addThousands(v: string): string {
+  const neg = v.startsWith('-');
+  const [int, frac] = (neg ? v.slice(1) : v).split('.');
+  const grouped = int.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return (neg ? '-' : '') + grouped + (frac !== undefined ? '.' + frac : '');
+}
+
 // 閲覧表示用：数値だけの値（"148" "8,400" "1 234.5" 等）なら単位を付けて返す。
 // 既に文字を含む値（"148 kt" 等）はユーザーの書き方を尊重してそのまま返す。
+// 桁区切りは「量的な項目」（unit あり＋Passengers）だけに掛ける
+// （便名・レジ番号など"数字だけど量ではない"項目を 58,304 にしないため）。
 export function formatMemoValue(def: MemoFieldDef, value: string): string {
   const v = (value ?? '').trim();
-  if (!v || !def.unit) return v;
-  return /^-?\d[\d.,\s]*$/.test(v) ? `${v} ${getMemoUnit(def.unit)}` : v;
+  if (!v) return v;
+  const quantity = !!def.unit || def.key === 'pax';
+  const shown = quantity && /^-?\d+(\.\d+)?$/.test(v) ? addThousands(v) : v;
+  if (!def.unit) return shown;
+  return /^-?\d[\d.,\s]*$/.test(v) ? `${shown} ${getMemoUnit(def.unit)}` : shown;
 }
 
 // ---- clock（HH:MM）/ duration（XhYYm・Xm）の分解・結合（2箱入力 ⇔ 保存文字列の正準形） ----
@@ -96,6 +113,12 @@ export const MEMO_SECTIONS: MemoSectionDef[] = [
     key: 'flightinfo',
     label: 'Flight Info',
     fields: [
+      // フライト本体（ログ側のデータ）からの自動項目（オーナー指定 2026-07-11）。
+      // 保存せず常にログの値を表示＝ログを直せばメモ側も必ず一致する。
+      { key: 'autoRoute',    label: 'Route',    half: true, computed: (_f, fl) => fl ? `${fl.dep} → ${fl.arr}` : '' },
+      { key: 'autoDate',     label: 'Date',     half: true, computed: (_f, fl) => fl?.date ?? '' },
+      { key: 'autoAircraft', label: 'Aircraft', half: true, computed: (_f, fl) => fl?.ac ?? '' },
+      { key: 'autoAirline',  label: 'Airline',  half: true, computed: (_f, fl) => fl?.al ?? '' },
       { key: 'flightNo',  label: 'Flight number', placeholder: 'NH006',  half: true },
       { key: 'callsign',  label: 'Callsign',      placeholder: 'ANA6',   half: true },
       { key: 'reg',       label: 'Registration',  placeholder: 'JA789A', half: true },
@@ -106,26 +129,28 @@ export const MEMO_SECTIONS: MemoSectionDef[] = [
     key: 'times',
     label: 'Times',
     fields: [
+      // 並びの原則（オーナー指定 2026-07-11）：出発側｜到着側 を横に並べ、LOC の行 → UTC の行。
       // 日付（深夜跨ぎ・日付変更線で LOC と UTC がズレるため両方持てる）。ネイティブの日付ピッカー。
-      // 並びは「LOC の行 → UTC の行」（出発・到着を横に並べる。オーナー指定 2026-07-11：入力が直感的）。
       { key: 'depDateLoc', label: 'Departure date · LOC', type: 'date', half: true },
       { key: 'arrDateLoc', label: 'Arrival date · LOC',   type: 'date', half: true },
       { key: 'depDateUtc', label: 'Departure date · UTC', type: 'date', half: true },
       { key: 'arrDateUtc', label: 'Arrival date · UTC',   type: 'date', half: true },
-      // OOOI（Out/Off/On/In）。LOC＝現地時刻・UTC 併記（どちらか片方だけでも可）。HH:MM の2箱入力。
-      { key: 'outLoc',  label: 'Pushback (OUT) · LOC', type: 'clock', half: true },
-      { key: 'outUtc',  label: 'Pushback (OUT) · UTC', type: 'clock', half: true },
-      { key: 'offLoc',  label: 'Takeoff (OFF) · LOC',  type: 'clock', half: true },
-      { key: 'offUtc',  label: 'Takeoff (OFF) · UTC',  type: 'clock', half: true },
-      { key: 'onLoc',   label: 'Landing (ON) · LOC',   type: 'clock', half: true },
-      { key: 'onUtc',   label: 'Landing (ON) · UTC',   type: 'clock', half: true },
+      // OOOI（Out/Off/On/In）。ブロック（OUT｜IN）→ 飛行（OFF｜ON）の順で、各ペア LOC 行 → UTC 行。
+      { key: 'outLoc',  label: 'Pushback (OUT) · LOC',    type: 'clock', half: true },
       { key: 'inLoc',   label: 'Gate arrival (IN) · LOC', type: 'clock', half: true },
+      { key: 'outUtc',  label: 'Pushback (OUT) · UTC',    type: 'clock', half: true },
       { key: 'inUtc',   label: 'Gate arrival (IN) · UTC', type: 'clock', half: true },
+      { key: 'offLoc',  label: 'Takeoff (OFF) · LOC',     type: 'clock', half: true },
+      { key: 'onLoc',   label: 'Landing (ON) · LOC',      type: 'clock', half: true },
+      { key: 'offUtc',  label: 'Takeoff (OFF) · UTC',     type: 'clock', half: true },
+      { key: 'onUtc',   label: 'Landing (ON) · UTC',      type: 'clock', half: true },
       // タキシー時間は OUT/IN に分離（h+m の2箱＝Add Flight の Flight Time と同型・正準形で保存）。
       { key: 'taxiOut', label: 'Taxi out', type: 'duration', half: true },
       { key: 'taxiIn',  label: 'Taxi in',  type: 'duration', half: true },
       // 合計は自動計算（保存しない・編集モードでは読み取り専用で live 表示）。
-      { key: 'taxiTotal', label: 'Taxi total', half: true, computed: (f) => sumDurations(f.taxiOut ?? '', f.taxiIn ?? '') },
+      // 飛行時間（air time）はログ本体から自動＝地上（Taxi total）と空（air）の対比で横に並べる。
+      { key: 'taxiTotal',   label: 'Taxi total', half: true, computed: (f) => sumDurations(f.taxiOut ?? '', f.taxiIn ?? '') },
+      { key: 'autoAirTime', label: 'Flight time (air)', half: true, computed: (_f, fl) => fl?.t ?? '' },
     ],
   },
   {
@@ -136,12 +161,11 @@ export const MEMO_SECTIONS: MemoSectionDef[] = [
       { key: 'vr',       label: 'VR',  placeholder: '152', half: true, unit: 'speed' },
       { key: 'v2',       label: 'V2',  placeholder: '158', half: true, unit: 'speed' },
       { key: 'vref',     label: 'VREF / VAPP', placeholder: '138', half: true, unit: 'speed' },
-      // 巡航（オーナー指定 2026-07-11）：高度＋速度（Mach と IAS の2表記）。
+      // 巡航（オーナー指定 2026-07-11）：高度＋速度は Mach のみ（IAS 併記は不要・2026-07-11 削除）。
       // Mach は "0.85" のような小数＝単位の自動付与はしない（"M0.85" と書いてもそのまま尊重）。
       { key: 'cruiseAlt',  label: 'Cruise altitude', placeholder: '34,000 or FL340', half: true, unit: 'altitude' },
-      { key: 'distance',   label: 'Flight distance', placeholder: '520', half: true, unit: 'distance' },
       { key: 'cruiseMach', label: 'Cruise speed · Mach', placeholder: '0.85', half: true },
-      { key: 'cruiseIas',  label: 'Cruise speed · IAS',  placeholder: '280',  half: true, unit: 'speed' },
+      { key: 'distance',   label: 'Flight distance', placeholder: '520', half: true, unit: 'distance' },
       // 着陸品質（IF が着陸時に表示する 2 値）：接地時の降下率と G。
       { key: 'tdRate',   label: 'Touchdown rate', placeholder: '-250', half: true, unit: 'vspeed' },
       { key: 'gForce',   label: 'Landing G',      placeholder: '1.32', half: true, unit: 'gforce' },

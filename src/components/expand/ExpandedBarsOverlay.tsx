@@ -63,7 +63,7 @@ export function ExpandedBarsOverlay({ open, type, data, minsMap, onClose }: {
     if (!drillKind) return;
     onClose();
     if (drillKind === 'route') filterStore.drilldownRoute(label);
-    else filterStore.drilldown(drillKind as Exclude<keyof FilterStateShape, 'durationRange'>, label);
+    else filterStore.drilldown(drillKind as Exclude<keyof FilterStateShape, 'durationRange' | 'dateRange'>, label);
   };
 
   return (

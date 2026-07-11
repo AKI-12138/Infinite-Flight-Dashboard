@@ -57,6 +57,7 @@ function setFilter(o: Partial<FilterStateShape> = {}) {
   FilterState.depCities=[]; FilterState.arrCities=[]; FilterState.depCountries=[]; FilterState.arrCountries=[];
   FilterState.depContinents=[]; FilterState.arrContinents=[];
   FilterState.contScope=[]; FilterState.durations=[]; FilterState.durationRange=[];
+  FilterState.dateRange=[];
   Object.assign(FilterState, o);
 }
 
@@ -187,6 +188,26 @@ describe('飛行時間フィルタ（durations バケット多選択）', () => 
   it("range 0–60分 → 1 件(60)", () => { setFilter({durationRange:[0,60]}); expect(getFiltered(flights).length).toBe(1); });
   it("range 600分以上 → 0 件",  () => { setFilter({durationRange:[600,100000]}); expect(getFiltered(flights).length).toBe(0); });
   it("range はバケットを上書き → 2 件(120/180)", () => { setFilter({durationRange:[100,200], durations:['ultra']}); expect(getFiltered(flights).length).toBe(2); });
+
+  // ── 期間フィルター（dateRange・2026-07-11）。両端含む・片側 '' で開区間。
+  it("dateRange 2025-03-01〜2025-03-31 → 2 件(3/10・3/11)", () => {
+    setFilter({dateRange:['2025-03-01','2025-03-31']}); expect(getFiltered(flights).length).toBe(2);
+  });
+  it("dateRange 境界は両端含む（3/10〜3/10 → 1 件）", () => {
+    setFilter({dateRange:['2025-03-10','2025-03-10']}); expect(getFiltered(flights).length).toBe(1);
+  });
+  it("dateRange from のみ（2025-01-01〜）→ 3 件", () => {
+    setFilter({dateRange:['2025-01-01','']}); expect(getFiltered(flights).length).toBe(3);
+  });
+  it("dateRange to のみ（〜2024-12-31）→ 2 件", () => {
+    setFilter({dateRange:['','2024-12-31']}); expect(getFiltered(flights).length).toBe(2);
+  });
+  it("dateRange は年フィルタと AND 交差（2024 年 × 〜2024-06-30 → 1 件）", () => {
+    setFilter({years:['2024'], dateRange:['','2024-06-30']}); expect(getFiltered(flights).length).toBe(1);
+  });
+  it("dateRange 選択で isAnyFilterActive → true", () => {
+    setFilter({dateRange:['2025-01-01','']}); expect(isAnyFilterActive()).toBe(true);
+  });
 });
 
 describe('isAnyFilterActive（新軸も検知）', () => {

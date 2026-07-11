@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { FILTER_DEFS, type FilterDef } from '../../lib/filters-config';
+import { FilterState } from '../../lib/compute';
 import { filterStore } from '../../lib/filter-store';
 import { useFilterVersion } from '../../hooks/useFilterState';
 import { useModalKeyboard } from '../../hooks/useModalKeyboard';
@@ -106,6 +107,8 @@ export function AdvancedFilterPanel({ open, onClose, options }: { open: boolean;
                     <FilterChip key={c.key} def={_DEF_BY_KEY[c.key]} emoji={c.emoji} title={c.title} dataOptions={options[c.key] || []} />
                   ))}
                 </div>
+                {/* 期間（date range）は Date セクション直下の専用行（チップではなく範囲入力・オーナー指定 2026-07-11） */}
+                {sec.label === 'Date' && <DateRangeRow />}
                 {i < _SECTIONS.length - 1 && <hr className="adv-divider" />}
               </div>
             ))}
@@ -120,5 +123,33 @@ export function AdvancedFilterPanel({ open, onClose, options }: { open: boolean;
       </div>
       <SavePresetModal open={saveOpen} onClose={() => setSaveOpen(false)} />
     </>
+  );
+}
+
+// 期間（from〜to）フィルター行。ネイティブ日付ピッカー2つ＝Add Flight の Date と同じ操作感。
+// 値は FilterState.dateRange（正準形 'YYYY-MM-DD'）を直接読む＝store の version 購読
+// （親の useFilterVersion）で再描画される。片側だけの指定も可（〜まで／〜から）。
+function DateRangeRow() {
+  const dr = FilterState.dateRange;
+  const from = dr[0] || '';
+  const to = dr[1] || '';
+  return (
+    <div className="adv-date-range">
+      <span className="adv-date-range-label">🗓️ Period</span>
+      <input
+        type="date" className="form-input adv-date-input" aria-label="From date"
+        value={from} max={to || undefined}
+        onChange={(e) => filterStore.setDateRange(e.target.value, to)}
+      />
+      <span className="chip-menu-range-dash">–</span>
+      <input
+        type="date" className="form-input adv-date-input" aria-label="To date"
+        value={to} min={from || undefined}
+        onChange={(e) => filterStore.setDateRange(from, e.target.value)}
+      />
+      {(from || to) && (
+        <button type="button" className="adv-date-clear" onClick={() => filterStore.setDateRange('', '')} title="Clear period">✕</button>
+      )}
+    </div>
   );
 }

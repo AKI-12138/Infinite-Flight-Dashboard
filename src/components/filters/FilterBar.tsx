@@ -13,10 +13,12 @@ const _DEF_BY_KEY: Record<string, FilterDef> = Object.fromEntries(FILTER_DEFS.ma
 function totalActiveCount(): number {
   return FILTER_DEFS.reduce((n, def) => n + ((FilterState as unknown as Record<string, string[]>)[def.stateKey]?.length || 0), 0);
 }
-// 高度パネル内の軸で適用中の数（durationRange は 1 とカウント）。⚙ ボタンのバッジ。
+// 範囲系の軸（配列長 2 でも「1 フィルター」として数える）。
+const _RANGE_KEYS = new Set(['durationRange', 'dateRange']);
+// 高度パネル内の軸で適用中の数（範囲系は 1 とカウント）。⚙ ボタンのバッジ。
 function advActiveCount(): number {
   const FS = FilterState as unknown as Record<string, unknown[]>;
-  return _ADV_FILTER_KEYS.reduce((n, k) => n + (k === 'durationRange' ? (FS[k].length ? 1 : 0) : (FS[k]?.length || 0)), 0);
+  return _ADV_FILTER_KEYS.reduce((n, k) => n + (_RANGE_KEYS.has(k) ? (FS[k]?.length ? 1 : 0) : (FS[k]?.length || 0)), 0);
 }
 
 // フィルターバー（旧 index.html の .filter-bar ＋ main.js の toggleFilterBar / sticky shadow / back-to-top）。

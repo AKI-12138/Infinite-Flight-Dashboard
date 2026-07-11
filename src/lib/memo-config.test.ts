@@ -30,6 +30,26 @@ describe('formatMemoValue（表示時の単位自動付与）', () => {
     expect(formatMemoValue(MEMO_FIELD_BY_KEY.tdRate, '-250')).toBe('-250 fpm');
     expect(formatMemoValue(MEMO_FIELD_BY_KEY.gForce, '1.32')).toBe('1.32 G');
   });
+
+  it('桁区切りの自動付与（オーナー指定 2026-07-11）：量的項目の素の数値は 42,790 形式に', () => {
+    expect(formatMemoValue(MEMO_FIELD_BY_KEY.cargo, '42790')).toBe('42,790 kg');
+    expect(formatMemoValue(MEMO_FIELD_BY_KEY.fuelBlock, '14552')).toBe('14,552 kg');
+    expect(formatMemoValue(MEMO_FIELD_BY_KEY.cruiseAlt, '34000')).toBe('34,000 ft');
+    expect(formatMemoValue(MEMO_FIELD_BY_KEY.tdRate, '-1200')).toBe('-1,200 fpm');
+    expect(formatMemoValue(MEMO_FIELD_BY_KEY.pax, '1234')).toBe('1,234'); // unit なしでも量的
+    expect(formatMemoValue(MEMO_FIELD_BY_KEY.gForce, '1.32')).toBe('1.32 G'); // 小数はそのまま
+  });
+
+  it('桁区切り：ユーザーが書いた区切り・単位はそのまま尊重（二重加工しない）', () => {
+    expect(formatMemoValue(MEMO_FIELD_BY_KEY.cargo, '8,400')).toBe('8,400 kg');
+    expect(formatMemoValue(MEMO_FIELD_BY_KEY.cargo, '8 400.5')).toBe('8 400.5 kg');
+    expect(formatMemoValue(MEMO_FIELD_BY_KEY.cargo, '42790 kg')).toBe('42790 kg');
+  });
+
+  it('桁区切り：量ではない数字（便名・レジ番号など）には掛けない', () => {
+    expect(formatMemoValue(MEMO_FIELD_BY_KEY.reg, '58304')).toBe('58304');
+    expect(formatMemoValue(MEMO_FIELD_BY_KEY.flightNo, '92312')).toBe('92312');
+  });
 });
 
 describe('定義の整合性', () => {
@@ -56,16 +76,31 @@ describe('定義の整合性', () => {
     MEMO_SECTIONS.forEach((s) => expect(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}]/u.test(s.label)).toBe(false));
   });
 
-  it('日付の並びは LOC の行 → UTC の行（オーナー指定 2026-07-11）', () => {
+  it('Times の並び：出発｜到着を横に・LOC 行 → UTC 行・OUT/IN → OFF/ON（オーナー指定 2026-07-11）', () => {
     const keys = MEMO_SECTIONS.find((s) => s.key === 'times')!.fields.map((f) => f.key);
-    expect(keys.slice(0, 4)).toEqual(['depDateLoc', 'arrDateLoc', 'depDateUtc', 'arrDateUtc']);
+    expect(keys).toEqual([
+      'depDateLoc', 'arrDateLoc', 'depDateUtc', 'arrDateUtc',
+      'outLoc', 'inLoc', 'outUtc', 'inUtc',
+      'offLoc', 'onLoc', 'offUtc', 'onUtc',
+      'taxiOut', 'taxiIn', 'taxiTotal', 'autoAirTime',
+    ]);
   });
 
-  it('巡航3項目：高度は ft 自動付与・Mach は付与なし・IAS は kt', () => {
+  it('巡航2項目：高度は ft 自動付与・Mach は付与なし（IAS 欄は廃止・2026-07-11）', () => {
     expect(formatMemoValue(MEMO_FIELD_BY_KEY.cruiseAlt, '34,000')).toBe('34,000 ft');
     expect(formatMemoValue(MEMO_FIELD_BY_KEY.cruiseAlt, 'FL340')).toBe('FL340'); // 文字入り＝そのまま
     expect(formatMemoValue(MEMO_FIELD_BY_KEY.cruiseMach, '0.85')).toBe('0.85');
-    expect(formatMemoValue(MEMO_FIELD_BY_KEY.cruiseIas, '280')).toBe('280 kt');
+    expect(MEMO_FIELD_BY_KEY.cruiseIas).toBeUndefined();
+  });
+
+  it('フライト本体からの自動項目：Route/Date/Aircraft/Airline/air time（保存せず常にログの値）', () => {
+    const fl = { date: '2026-07-09', dep: 'RCTP', arr: 'VMMC', ac: 'A339', al: 'Starlux Airlines', t: '1h20m' };
+    expect(MEMO_FIELD_BY_KEY.autoRoute.computed!({}, fl)).toBe('RCTP → VMMC');
+    expect(MEMO_FIELD_BY_KEY.autoDate.computed!({}, fl)).toBe('2026-07-09');
+    expect(MEMO_FIELD_BY_KEY.autoAircraft.computed!({}, fl)).toBe('A339');
+    expect(MEMO_FIELD_BY_KEY.autoAirline.computed!({}, fl)).toBe('Starlux Airlines');
+    expect(MEMO_FIELD_BY_KEY.autoAirTime.computed!({}, fl)).toBe('1h20m');
+    expect(MEMO_FIELD_BY_KEY.autoRoute.computed!({}, undefined)).toBe(''); // フライト未指定は空
   });
 });
 

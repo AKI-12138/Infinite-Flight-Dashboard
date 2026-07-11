@@ -914,7 +914,6 @@ body.has-fullscreen-card{overflow:hidden;}
 .row-note-btn.row-note-add:hover{background:rgba(var(--accent-rgb),0.10);border-color:rgba(var(--accent-rgb),0.3);color:var(--accent);}
 
 /* メモモーダル（FlightMemoModal）。編集＝2カラムのフォーム／閲覧＝記入済み項目だけ表示。 */
-.memo-flight-line{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:10px;font-size:13px;}
 .memo-intro{font-size:12.5px;color:var(--text-3);margin-bottom:14px;line-height:1.5;}
 .memo-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 14px;margin-bottom:14px;}
 .memo-full{grid-column:1/-1;}
@@ -1916,6 +1915,18 @@ body:not(.is-empty) #emptyState { display:none; }
 
 /* チップの並び：フィルター欄と同じ横並び（wrap）。チップ自体は .filter-chip-multi を流用。 */
 .adv-chips{display:flex;flex-wrap:wrap;gap:8px;}
+
+/* 期間（date range）行：Date セクションのチップ列の下（2026-07-11）。
+   ネイティブ日付ピッカー2つ＋クリア ✕。狭い画面では wrap して縦に落ちる。 */
+.adv-date-range{display:flex;align-items:center;gap:8px;margin-top:12px;flex-wrap:wrap;}
+.adv-date-range-label{font-size:12px;font-weight:600;color:var(--text-2);flex-shrink:0;}
+.adv-date-input{width:auto;flex:0 1 165px;min-width:130px;padding:8px 10px;font-size:14px;min-height:38px;}
+.adv-date-clear{
+  width:28px;height:28px;border-radius:7px;border:1px solid var(--border);
+  background:transparent;color:var(--text-3);font-size:11px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0;
+}
+.adv-date-clear:hover{border-color:var(--red);color:var(--red);background:rgba(var(--red-rgb),0.1);}
 /* カテゴリ再構成で縦に長くなったため、パネル body は既定どおりスクロール（.modal-body の overflow-y:auto）。
    チップのドロップダウンは max-height 内でスクロールし、下端付近ではパネルをスクロールして参照する。
    → .adv-modal-body は上書き不要（空ルールは lint 警告になるため削除・既定挙動のまま）。 */
@@ -2072,6 +2083,7 @@ body:not(.is-empty) #emptyState { display:none; }
   .filter-chip:hover { border-color:var(--border); color:var(--text-2); }
   .filter-clear:hover { color:var(--text-3); background:transparent; }
   .chip-menu-item:hover { background:transparent; color:var(--text-2); }
+  .adv-date-clear:hover { border-color:var(--border); color:var(--text-3); background:transparent; }
   /* ヘッダ ≡/⚙️：トリガーは閉じている間だけ hover を打ち消す（開いている間は .open のアクティブ表示を活かす）。
      メニュー内の項目はタップ操作なので hover は中立に戻す（chip-menu-item と同じ方針）。 */
   .header-menu-wrap:not(.open) .header-icon-btn:hover { background:var(--surface-elev2); border-color:var(--border); }

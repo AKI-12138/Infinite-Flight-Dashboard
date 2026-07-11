@@ -140,7 +140,7 @@ export const FILTER_DEFS: FilterDef[] = [
 ];
 // 高度パネル内にある軸を列挙（⚙ ボタンのバッジ件数・active 判定用＝バーに出ない軸のみ）。
 export const _ADV_FILTER_KEYS = ['weekdays','airports','cities','continents','depAirports','arrAirports',
-  'depCities','arrCities','depCountries','arrCountries','depContinents','arrContinents','contScope','durations','durationRange'];
+  'depCities','arrCities','depCountries','arrCountries','depContinents','arrContinents','contScope','durations','durationRange','dateRange'];
 
 // ============================ PRESETS（宣言的モデル） ============================
 // プリセットは「複数軸の掛け合わせ」。適用・描画（applyPreset / _renderPresets）は UI 層（手順5）へ。
@@ -158,5 +158,5 @@ export function _sameSet(a: unknown, b: readonly unknown[]): boolean {
   return b.every(v => sa.has(v));
 }
 
-// 保存/復元で扱う全フィルタ軸（FILTER_DEFS の stateKey を重複排除＋DEF を持たない durationRange）。
-export const _ALL_STATE_KEYS = [...new Set(FILTER_DEFS.map(d => d.stateKey)), 'durationRange'];
+// 保存/復元で扱う全フィルタ軸（FILTER_DEFS の stateKey を重複排除＋DEF を持たない durationRange / dateRange）。
+export const _ALL_STATE_KEYS = [...new Set(FILTER_DEFS.map(d => d.stateKey)), 'durationRange', 'dateRange'];
