@@ -1,5 +1,4 @@
 # CI：GitHub に push / Pull Request するたびに自動でビルド・テストを回す。
-# オーナーは今まで通り GitHub Desktop で push するだけ。結果は GitHub の「Actions」タブと
 # コミット横の ✓ / ✗ マークで確認できる（緑＝全部通過、赤＝どこか失敗）。
 name: CI
 
