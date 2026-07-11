@@ -113,16 +113,17 @@ export const MEMO_SECTIONS: MemoSectionDef[] = [
     key: 'flightinfo',
     label: 'Flight Info',
     fields: [
-      // フライト本体（ログ側のデータ）からの自動項目（オーナー指定 2026-07-11）。
-      // 保存せず常にログの値を表示＝ログを直せばメモ側も必ず一致する。
-      { key: 'autoRoute',    label: 'Route',    half: true, computed: (_f, fl) => fl ? `${fl.dep} → ${fl.arr}` : '' },
+      // フライト本体（ログ側のデータ）からの自動項目（auto*）＝保存せず常にログの値を表示。
+      // 並び（オーナー指定 2026-07-11）：1行目 DATE｜PILOT、2行目 FROM｜TO、以降は従来どおり。
       { key: 'autoDate',     label: 'Date',     half: true, computed: (_f, fl) => fl?.date ?? '' },
+      { key: 'pilot',        label: 'Pilot',    placeholder: 'Your name / IFC handle', half: true },
+      { key: 'autoFrom',     label: 'From',     half: true, computed: (_f, fl) => fl?.dep ?? '' },
+      { key: 'autoTo',       label: 'To',       half: true, computed: (_f, fl) => fl?.arr ?? '' },
       { key: 'autoAircraft', label: 'Aircraft', half: true, computed: (_f, fl) => fl?.ac ?? '' },
       { key: 'autoAirline',  label: 'Airline',  half: true, computed: (_f, fl) => fl?.al ?? '' },
       { key: 'flightNo',  label: 'Flight number', placeholder: 'NH006',  half: true },
       { key: 'callsign',  label: 'Callsign',      placeholder: 'ANA6',   half: true },
       { key: 'reg',       label: 'Registration',  placeholder: 'JA789A', half: true },
-      { key: 'pilot',     label: 'Pilot',         placeholder: 'Your name / IFC handle', half: true },
     ],
   },
   {
@@ -190,6 +191,13 @@ export const MEMO_SECTIONS: MemoSectionDef[] = [
       { key: 'star',     label: 'STAR (arrival)',  placeholder: 'SIRAKI 2A', half: true },
       { key: 'rwyDep',   label: 'Departure runway', placeholder: '34R', half: true },
       { key: 'rwyArr',   label: 'Arrival runway',   placeholder: '32L', half: true },
+    ],
+  },
+  {
+    // 気象は独立セクション（実物の運航書類と同じ・オーナー指定 2026-07-11）。
+    key: 'weather',
+    label: 'Weather',
+    fields: [
       { key: 'metarDep', label: 'METAR · departure', placeholder: 'RJTT 070100Z 34008KT ...', type: 'textarea' },
       { key: 'metarArr', label: 'METAR · arrival',   placeholder: 'RJOO 070200Z 32006KT ...', type: 'textarea' },
     ],

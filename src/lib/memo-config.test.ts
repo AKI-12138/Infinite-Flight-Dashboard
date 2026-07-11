@@ -93,14 +93,24 @@ describe('定義の整合性', () => {
     expect(MEMO_FIELD_BY_KEY.cruiseIas).toBeUndefined();
   });
 
-  it('フライト本体からの自動項目：Route/Date/Aircraft/Airline/air time（保存せず常にログの値）', () => {
+  it('フライト本体からの自動項目：From/To/Date/Aircraft/Airline/air time（保存せず常にログの値）', () => {
     const fl = { date: '2026-07-09', dep: 'RCTP', arr: 'VMMC', ac: 'A339', al: 'Starlux Airlines', t: '1h20m' };
-    expect(MEMO_FIELD_BY_KEY.autoRoute.computed!({}, fl)).toBe('RCTP → VMMC');
+    expect(MEMO_FIELD_BY_KEY.autoFrom.computed!({}, fl)).toBe('RCTP');
+    expect(MEMO_FIELD_BY_KEY.autoTo.computed!({}, fl)).toBe('VMMC');
     expect(MEMO_FIELD_BY_KEY.autoDate.computed!({}, fl)).toBe('2026-07-09');
     expect(MEMO_FIELD_BY_KEY.autoAircraft.computed!({}, fl)).toBe('A339');
     expect(MEMO_FIELD_BY_KEY.autoAirline.computed!({}, fl)).toBe('Starlux Airlines');
     expect(MEMO_FIELD_BY_KEY.autoAirTime.computed!({}, fl)).toBe('1h20m');
-    expect(MEMO_FIELD_BY_KEY.autoRoute.computed!({}, undefined)).toBe(''); // フライト未指定は空
+    expect(MEMO_FIELD_BY_KEY.autoFrom.computed!({}, undefined)).toBe(''); // フライト未指定は空
+  });
+
+  it('Flight Info の並び：DATE｜PILOT → FROM｜TO → 以降従来どおり／Weather は独立セクション', () => {
+    const info = MEMO_SECTIONS.find((s) => s.key === 'flightinfo')!.fields.map((f) => f.key);
+    expect(info).toEqual(['autoDate', 'pilot', 'autoFrom', 'autoTo', 'autoAircraft', 'autoAirline', 'flightNo', 'callsign', 'reg']);
+    const weather = MEMO_SECTIONS.find((s) => s.key === 'weather')!;
+    expect(weather.fields.map((f) => f.key)).toEqual(['metarDep', 'metarArr']);
+    // Route & Procedures から METAR が抜けている
+    expect(MEMO_SECTIONS.find((s) => s.key === 'route')!.fields.some((f) => f.key.startsWith('metar'))).toBe(false);
   });
 });
 
