@@ -40,7 +40,15 @@ const DUR_MINUTES = Array.from({ length: 12 }, (_, i) => String(i * 5));
 // - 全項目任意入力。保存時に空項目は落とし、全部空ならメモごと削除（memo-store の正準化）。
 // - 編集中に未保存の変更があるまま閉じようとしたら確認を出す（破壊的操作の確認を壊さない）。
 // - 統計・CSV には一切影響しない（保存先は memo-store＝別キー）。
-export function FlightMemoModal({ flight, onClose }: { flight: StoredFlight | null; onClose: () => void }) {
+// - draftMode（Add Flight の「Add Notes」用・オーナー指定 2026-07-11）：フライトはまだ未保存。
+//   memo-store には触れず、確定ボタン「Add Flight」で onCommit(fields) を呼んで親がフライト＋メモを
+//   一緒に保存する。Back/✕ は onClose（＝Add Flight フォームへ戻る）。flight.id は未採番のダミー。
+export function FlightMemoModal({ flight, onClose, draftMode = false, onCommit }: {
+  flight: StoredFlight | null;
+  onClose: () => void;
+  draftMode?: boolean;
+  onCommit?: (fields: Record<string, string>) => void;
+}) {
   const open = flight !== null;
   const [mode, setMode] = useState<'view' | 'edit'>('view');
   const [draft, setDraft] = useState<Record<string, string>>({});
@@ -48,14 +56,16 @@ export function FlightMemoModal({ flight, onClose }: { flight: StoredFlight | nu
   const [saved, setSaved] = useState<Record<string, string> | null>(null);
 
   // 開くたびに保存済みメモを読み、無ければ編集モード・あれば閲覧モードで開く。
+  // draftMode はフライト未保存＝メモも存在しないので、常にまっさらの編集モード。
   useEffect(() => {
     if (!flight) return;
+    if (draftMode) { setSaved(null); setDraft({}); setMode('edit'); return; }
     const memo = memoStore.get(flight.id);
     const fields = memo ? { ...memo.fields } : {};
     setSaved(memo ? memo.fields : null);
     setDraft(fields);
     setMode(memo ? 'view' : 'edit');
-  }, [flight]);
+  }, [flight, draftMode]);
 
   // 未保存の変更があるか（編集モードのみ意味を持つ）。正準形どうしで比較する。
   const isDirty = () => {
@@ -66,11 +76,14 @@ export function FlightMemoModal({ flight, onClose }: { flight: StoredFlight | nu
   };
 
   // 閉じる（✕ / ESC）：編集中で未保存なら確認してから閉じる。
+  // draftMode の「閉じる」はフライト追加の中止ではなく Add Flight フォームへ戻る操作。
   const closeAttempt = () => {
     if (mode === 'edit' && isDirty()) {
       requestConfirm({
         title: 'Discard unsaved changes?',
-        message: <>Your edits to these flight notes haven't been saved.<br />Close without saving?</>,
+        message: draftMode
+          ? <>These notes haven't been saved.<br />Discard them and go back to the flight form?</>
+          : <>Your edits to these flight notes haven't been saved.<br />Close without saving?</>,
         confirmLabel: 'Discard',
         onConfirm: onClose,
       });
@@ -89,6 +102,9 @@ export function FlightMemoModal({ flight, onClose }: { flight: StoredFlight | nu
   if (!flight) return null;
 
   const save = () => {
+    // draftMode：memo-store には触れず、親（AddFlightModal）にフィールドを渡して
+    // フライト＋メモを一緒に確定してもらう（閉じる処理も親側）。
+    if (draftMode) { onCommit?.(cleanMemoFields(draft)); return; }
     memoStore.save(flight.id, draft);
     const clean = cleanMemoFields(draft);
     if (Object.keys(clean).length === 0) {
@@ -111,7 +127,9 @@ export function FlightMemoModal({ flight, onClose }: { flight: StoredFlight | nu
     if (isDirty()) {
       requestConfirm({
         title: 'Discard unsaved changes?',
-        message: <>Your edits to these flight notes haven't been saved.<br />Discard them?</>,
+        message: draftMode
+          ? <>These notes haven't been saved.<br />Discard them and go back to the flight form?</>
+          : <>Your edits to these flight notes haven't been saved.<br />Discard them?</>,
         confirmLabel: 'Discard',
         onConfirm: revert,
       });
@@ -149,7 +167,9 @@ export function FlightMemoModal({ flight, onClose }: { flight: StoredFlight | nu
           </div>
           <p className="memo-intro">
             {mode === 'edit'
-              ? 'All fields are optional — fill in only what you want to remember. Notes are saved separately and never affect your stats or CSV.'
+              ? (draftMode
+                  ? 'All fields are optional — fill in only what you want to remember. The flight is added when you press Add Flight.'
+                  : 'All fields are optional — fill in only what you want to remember. Notes are saved separately and never affect your stats or CSV.')
               : 'Saved notes for this flight. Notes never affect your stats or CSV.'}
           </p>
 
@@ -158,8 +178,9 @@ export function FlightMemoModal({ flight, onClose }: { flight: StoredFlight | nu
           <div className="modal-actions adv-actions">
             {mode === 'edit' ? (
               <>
-                <button className="btn-outline" onClick={cancelEdit}>Cancel</button>
-                <button className="btn-primary" onClick={save}>Save Notes</button>
+                {/* draftMode：Back＝フォームへ戻る／Add Flight＝フライト＋ノートを一緒に確定 */}
+                <button className="btn-outline" onClick={cancelEdit}>{draftMode ? 'Back' : 'Cancel'}</button>
+                <button className="btn-primary" onClick={save}>{draftMode ? 'Add Flight' : 'Save Notes'}</button>
               </>
             ) : (
               <>
@@ -186,14 +207,26 @@ function MemoEditForm({ flight, draft, setField }: {
         <div key={sec.key}>
           <div className="adv-section-label">{sec.label}</div>
           <div className="memo-grid">
-            {sec.fields.map((f) => (
-              <MemoInput key={f.key} def={f} value={draft[f.key] ?? ''}
-                suggestions={suggestionMap[f.key] ?? []} onChange={(v) => setField(f.key, v)} />
-            ))}
+            {sec.fields.map((f) => f.computed
+              ? <MemoComputedItem key={f.key} def={f} fields={draft} />
+              : <MemoInput key={f.key} def={f} value={draft[f.key] ?? ''}
+                  suggestions={suggestionMap[f.key] ?? []} onChange={(v) => setField(f.key, v)} />)}
           </div>
           {i < MEMO_SECTIONS.length - 1 && <hr className="adv-divider" />}
         </div>
       ))}
+    </div>
+  );
+}
+
+// 自動計算項目（Taxi total 等）の編集モード表示：入力欄と同じ位置に読み取り専用で live 表示。
+// 値は保存されない（他項目からの導出のみ）＝「auto」バッジでそれを示す。
+function MemoComputedItem({ def, fields }: { def: MemoFieldDef; fields: Record<string, string> }) {
+  const v = def.computed!(fields);
+  return (
+    <div className={'form-group' + (def.half ? '' : ' memo-full')}>
+      <span className="form-label">{def.label} <span className="memo-auto-tag">auto</span></span>
+      <div className="memo-computed">{v || '—'}</div>
     </div>
   );
 }
@@ -272,19 +305,24 @@ function MemoTimePair({ def, label, value, onChange }: {
 }
 
 // ---- 閲覧表示：全セクション・全項目を表示（未入力は空欄「—」）＝紙のフライトログ風 ----
+// 「記入済みのディスパッチ用紙」の見立て（オーナー指定 2026-07-11）：
+// 紙面（.memo-sheet）の上に、ラベル → 点線リーダー → 値 の記入行が並ぶ。
+// 自由記述（Route・METAR・Notes）は罫線ノートの升目に書かれた体（.memo-view-block）。
 function MemoViewBody({ fields }: { fields: Record<string, string> }) {
   return (
-    <div>
+    <div className="memo-sheet">
       {MEMO_SECTIONS.map((sec, i) => (
         <div key={sec.key}>
           <div className="adv-section-label">{sec.label}</div>
           <div className="memo-grid">
             {sec.fields.map((f) => {
-              const raw = (fields[f.key] || '').trim();
+              const raw = f.computed ? f.computed(fields) : (fields[f.key] || '').trim();
               const shown = raw ? formatMemoValue(f, raw) : '';
+              const isBlock = f.type === 'textarea';
               return (
-                <div key={f.key} className={'memo-view-item' + (f.type === 'textarea' ? ' memo-full' : '')}>
+                <div key={f.key} className={'memo-view-item' + (isBlock ? ' memo-full memo-view-block' : '')}>
                   <span className="form-label">{f.label}</span>
+                  {!isBlock && <span className="memo-view-leader" aria-hidden="true" />}
                   {shown
                     ? <span className="memo-view-value">{shown}</span>
                     : <span className="memo-view-value memo-view-blank">—</span>}

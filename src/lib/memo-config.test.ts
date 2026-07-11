@@ -2,7 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   formatMemoValue, getMemoUnit, MEMO_FIELD_BY_KEY, MEMO_SECTIONS,
-  splitClock, combineClock, splitDuration, combineDuration,
+  splitClock, combineClock, splitDuration, combineDuration, sumDurations,
 } from './memo-config';
 
 describe('formatMemoValue（表示時の単位自動付与）', () => {
@@ -54,6 +54,35 @@ describe('定義の整合性', () => {
   it('セクション見出しに絵文字を使わない（オーナー指定 2026-07-07）', () => {
     // サロゲートペア（絵文字）を含まないことを確認
     MEMO_SECTIONS.forEach((s) => expect(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}]/u.test(s.label)).toBe(false));
+  });
+
+  it('日付の並びは LOC の行 → UTC の行（オーナー指定 2026-07-11）', () => {
+    const keys = MEMO_SECTIONS.find((s) => s.key === 'times')!.fields.map((f) => f.key);
+    expect(keys.slice(0, 4)).toEqual(['depDateLoc', 'arrDateLoc', 'depDateUtc', 'arrDateUtc']);
+  });
+
+  it('巡航3項目：高度は ft 自動付与・Mach は付与なし・IAS は kt', () => {
+    expect(formatMemoValue(MEMO_FIELD_BY_KEY.cruiseAlt, '34,000')).toBe('34,000 ft');
+    expect(formatMemoValue(MEMO_FIELD_BY_KEY.cruiseAlt, 'FL340')).toBe('FL340'); // 文字入り＝そのまま
+    expect(formatMemoValue(MEMO_FIELD_BY_KEY.cruiseMach, '0.85')).toBe('0.85');
+    expect(formatMemoValue(MEMO_FIELD_BY_KEY.cruiseIas, '280')).toBe('280 kt');
+  });
+});
+
+describe('sumDurations（Taxi total の自動計算）', () => {
+  it('両方あれば合計（分繰り上がりも正準形で返す）', () => {
+    expect(sumDurations('9m', '3m')).toBe('12m');
+    expect(sumDurations('45m', '20m')).toBe('1h05m');
+    expect(sumDurations('1h05m', '12m')).toBe('1h17m');
+  });
+  it('片方だけならその値・両方空なら空文字', () => {
+    expect(sumDurations('9m', '')).toBe('9m');
+    expect(sumDurations('', '12m')).toBe('12m');
+    expect(sumDurations('', '')).toBe('');
+  });
+  it('taxiTotal は computed 項目＝taxiOut/taxiIn から導出される', () => {
+    expect(MEMO_FIELD_BY_KEY.taxiTotal.computed!({ taxiOut: '9m', taxiIn: '3m' })).toBe('12m');
+    expect(MEMO_FIELD_BY_KEY.taxiTotal.computed!({})).toBe('');
   });
 });
 

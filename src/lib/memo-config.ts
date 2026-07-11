@@ -11,8 +11,8 @@
 // 単位を返す唯一の窓口。将来 kg/lb・nm/km などを設定で切り替えるときは、
 // getMemoUnit() の中身を「localStorage の設定を読んで返す」に差し替えるだけ
 // （フィールド定義は unit キーを持つだけなので変更不要）。
-export type MemoUnitKey = 'speed' | 'distance' | 'weight' | 'vspeed' | 'gforce';
-export const MEMO_UNIT_DEFAULTS: Record<MemoUnitKey, string> = { speed: 'kt', distance: 'nm', weight: 'kg', vspeed: 'fpm', gforce: 'G' };
+export type MemoUnitKey = 'speed' | 'distance' | 'weight' | 'vspeed' | 'gforce' | 'altitude';
+export const MEMO_UNIT_DEFAULTS: Record<MemoUnitKey, string> = { speed: 'kt', distance: 'nm', weight: 'kg', vspeed: 'fpm', gforce: 'G', altitude: 'ft' };
 export function getMemoUnit(key: MemoUnitKey): string {
   return MEMO_UNIT_DEFAULTS[key];
 }
@@ -26,6 +26,9 @@ export interface MemoFieldDef {
   type?: 'text' | 'textarea' | 'date' | 'clock' | 'duration'; // 省略時 text
   half?: boolean;             // true = 2カラムグリッドの半分幅（連続する half は横に並ぶ）
   unit?: MemoUnitKey;         // 数値だけの入力に表示時へ自動付与する単位
+  // 自動計算項目（Taxi total 等）：他の項目から導出して表示するだけで、保存はしない。
+  // 編集モードでは読み取り専用表示になる（FlightMemoModal が分岐）。
+  computed?: (fields: Record<string, string>) => string;
 }
 
 export interface MemoSectionDef {
@@ -72,6 +75,22 @@ export function combineDuration(h: string, m: string): string {
   return hn > 0 ? `${hn}h${String(mn).padStart(2, '0')}m` : `${mn}m`;
 }
 
+// duration 正準形（"1h05m"・"12m"）→ 分。空・不正は null（0 と区別する）。
+function durationMin(v: string): number | null {
+  const [h, m] = splitDuration(v ?? '');
+  if (!h && !m) return null;
+  return (parseInt(h || '0', 10) || 0) * 60 + (parseInt(m || '0', 10) || 0);
+}
+
+// duration 2つの合計（Taxi total 用）。両方空なら ''、片方だけならその値がそのまま合計になる。
+export function sumDurations(a: string, b: string): string {
+  const am = durationMin(a);
+  const bm = durationMin(b);
+  if (am === null && bm === null) return '';
+  const total = (am ?? 0) + (bm ?? 0);
+  return combineDuration(String(Math.floor(total / 60)), String(total % 60));
+}
+
 export const MEMO_SECTIONS: MemoSectionDef[] = [
   {
     key: 'flightinfo',
@@ -88,9 +107,10 @@ export const MEMO_SECTIONS: MemoSectionDef[] = [
     label: 'Times',
     fields: [
       // 日付（深夜跨ぎ・日付変更線で LOC と UTC がズレるため両方持てる）。ネイティブの日付ピッカー。
+      // 並びは「LOC の行 → UTC の行」（出発・到着を横に並べる。オーナー指定 2026-07-11：入力が直感的）。
       { key: 'depDateLoc', label: 'Departure date · LOC', type: 'date', half: true },
-      { key: 'depDateUtc', label: 'Departure date · UTC', type: 'date', half: true },
       { key: 'arrDateLoc', label: 'Arrival date · LOC',   type: 'date', half: true },
+      { key: 'depDateUtc', label: 'Departure date · UTC', type: 'date', half: true },
       { key: 'arrDateUtc', label: 'Arrival date · UTC',   type: 'date', half: true },
       // OOOI（Out/Off/On/In）。LOC＝現地時刻・UTC 併記（どちらか片方だけでも可）。HH:MM の2箱入力。
       { key: 'outLoc',  label: 'Pushback (OUT) · LOC', type: 'clock', half: true },
@@ -104,6 +124,8 @@ export const MEMO_SECTIONS: MemoSectionDef[] = [
       // タキシー時間は OUT/IN に分離（h+m の2箱＝Add Flight の Flight Time と同型・正準形で保存）。
       { key: 'taxiOut', label: 'Taxi out', type: 'duration', half: true },
       { key: 'taxiIn',  label: 'Taxi in',  type: 'duration', half: true },
+      // 合計は自動計算（保存しない・編集モードでは読み取り専用で live 表示）。
+      { key: 'taxiTotal', label: 'Taxi total', half: true, computed: (f) => sumDurations(f.taxiOut ?? '', f.taxiIn ?? '') },
     ],
   },
   {
@@ -114,7 +136,12 @@ export const MEMO_SECTIONS: MemoSectionDef[] = [
       { key: 'vr',       label: 'VR',  placeholder: '152', half: true, unit: 'speed' },
       { key: 'v2',       label: 'V2',  placeholder: '158', half: true, unit: 'speed' },
       { key: 'vref',     label: 'VREF / VAPP', placeholder: '138', half: true, unit: 'speed' },
-      { key: 'distance', label: 'Flight distance', placeholder: '520', half: true, unit: 'distance' },
+      // 巡航（オーナー指定 2026-07-11）：高度＋速度（Mach と IAS の2表記）。
+      // Mach は "0.85" のような小数＝単位の自動付与はしない（"M0.85" と書いてもそのまま尊重）。
+      { key: 'cruiseAlt',  label: 'Cruise altitude', placeholder: '34,000 or FL340', half: true, unit: 'altitude' },
+      { key: 'distance',   label: 'Flight distance', placeholder: '520', half: true, unit: 'distance' },
+      { key: 'cruiseMach', label: 'Cruise speed · Mach', placeholder: '0.85', half: true },
+      { key: 'cruiseIas',  label: 'Cruise speed · IAS',  placeholder: '280',  half: true, unit: 'speed' },
       // 着陸品質（IF が着陸時に表示する 2 値）：接地時の降下率と G。
       { key: 'tdRate',   label: 'Touchdown rate', placeholder: '-250', half: true, unit: 'vspeed' },
       { key: 'gForce',   label: 'Landing G',      placeholder: '1.32', half: true, unit: 'gforce' },

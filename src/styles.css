@@ -66,6 +66,12 @@
   --red-rgb:    255,77,106;
   --green-rgb:  0,214,143;
   --violet-rgb: 157,122,255;
+  /* フライトノート閲覧モード（紙のログ帳風）。ダークは「夜間コクピットの照明下の用紙」＝
+     カードよりわずかに明るい藍のシート。ライトはクリーム色の紙（ライトブロックで上書き）。 */
+  --memo-paper: #101b2e;
+  --memo-paper-border: #22345a;
+  --memo-rule: rgba(140,155,181,0.35);       /* 記入行の点線・セクション下線 */
+  --memo-rule-soft: rgba(140,155,181,0.15);  /* 自由記述の罫線 */
   --radius: 14px;
   --radius-sm: 8px;
   /* 汎用サーフェストークン（薄い半透明 overlay の階段）。テーマ切替で白基調 ↔ 黒基調が反転する。 */
@@ -130,6 +136,11 @@
   --red-rgb:    220,40,72;
   --green-rgb:  0,168,107;
   --violet-rgb: 123,77,255;
+  /* フライトノート：ライトはクリーム色の紙＋インク寄りの罫線（本物のログ帳の見立て） */
+  --memo-paper: #fbf8f1;
+  --memo-paper-border: #e6dfcd;
+  --memo-rule: rgba(92,76,46,0.30);
+  --memo-rule-soft: rgba(92,76,46,0.13);
   /* サーフェスは黒基調に反転（白背景にうっすら黒を載せる） */
   --surface-elev1: rgba(0,0,0,0.02);
   --surface-elev2: rgba(0,0,0,0.04);
@@ -913,6 +924,49 @@ body.has-fullscreen-card{overflow:hidden;}
 .memo-view-blank{color:var(--text-3);}  /* 未入力の空欄（—）は薄く＝紙のログの空マス */
 @media (max-width:560px){ .memo-grid{grid-template-columns:1fr;} }
 
+/* ---- 閲覧モード＝紙のログ帳（2026-07-11 オーナー指定）----
+   紙面（--memo-paper）の上に「ラベル ……… 値」の点線リーダー記入行を並べ、
+   自由記述（Route・METAR・Notes）は罫線ノートに書かれた体にする。
+   編集モードのフォームには影響させない（.memo-sheet スコープ内のみ）。 */
+.memo-sheet{
+  background:var(--memo-paper);border:1px solid var(--memo-paper-border);
+  border-radius:10px;padding:18px 20px 6px;
+}
+.memo-sheet .adv-section-label{
+  border-bottom:1px solid var(--memo-rule);
+  padding-bottom:5px;letter-spacing:1.6px;
+}
+/* セクション間の区切りは紙らしく極薄に（下線つき見出しと二重にならないよう控えめ） */
+.memo-sheet .adv-divider{background:transparent;margin:14px 0;}
+/* 記入行：ラベル → 点線リーダー → 値（右寄せ・ベースライン揃え）＝帳簿の1行 */
+.memo-sheet .memo-view-item{flex-direction:row;align-items:baseline;gap:8px;}
+.memo-sheet .memo-view-item .form-label{flex-shrink:0;}
+.memo-view-leader{
+  flex:1 1 12px;min-width:12px;align-self:flex-end;margin-bottom:4px;
+  border-bottom:1px dotted var(--memo-rule);
+}
+.memo-sheet .memo-view-value{text-align:right;font-size:13.5px;}
+/* 自由記述：ラベルの下に罫線ノート（1.7em ごとの横罫。空でも2行分の升目を見せる） */
+.memo-sheet .memo-view-block{flex-direction:column;align-items:stretch;gap:6px;}
+.memo-sheet .memo-view-block .memo-view-value{
+  text-align:left;line-height:1.7;min-height:3.4em;padding:0 2px;
+  background:repeating-linear-gradient(to bottom,
+    transparent 0,transparent calc(1.7em - 1px),
+    var(--memo-rule-soft) calc(1.7em - 1px),var(--memo-rule-soft) 1.7em);
+}
+
+/* ---- 自動計算項目（Taxi total）：編集モードの読み取り専用表示 ---- */
+.memo-auto-tag{
+  display:inline-block;padding:1px 6px;margin-left:4px;border-radius:999px;
+  background:rgba(var(--accent-rgb),0.12);color:var(--accent);
+  font-size:9px;font-weight:700;letter-spacing:0.5px;text-transform:lowercase;vertical-align:middle;
+}
+.memo-computed{
+  padding:11px 14px;background:transparent;border:1px dashed var(--border);
+  border-radius:10px;color:var(--text-2);font-family:'JetBrains Mono';font-size:16px;
+  min-height:42px;
+}
+
 /* ===================== SELF-CHECK ===================== */
 /* 設定 Status → Self-check。総合判定 1 行＋失敗した項目だけのリスト。 */
 .selfcheck-summary{
@@ -1185,6 +1239,12 @@ input[type="date"].form-input{
   .table-section .table-tools > .card-expand-btn{
     position:absolute;top:13px;right:16px;
     align-self:auto;order:0; /* 860px の align-self:flex-end / order:-1 を打ち消し */
+  }
+  /* ソートリセット ↺ は絶対配置しない（⛶ と同座標で重なるため）。
+     検索欄と Clear All の間にインラインで並べ、高さは行に合わせる。 */
+  .table-section .table-tools > .sort-reset-btn{
+    position:static;order:0;align-self:stretch;
+    width:38px;height:auto;
   }
   /* 860px の column を上書きして 1 行配置に。search 70% / Clear All 30% 程度の比率。
      search-input は基底で width:280px、860px で width:100% が効いているので、

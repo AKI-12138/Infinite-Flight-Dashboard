@@ -163,7 +163,7 @@ export function FlightLog({ flights }: { flights: StoredFlight[] }) {
               />
             </div>
             {!(sort && sort.col === 0 && !sort.asc) && (
-              <button className="card-expand-btn" onClick={() => setSort({ col: 0, asc: false })} title="Reset sort — newest first">↺</button>
+              <button className="card-expand-btn sort-reset-btn" onClick={() => setSort({ col: 0, asc: false })} title="Reset sort — newest first">↺</button>
             )}
             <button className="btn-danger" onClick={confirmDeleteAll} title="Delete all flights">🗑️ Clear All</button>
             <button className="card-expand-btn" onClick={toggleFullscreen} title={fullscreen ? 'Close' : 'Expand'}>

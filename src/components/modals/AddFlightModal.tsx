@@ -1,11 +1,12 @@
-import { useState, useEffect, type KeyboardEvent } from 'react';
+import { useState, useEffect, useMemo, type KeyboardEvent } from 'react';
 import { DataSource } from '../../lib/datasource';
 import type { Flight } from '../../lib/compute';
 import { normalizeAirport, normalizeAircraft, normalizeAirline, normalizeTime } from '../../lib/normalize';
-import { openFlightMemo } from '../../lib/memo-events';
+import { memoStore } from '../../lib/memo-store';
 import { showToast } from '../../lib/toast';
 import { useModalKeyboard } from '../../hooks/useModalKeyboard';
 import { AutocompleteInput } from './AutocompleteInput';
+import { FlightMemoModal } from './FlightMemoModal';
 
 // ✈️ Add New Flight（旧 #modalOverlay + addFlight）。外側クリックでは閉じない（入力中の誤クリック防止）。
 // 閉じるのは ✕ / ESC のみ。値は境界（normalize*）で正準化してから DataSource.addOne。
@@ -17,6 +18,8 @@ export function AddFlightModal({ open, onClose, flights }: { open: boolean; onCl
   const [arr, setArr] = useState('');
   const [aircraft, setAircraft] = useState('');
   const [airline, setAirline] = useState('');
+  // 「Add Notes」で検証済みだが未追加のフライト。ノート画面の Add Flight で初めて確定する。
+  const [draftFlight, setDraftFlight] = useState<Flight | null>(null);
 
   const modalRef = useModalKeyboard(open, onClose);
 
@@ -25,7 +28,16 @@ export function AddFlightModal({ open, onClose, flights }: { open: boolean; onCl
   useEffect(() => {
     if (!open) return;
     setDate(''); setTimeH(''); setTimeM(''); setDep(''); setArr(''); setAircraft(''); setAirline('');
+    setDraftFlight(null);
   }, [open]);
+
+  // FlightMemoModal（draft モード）へ渡す形。id/no は確定時に採番されるためダミー
+  // （draftMode では参照されない）。毎レンダー新オブジェクトを作ると memo 側の初期化 effect が
+  // 走り直して入力が消えるので、draftFlight が変わったときだけ作る。
+  const draftStored = useMemo(
+    () => (draftFlight ? { ...draftFlight, no: 0, id: '' } : null),
+    [draftFlight],
+  );
 
   if (!open) return null;
 
@@ -39,8 +51,8 @@ export function AddFlightModal({ open, onClose, flights }: { open: boolean; onCl
     }
   };
 
-  // withNotes=true は「Add + Notes」：追加した直後にそのフライトのメモパネルを開く
-  // （メモは保存済みフライトの id に紐づくため、必ず「保存 → メモ」の順になる）。
+  // withNotes=true は「Add Notes」：ここではまだ追加せず、検証だけ通してノート編集を開く。
+  // フライトの確定はノート画面の「Add Flight」（commitWithNotes）で行う（オーナー指定 2026-07-11）。
   function submit(withNotes = false) {
     const depN = normalizeAirport(dep) || '';
     const arrN = normalizeAirport(arr) || '';
@@ -53,14 +65,28 @@ export function AddFlightModal({ open, onClose, flights }: { open: boolean; onCl
     if (!date || !depN || !arrN || !acN || !alN || (h === 0 && m === 0)) { alert('Please fill in all fields.'); return; }
     const combined = `${h}h${String(m).padStart(2, '0')}m`;
     const t = normalizeTime(combined) || combined;
-    const stored = DataSource.addOne({ date, dep: depN, arr: arrN, ac: acN, al: alN, t });
+    const data: Flight = { date, dep: depN, arr: arrN, ac: acN, al: alN, t };
+    if (withNotes) { setDraftFlight(data); return; }
+    DataSource.addOne(data);
     reset();
     onClose();
     showToast('✓ Flight added successfully');
-    if (withNotes) openFlightMemo(stored);
+  }
+
+  // ノート付き確定：フライトを保存してから、その id にノートを紐づける（メモは id キーのため必ずこの順）。
+  function commitWithNotes(fields: Record<string, string>) {
+    if (!draftFlight) return;
+    const stored = DataSource.addOne(draftFlight);
+    const hasNotes = Object.keys(fields).length > 0;
+    if (hasNotes) memoStore.save(stored.id, fields);
+    setDraftFlight(null);
+    reset();
+    onClose();
+    showToast(hasNotes ? '✓ Flight added with notes' : '✓ Flight added successfully');
   }
 
   return (
+    <>
     <div ref={modalRef} className="modal-overlay show" id="modalOverlay">
       <div className="modal">
         <div className="modal-head">
@@ -74,7 +100,8 @@ export function AddFlightModal({ open, onClose, flights }: { open: boolean; onCl
               <input type="date" className="form-input" value={date} onChange={(e) => setDate(e.target.value)} />
             </div>
             <div className="form-group">
-              <span className="form-label">Flight Time</span>
+              {/* (air time)＝離陸〜着陸の飛行時間であって block time（OUT〜IN）ではない、の注釈（オーナー指定 2026-07-11） */}
+              <span className="form-label">Flight Time (air time)</span>
               <div className="flight-time-input">
                 <AutocompleteInput id="fTimeH" type="time-h" wrapClassName="ac-wrap" placeholder="0" inputMode="numeric"
                   value={timeH} onChange={setTimeH} flights={flights} />
@@ -99,12 +126,21 @@ export function AddFlightModal({ open, onClose, flights }: { open: boolean; onCl
           </div>
           <div className="modal-actions">
             <button className="btn-outline" onClick={onClose}>Cancel</button>
-            {/* 追加してそのまま詳細メモ（v-speed・時刻・燃料など）を書く導線 */}
-            <button className="btn-outline" onClick={() => submit(true)} title="Add this flight, then write detailed notes for it">📝 Add + Notes</button>
+            {/* 詳細メモ（v-speed・時刻・燃料など）を書いてからフライトを追加する導線 */}
+            <button className="btn-outline" onClick={() => submit(true)} title="Write detailed notes for this flight, then add it">Add Notes</button>
             <button className="btn-primary" onClick={() => submit()}>Add Flight</button>
           </div>
         </div>
       </div>
     </div>
+
+    {/* ノートを書いてから確定する下書きフロー：Back/✕ ならこのフォームへ戻る（入力値は保持） */}
+    <FlightMemoModal
+      flight={draftStored}
+      draftMode
+      onCommit={commitWithNotes}
+      onClose={() => setDraftFlight(null)}
+    />
+    </>
   );
 }

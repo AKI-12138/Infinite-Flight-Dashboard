@@ -102,4 +102,30 @@ describe('FlightMemoModal', () => {
     const { container } = render(<FlightMemoModal flight={null} onClose={() => {}} />);
     expect(container).toBeEmptyDOMElement();
   });
+
+  // ---- draftMode（Add Flight の「Add Notes」導線・オーナー指定 2026-07-11）----
+  // フライト未保存の下書き状態：確定ボタンは「Add Flight」、Cancel は「Back」。
+  // memo-store には直接触れず、onCommit(正準化済み fields) に渡して親が一緒に保存する。
+  it('draftMode: 編集モードで開き、ボタンは Back / Add Flight（Save Notes は出ない）', () => {
+    render(<FlightMemoModal flight={{ ...FLIGHT, id: '' }} onClose={() => {}} draftMode onCommit={() => {}} />);
+    expect(screen.getByRole('button', { name: 'Add Flight' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Back' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Save Notes' })).not.toBeInTheDocument();
+  });
+
+  it('draftMode: Add Flight で onCommit(fields) が呼ばれ、memo-store には直接保存しない', () => {
+    const onCommit = vi.fn();
+    render(<FlightMemoModal flight={{ ...FLIGHT, id: '' }} onClose={() => {}} draftMode onCommit={onCommit} />);
+    fireEvent.change(screen.getByLabelText('V1 (kt)'), { target: { value: '148' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Add Flight' }));
+    expect(onCommit).toHaveBeenCalledWith({ v1: '148' });
+    expect(Object.keys(memoStore.all())).toHaveLength(0); // 保存は親（AddFlightModal）の責務
+  });
+
+  it('draftMode: 何も書かず Back → 確認なしで onClose（＝フォームへ戻る）', () => {
+    const onClose = vi.fn();
+    render(<FlightMemoModal flight={{ ...FLIGHT, id: '' }} onClose={onClose} draftMode onCommit={() => {}} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Back' }));
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
 });
