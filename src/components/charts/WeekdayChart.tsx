@@ -5,6 +5,10 @@ import type { Flight } from '../../lib/compute';
 import { useChart } from './useChart';
 import type { ChartMode } from '../../hooks/useChartMode';
 
+// flights の既定値は毎レンダー新しい [] を作らないようモジュール定数にする
+// （useChart の deps に入るため、新参照だと他カードの操作でも再描画が走る・2026-07-12）。
+const NO_FLIGHTS: Flight[] = [];
+
 const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 // 日付文字列 → Mon=0..Sun=6 の曜日インデックス（旧 _renderWeekdayLargeChart と同じ計算）。
@@ -19,7 +23,7 @@ function weekdayIndex(date: string): number {
 // リッチツールチップ（bucketLines）＋クリックでドリルダウン（onDrill）。
 // mode='bar'（2026-07-11）は棒に切り替え（YearChart と同じ塗り＋縁の流儀・同じシアン）。
 // 曜日は本来カテゴリ比較なので棒の方が教科書的に正しい形＝切り替えの価値が高い。
-export function WeekdayChart({ wd, themePref, large = false, flights = [], onDrill, mode = 'default' }: {
+export function WeekdayChart({ wd, themePref, large = false, flights = NO_FLIGHTS, onDrill, mode = 'default' }: {
   wd: Record<number, number>; themePref: string;
   large?: boolean; flights?: Flight[]; onDrill?: (value: string) => void; mode?: ChartMode;
 }) {

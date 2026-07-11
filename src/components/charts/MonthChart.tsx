@@ -5,6 +5,10 @@ import type { Flight } from '../../lib/compute';
 import { useChart } from './useChart';
 import type { ChartMode } from '../../hooks/useChartMode';
 
+// flights の既定値は毎レンダー新しい [] を作らないようモジュール定数にする
+// （useChart の deps に入るため、新参照だと他カードの操作でも再描画が走る・2026-07-12）。
+const NO_FLIGHTS: Flight[] = [];
+
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 // 月別フライト数の折れ線（旧 render-charts.js renderCharts の Month 部分）。赤の面塗り。
@@ -12,7 +16,7 @@ const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 // リッチツールチップ（bucketLines）＋クリックでドリルダウン（onDrill）。
 // mode='bar'（2026-07-11）は棒に切り替え（YearChart と同じ塗り＋縁の流儀・同じ赤）。
 // options（軸・tooltip・ドリルダウン）は折れ線と棒で共通＝挙動は変わらない。
-export function MonthChart({ mo, themePref, large = false, flights = [], onDrill, mode = 'default' }: {
+export function MonthChart({ mo, themePref, large = false, flights = NO_FLIGHTS, onDrill, mode = 'default' }: {
   mo: Record<number, number>; themePref: string;
   large?: boolean; flights?: Flight[]; onDrill?: (value: string) => void; mode?: ChartMode;
 }) {

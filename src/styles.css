@@ -392,11 +392,12 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);over
   display:flex;flex-direction:column;overflow:hidden;
   animation:slideUp 0.3s cubic-bezier(0.22,1,0.36,1);
 }
+/* ヘッダ：タイトルが余白を取り、アクション（表示形式トグル）と ✕ は右端に寄る（2026-07-12） */
 .continents-panel-header{
-  padding:14px 20px;display:flex;align-items:center;justify-content:space-between;
+  padding:14px 20px;display:flex;align-items:center;gap:12px;
   border-bottom:1px solid var(--border);flex-shrink:0;
 }
-.continents-panel-header h3{font-size:16px;font-weight:600;}
+.continents-panel-header h3{font-size:16px;font-weight:600;margin-right:auto;}
 .continents-panel-body{
   flex:1;min-height:0;padding:32px;position:relative;
 }
@@ -417,10 +418,10 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);over
   animation:slideUp 0.3s cubic-bezier(0.22,1,0.36,1);
 }
 .chart-panel-header{
-  padding:14px 20px;display:flex;align-items:center;justify-content:space-between;
+  padding:14px 20px;display:flex;align-items:center;gap:12px;
   border-bottom:1px solid var(--border);flex-shrink:0;
 }
-.chart-panel-header h3{font-size:16px;font-weight:600;}
+.chart-panel-header h3{font-size:16px;font-weight:600;margin-right:auto;}
 .chart-panel-body{
   flex:1;min-height:0;padding:28px 32px 24px;position:relative;
 }
@@ -1239,11 +1240,11 @@ input[type="date"].form-input{
     position:absolute;top:13px;right:16px;
     align-self:auto;order:0; /* 860px の align-self:flex-end / order:-1 を打ち消し */
   }
-  /* ソートリセット ↺ は絶対配置しない（⛶ と同座標で重なるため）。
-     検索欄と Clear All の間にインラインで並べ、高さは行に合わせる。 */
+  /* ソートリセット ↺ は ⛶ の真下（Clear All の右の空き列）に絶対配置（オーナー指定 2026-07-12）。
+     サイズは base の .card-expand-btn（30×30）＝⛶ と同じ。上の共通ルールが right:16px を
+     与えるので top だけ上書き（⛶ top13 + 高さ30 + 間隔8 = 51px）。 */
   .table-section .table-tools > .sort-reset-btn{
-    position:static;order:0;align-self:stretch;
-    width:38px;height:auto;
+    top:51px;
   }
   /* 860px の column を上書きして 1 行配置に。search 70% / Clear All 30% 程度の比率。
      search-input は基底で width:280px、860px で width:100% が効いているので、

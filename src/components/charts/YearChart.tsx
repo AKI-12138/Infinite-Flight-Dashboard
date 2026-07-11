@@ -8,6 +8,10 @@ import { useChart } from './useChart';
 
 // カード（非拡大）で表示する最大年数。年は今後も増え続ける唯一の軸なので、
 // カードは「直近 N 年」に固定し、全期間は ⛶ 拡大（横スクロール）で見せる（オーナー判断 2026-07-08）。
+// flights の既定値は毎レンダー新しい [] を作らないようモジュール定数にする
+// （useChart の deps に入るため、新参照だと他カードの操作でも再描画が走る・2026-07-12）。
+const NO_FLIGHTS: Flight[] = [];
+
 const CARD_MAX_YEARS = 10;
 // 拡大表示で 1 年（1 本）に確保する最小幅 px。総幅がパネルを超えたら横スクロールになる。
 const LARGE_BAR_MIN_W = 72;
@@ -15,7 +19,7 @@ const LARGE_BAR_MIN_W = 72;
 // 年別フライト数の棒グラフ（旧 render-charts.js renderCharts の Year 部分）。
 // large=true（⛶ 拡大）では旧 _renderYearLargeChart 相当：大きいフォント／角丸＋
 // リッチツールチップ（bucketLines）＋クリックでドリルダウン（onDrill）＋全期間（横スクロール）。
-export function YearChart({ yr, themePref, large = false, flights = [], onDrill }: {
+export function YearChart({ yr, themePref, large = false, flights = NO_FLIGHTS, onDrill }: {
   yr: Record<string, number>; themePref: string;
   large?: boolean; flights?: Flight[]; onDrill?: (value: string) => void;
 }) {
