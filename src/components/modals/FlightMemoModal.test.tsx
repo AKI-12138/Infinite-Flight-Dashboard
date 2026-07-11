@@ -29,9 +29,17 @@ describe('FlightMemoModal', () => {
     expect(screen.getByRole('button', { name: 'Save Notes' })).toBeInTheDocument();
     expect(screen.getByLabelText('V1 (kt)')).toBeInTheDocument(); // 単位つき項目はラベルに (kt) を明示
     expect(screen.getByLabelText('Departure runway')).toBeInTheDocument();
-    // 日付（LOC/UTC）はネイティブ日付ピッカー
+    // 日付 LOC はネイティブ日付ピッカー。UTC は自動換算（A案・2026-07-11）＝入力欄ではなく auto 表示
     expect(screen.getByLabelText('Departure date · LOC')).toHaveAttribute('type', 'date');
-    expect(screen.getByLabelText('Arrival date · UTC')).toHaveAttribute('type', 'date');
+    expect(screen.queryByLabelText('Arrival date · UTC')).not.toBeInTheDocument();
+    expect(screen.getByText('Arrival date · UTC')).toBeInTheDocument(); // auto 項目として存在はする
+  });
+
+  it('UTC 欄は LOC 入力から自動換算される（RJTT/RJOO＝+9：12:09 → 03:09）', () => {
+    render(<FlightMemoModal flight={FLIGHT} onClose={() => {}} />);
+    fireEvent.change(screen.getByLabelText('Pushback (OUT) · LOC'), { target: { value: '12' } });
+    fireEvent.change(document.getElementById('memo-outLoc-m')!, { target: { value: '9' } });
+    expect(screen.getByText('03:09')).toBeInTheDocument(); // Pushback (OUT) · UTC の auto 表示
   });
 
   it('時刻（HH:MM）は2箱入力＝箱に入れると正準形 "09:05" で保存される', () => {

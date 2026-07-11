@@ -6,6 +6,7 @@
 //
 // 全項目任意入力。value は自由文字列。単位（kt / nm / kg）は入力不要＝数値だけ書けば
 // 表示時に formatMemoValue() が自動で付ける（単位付きで書いた場合はそのまま尊重）。
+import { airportTz, locToUtc } from './timezone';
 
 // ---- 単位（将来の「設定パネルで単位を選ぶ」機能との連動点） ----
 // 単位を返す唯一の窓口。将来 kg/lb・nm/km などを設定で切り替えるときは、
@@ -31,7 +32,9 @@ export interface MemoFieldDef {
   unit?: MemoUnitKey;         // 数値だけの入力に表示時へ自動付与する単位
   // 自動項目：他のメモ項目 or フライト本体から導出して表示するだけで、保存はしない。
   // 編集モードでは読み取り専用表示になる（FlightMemoModal が分岐）。
-  computed?: (fields: Record<string, string>, flight?: MemoFlightSrc) => string;
+  // 返り値 null ＝「この便では自動計算できない」（例：未収録空港で UTC 換算不能）→
+  // 通常の手入力欄にフォールバックする。'' は「自動だが材料待ち」（読み取り専用のまま空欄）。
+  computed?: (fields: Record<string, string>, flight?: MemoFlightSrc) => string | null;
 }
 
 export interface MemoSectionDef {
@@ -108,6 +111,41 @@ export function sumDurations(a: string, b: string): string {
   return combineDuration(String(Math.floor(total / 60)), String(total % 60));
 }
 
+// ---- UTC 欄の自動換算（A案・オーナー指定 2026-07-11） ----
+// LOC の入力＋空港タイムゾーンから UTC を導出する computed を作る。
+// - OUT/OFF は出発空港・ON/IN は到着空港のゾーンで換算（日付変更線・深夜跨ぎも正しくなる）。
+// - 換算に使う LOC 日付：出発側 = depDateLoc（無ければログの日付）、
+//   到着側 = arrDateLoc（無ければ depDateLoc → ログの日付）。
+// - ゾーン不明（未収録空港）→ null ＝手入力へフォールバック／LOC 未入力 → '' ＝auto のまま空欄。
+type UtcSide = 'dep' | 'arr';
+function _locDateFor(f: Record<string, string>, fl: MemoFlightSrc, side: UtcSide): string {
+  return (side === 'dep' ? f.depDateLoc : (f.arrDateLoc || f.depDateLoc)) || fl.date || '';
+}
+function _utcClock(locKey: string, side: UtcSide) {
+  return (f: Record<string, string>, fl?: MemoFlightSrc): string | null => {
+    if (!fl) return null;
+    const tz = airportTz(side === 'dep' ? fl.dep : fl.arr);
+    if (!tz) return null;
+    const date = _locDateFor(f, fl, side);
+    const time = f[locKey] || '';
+    if (!date || !time) return '';
+    return locToUtc(date, time, tz)?.time ?? '';
+  };
+}
+// UTC 日付：その側の代表時刻（出発側 = OUT→OFF・到着側 = ON→IN の優先順）で換算した日付。
+// 時刻が無いと日付ズレの有無が決められないため、時刻未入力のうちは空欄にする。
+function _utcDate(side: UtcSide) {
+  return (f: Record<string, string>, fl?: MemoFlightSrc): string | null => {
+    if (!fl) return null;
+    const tz = airportTz(side === 'dep' ? fl.dep : fl.arr);
+    if (!tz) return null;
+    const date = _locDateFor(f, fl, side);
+    const time = (side === 'dep' ? (f.outLoc || f.offLoc) : (f.onLoc || f.inLoc)) || '';
+    if (!date || !time) return '';
+    return locToUtc(date, time, tz)?.date ?? '';
+  };
+}
+
 export const MEMO_SECTIONS: MemoSectionDef[] = [
   {
     key: 'flightinfo',
@@ -131,20 +169,21 @@ export const MEMO_SECTIONS: MemoSectionDef[] = [
     label: 'Times',
     fields: [
       // 並びの原則（オーナー指定 2026-07-11）：出発側｜到着側 を横に並べ、LOC の行 → UTC の行。
+      // UTC 側は LOC＋空港タイムゾーンから自動換算（A案）。未収録空港のみ手入力にフォールバック。
       // 日付（深夜跨ぎ・日付変更線で LOC と UTC がズレるため両方持てる）。ネイティブの日付ピッカー。
       { key: 'depDateLoc', label: 'Departure date · LOC', type: 'date', half: true },
       { key: 'arrDateLoc', label: 'Arrival date · LOC',   type: 'date', half: true },
-      { key: 'depDateUtc', label: 'Departure date · UTC', type: 'date', half: true },
-      { key: 'arrDateUtc', label: 'Arrival date · UTC',   type: 'date', half: true },
+      { key: 'depDateUtc', label: 'Departure date · UTC', type: 'date', half: true, computed: _utcDate('dep') },
+      { key: 'arrDateUtc', label: 'Arrival date · UTC',   type: 'date', half: true, computed: _utcDate('arr') },
       // OOOI（Out/Off/On/In）。ブロック（OUT｜IN）→ 飛行（OFF｜ON）の順で、各ペア LOC 行 → UTC 行。
       { key: 'outLoc',  label: 'Pushback (OUT) · LOC',    type: 'clock', half: true },
       { key: 'inLoc',   label: 'Gate arrival (IN) · LOC', type: 'clock', half: true },
-      { key: 'outUtc',  label: 'Pushback (OUT) · UTC',    type: 'clock', half: true },
-      { key: 'inUtc',   label: 'Gate arrival (IN) · UTC', type: 'clock', half: true },
+      { key: 'outUtc',  label: 'Pushback (OUT) · UTC',    type: 'clock', half: true, computed: _utcClock('outLoc', 'dep') },
+      { key: 'inUtc',   label: 'Gate arrival (IN) · UTC', type: 'clock', half: true, computed: _utcClock('inLoc', 'arr') },
       { key: 'offLoc',  label: 'Takeoff (OFF) · LOC',     type: 'clock', half: true },
       { key: 'onLoc',   label: 'Landing (ON) · LOC',      type: 'clock', half: true },
-      { key: 'offUtc',  label: 'Takeoff (OFF) · UTC',     type: 'clock', half: true },
-      { key: 'onUtc',   label: 'Landing (ON) · UTC',      type: 'clock', half: true },
+      { key: 'offUtc',  label: 'Takeoff (OFF) · UTC',     type: 'clock', half: true, computed: _utcClock('offLoc', 'dep') },
+      { key: 'onUtc',   label: 'Landing (ON) · UTC',      type: 'clock', half: true, computed: _utcClock('onLoc', 'arr') },
       // タキシー時間は OUT/IN に分離（h+m の2箱＝Add Flight の Flight Time と同型・正準形で保存）。
       { key: 'taxiOut', label: 'Taxi out', type: 'duration', half: true },
       { key: 'taxiIn',  label: 'Taxi in',  type: 'duration', half: true },

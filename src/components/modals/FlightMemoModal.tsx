@@ -201,10 +201,16 @@ function MemoEditForm({ flight, draft, setField }: {
         <div key={sec.key}>
           <div className="adv-section-label">{sec.label}</div>
           <div className="memo-grid">
-            {sec.fields.map((f) => f.computed
-              ? <MemoComputedItem key={f.key} def={f} fields={draft} flight={flight} />
-              : <MemoInput key={f.key} def={f} value={draft[f.key] ?? ''}
-                  suggestions={suggestionMap[f.key] ?? []} onChange={(v) => setField(f.key, v)} />)}
+            {sec.fields.map((f) => {
+              // computed が null ＝この便では自動計算できない（未収録空港の UTC 等）→ 手入力へ。
+              // 計算が空（材料待ち）でも過去に手入力した値が残っている場合は手入力欄を出す（データを隠さない）。
+              const cv = f.computed ? f.computed(draft, flight) : null;
+              const useComputed = f.computed && cv !== null && !(cv === '' && (draft[f.key] ?? '').trim() !== '');
+              return useComputed
+                ? <MemoComputedItem key={f.key} def={f} value={cv!} />
+                : <MemoInput key={f.key} def={f} value={draft[f.key] ?? ''}
+                    suggestions={suggestionMap[f.key] ?? []} onChange={(v) => setField(f.key, v)} />;
+            })}
           </div>
           {i < MEMO_SECTIONS.length - 1 && <hr className="adv-divider" />}
         </div>
@@ -213,14 +219,13 @@ function MemoEditForm({ flight, draft, setField }: {
   );
 }
 
-// 自動項目（Taxi total・フライト本体由来の Route/Date 等）の編集モード表示：
+// 自動項目（Taxi total・フライト本体由来・UTC 換算）の編集モード表示：
 // 入力欄と同じ位置に読み取り専用で live 表示。値は保存されない（導出のみ）＝「auto」バッジでそれを示す。
-function MemoComputedItem({ def, fields, flight }: { def: MemoFieldDef; fields: Record<string, string>; flight: StoredFlight }) {
-  const v = def.computed!(fields, flight);
+function MemoComputedItem({ def, value }: { def: MemoFieldDef; value: string }) {
   return (
     <div className={'form-group' + (def.half ? '' : ' memo-full')}>
       <span className="form-label">{def.label} <span className="memo-auto-tag">auto</span></span>
-      <div className="memo-computed">{v || '—'}</div>
+      <div className="memo-computed">{value || '—'}</div>
     </div>
   );
 }
@@ -310,7 +315,9 @@ function MemoViewBody({ fields, flight }: { fields: Record<string, string>; flig
           <div className="adv-section-label">{sec.label}</div>
           <div className="memo-grid">
             {sec.fields.map((f) => {
-              const raw = f.computed ? f.computed(fields, flight) : (fields[f.key] || '').trim();
+              // computed が null（自動計算不能）or 空（材料待ち）の便では、手入力で保存された値を表示する。
+              const stored = (fields[f.key] || '').trim();
+              const raw = f.computed ? (f.computed(fields, flight) || stored) : stored;
               const shown = raw ? formatMemoValue(f, raw) : '';
               const isBlock = f.type === 'textarea';
               return (

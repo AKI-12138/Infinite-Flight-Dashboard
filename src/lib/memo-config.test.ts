@@ -131,6 +131,29 @@ describe('sumDurations（Taxi total の自動計算）', () => {
   });
 });
 
+describe('UTC 欄の自動換算（A案・2026-07-11）', () => {
+  // RJTT（+9）発 → KSEA（夏＝−7）着。ログの日付は 2026-07-20。
+  const fl = { date: '2026-07-20', dep: 'RJTT', arr: 'KSEA', ac: 'B77W', al: 'ANA', t: '9h30m' };
+
+  it('出発側（OUT/OFF）は出発空港のゾーンで換算', () => {
+    expect(MEMO_FIELD_BY_KEY.outUtc.computed!({ outLoc: '12:09' }, fl)).toBe('03:09');
+    expect(MEMO_FIELD_BY_KEY.offUtc.computed!({ offLoc: '12:21' }, fl)).toBe('03:21');
+  });
+  it('到着側（ON/IN）は到着空港のゾーンで換算（arrDateLoc → depDateLoc → ログ日付の順で日付を採用）', () => {
+    expect(MEMO_FIELD_BY_KEY.onUtc.computed!({ onLoc: '10:00', arrDateLoc: '2026-07-20' }, fl)).toBe('17:00');
+    expect(MEMO_FIELD_BY_KEY.inUtc.computed!({ inLoc: '10:05' }, fl)).toBe('17:05'); // 日付はログから
+  });
+  it('UTC 日付：代表時刻で換算（東京 08:00 発 → UTC は前日）', () => {
+    expect(MEMO_FIELD_BY_KEY.depDateUtc.computed!({ depDateLoc: '2026-07-20', outLoc: '8:00' }, fl)).toBe('2026-07-19');
+  });
+  it('LOC 未入力は ""（auto のまま空欄）・未収録空港は null（手入力へ）', () => {
+    expect(MEMO_FIELD_BY_KEY.outUtc.computed!({}, fl)).toBe('');
+    const unknown = { ...fl, dep: 'ZZZZ' };
+    expect(MEMO_FIELD_BY_KEY.outUtc.computed!({ outLoc: '12:00' }, unknown)).toBeNull();
+    expect(MEMO_FIELD_BY_KEY.inUtc.computed!({ inLoc: '10:00' }, unknown)).toBe('17:00'); // 到着側は KSEA なので計算可
+  });
+});
+
 describe('clock（HH:MM）の分解・結合', () => {
   it('combineClock：ゼロ埋めして HH:MM に（片方だけでも成立・両方空なら空）', () => {
     expect(combineClock('9', '5')).toBe('09:05');
