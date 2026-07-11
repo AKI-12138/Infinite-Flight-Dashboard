@@ -7,6 +7,14 @@
 // 全項目任意入力。value は自由文字列。単位（kt / nm / kg）は入力不要＝数値だけ書けば
 // 表示時に formatMemoValue() が自動で付ける（単位付きで書いた場合はそのまま尊重）。
 import { airportTz, locToUtc } from './timezone';
+import { AP } from '../data/airports';
+
+// 表示用：ICAO の後ろに都市名を併記（"RJTT (Tokyo)"・オーナー指定 2026-07-11）。
+// 複数空港都市の識別子（"Tokyo(HND)" の "(HND)"）はコードと重複するので外す。未収録はコードのみ。
+function _airportLabel(icao: string): string {
+  const city = (AP[icao]?.city ?? '').replace(/\(.+\)\s*$/, '').trim();
+  return city ? `${icao} (${city})` : icao;
+}
 
 // ---- 単位（将来の「設定パネルで単位を選ぶ」機能との連動点） ----
 // 単位を返す唯一の窓口。将来 kg/lb・nm/km などを設定で切り替えるときは、
@@ -155,8 +163,8 @@ export const MEMO_SECTIONS: MemoSectionDef[] = [
       // 並び（オーナー指定 2026-07-11）：1行目 DATE｜PILOT、2行目 FROM｜TO、以降は従来どおり。
       { key: 'autoDate',     label: 'Date',     half: true, computed: (_f, fl) => fl?.date ?? '' },
       { key: 'pilot',        label: 'Pilot',    placeholder: 'Your name / IFC handle', half: true },
-      { key: 'autoFrom',     label: 'From',     half: true, computed: (_f, fl) => fl?.dep ?? '' },
-      { key: 'autoTo',       label: 'To',       half: true, computed: (_f, fl) => fl?.arr ?? '' },
+      { key: 'autoFrom',     label: 'From',     half: true, computed: (_f, fl) => fl ? _airportLabel(fl.dep) : '' },
+      { key: 'autoTo',       label: 'To',       half: true, computed: (_f, fl) => fl ? _airportLabel(fl.arr) : '' },
       { key: 'autoAircraft', label: 'Aircraft', half: true, computed: (_f, fl) => fl?.ac ?? '' },
       { key: 'autoAirline',  label: 'Airline',  half: true, computed: (_f, fl) => fl?.al ?? '' },
       { key: 'flightNo',  label: 'Flight number', placeholder: 'NH006',  half: true },

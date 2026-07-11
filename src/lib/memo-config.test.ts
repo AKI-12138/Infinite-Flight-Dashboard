@@ -95,8 +95,11 @@ describe('定義の整合性', () => {
 
   it('フライト本体からの自動項目：From/To/Date/Aircraft/Airline/air time（保存せず常にログの値）', () => {
     const fl = { date: '2026-07-09', dep: 'RCTP', arr: 'VMMC', ac: 'A339', al: 'Starlux Airlines', t: '1h20m' };
-    expect(MEMO_FIELD_BY_KEY.autoFrom.computed!({}, fl)).toBe('RCTP');
-    expect(MEMO_FIELD_BY_KEY.autoTo.computed!({}, fl)).toBe('VMMC');
+    // From/To は都市名併記（"Taipei(TPE)" の "(TPE)" は ICAO と重複するので外れる）
+    expect(MEMO_FIELD_BY_KEY.autoFrom.computed!({}, fl)).toBe('RCTP (Taipei)');
+    expect(MEMO_FIELD_BY_KEY.autoTo.computed!({}, fl)).toBe('VMMC (Macau)');
+    // 未収録空港はコードのみ
+    expect(MEMO_FIELD_BY_KEY.autoFrom.computed!({}, { ...fl, dep: 'ZZZZ' })).toBe('ZZZZ');
     expect(MEMO_FIELD_BY_KEY.autoDate.computed!({}, fl)).toBe('2026-07-09');
     expect(MEMO_FIELD_BY_KEY.autoAircraft.computed!({}, fl)).toBe('A339');
     expect(MEMO_FIELD_BY_KEY.autoAirline.computed!({}, fl)).toBe('Starlux Airlines');
