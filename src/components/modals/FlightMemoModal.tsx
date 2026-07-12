@@ -191,8 +191,8 @@ export function FlightMemoModal({ flight, onClose, draftMode = false, onCommit }
               </>
             ) : (
               <>
-                <button className="btn-danger" onClick={deleteMemo}>🗑️ Delete</button>
-                <button className="btn-primary" onClick={() => setMode('edit')}>✏️ Edit</button>
+                <button className="btn-danger" onClick={deleteMemo}>Delete</button>
+                <button className="btn-primary" onClick={() => setMode('edit')}>Edit</button>
               </>
             )}
           </div>

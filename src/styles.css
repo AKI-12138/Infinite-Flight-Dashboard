@@ -1907,6 +1907,8 @@ body:not(.is-empty) #emptyState { display:none; }
    以前は flex:1 で Clear all を横いっぱいに伸ばしていたが、リセット操作が最大＝
    ヒエラルキーが逆転していたため 2026-07-03 に是正。 */
 .adv-actions .btn-outline:first-child{margin-right:auto;}
+/* フライトノート閲覧モード：Delete は左端・Edit は右端（破壊操作と主操作を離す定石） */
+.adv-actions .btn-danger:first-child{margin-right:auto;}
 .adv-actions .btn-primary{flex:0 0 auto;padding:10px 22px;}
 /* Save preset は「前向きな作成」操作。dismiss 系 btn-outline（hover 赤）とは別扱いにして
    緑にし、grey の Clear all とも青塗りの Done とも区別する。休止時から緑の枠線＋文字で
