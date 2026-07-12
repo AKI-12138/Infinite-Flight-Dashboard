@@ -71,7 +71,7 @@ describe('FlightMemoModal', () => {
       v1: '148', notes: 'smooth landing', depDateLoc: '2025-01-01', arrDateLoc: '2025-01-01',
     });
     // 閲覧モードに切り替わる：Edit ボタンが出て、数値だけの V1 は「148 kt」と単位つきで表示される
-    expect(screen.getByRole('button', { name: '✏️ Edit' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Edit' })).toBeInTheDocument();
     expect(screen.getByText('148 kt')).toBeInTheDocument();
     expect(screen.getByText('smooth landing')).toBeInTheDocument();
   });
@@ -97,7 +97,7 @@ describe('FlightMemoModal', () => {
   it('メモ有りで開くと閲覧モード（全項目表示・未入力は空欄 —）', () => {
     memoStore.save('test-id', { rwyArr: '32L' });
     render(<FlightMemoModal flight={FLIGHT} onClose={() => {}} />);
-    expect(screen.getByRole('button', { name: '✏️ Edit' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Edit' })).toBeInTheDocument();
     expect(screen.getByText('32L')).toBeInTheDocument();
     // 未記入のセクション・項目も空欄として出す（紙のフライトログ風）
     expect(screen.getByText('Flight Info')).toBeInTheDocument();
@@ -108,7 +108,7 @@ describe('FlightMemoModal', () => {
   it('閲覧モードで Edit → 編集モードに入り既存値が入っている', () => {
     memoStore.save('test-id', { v1: '148' });
     render(<FlightMemoModal flight={FLIGHT} onClose={() => {}} />);
-    fireEvent.click(screen.getByRole('button', { name: '✏️ Edit' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Edit' }));
     expect(screen.getByLabelText('V1 (kt)')).toHaveValue('148');
   });
 
