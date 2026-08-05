@@ -27,7 +27,7 @@ jobs:
       # 4. 型チェック＋本番ビルド（tsc -b && vite build）
       - run: npm run build
 
-      # 5. テスト（Vitest・現在 215 件）
+      # 5. テスト（Vitest）
       - run: npm test
 
       # 6. Lint（oxlint）。警告は出てもビルドは止めない
