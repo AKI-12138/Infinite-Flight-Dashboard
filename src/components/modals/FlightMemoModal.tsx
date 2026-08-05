@@ -10,6 +10,31 @@ import { showToast } from '../../lib/toast';
 import { useModalKeyboard } from '../../hooks/useModalKeyboard';
 import { AutocompleteInput } from './AutocompleteInput';
 import { airlineCodeSuggestions, type CodeItem } from '../../lib/airline-codes';
+import { decodeMetar } from '../../lib/metar';
+
+// METAR の参照日（年月の補完用）：出発/到着それぞれの LOC 日付、無ければフライトの日付。
+function metarRefDate(key: string, fields: Record<string, string>, flightDate: string): string {
+  if (key === 'metarDep') return fields.depDateLoc || flightDate || '';
+  if (key === 'metarArr') return fields.arrDateLoc || fields.depDateLoc || flightDate || '';
+  return '';
+}
+
+// METAR の自動解読ブロック（生の METAR の下に label/value で表示）。解読できなければ何も出さない。
+// refDate（フライトの日付）があれば Observed を年月日に補完する。
+function MetarDecoded({ raw, refDate }: { raw: string; refDate?: string }) {
+  const lines = decodeMetar(raw, refDate);
+  if (!lines) return null;
+  return (
+    <div className="metar-decoded">
+      {lines.map((l, i) => (
+        <div className="metar-decoded-row" key={i}>
+          <span className="metar-decoded-label">{l.label}</span>
+          <span className="metar-decoded-value">{l.value}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 // 編集フォームの候補リスト：全メモを走査して「同じ項目に過去入力した値」を頻度順で集める
 // （Add Flight の autocomplete と同じ操作感）。text 項目用（date/clock/duration は専用入力）。
@@ -230,11 +255,18 @@ function MemoEditForm({ flight, draft, setField }: {
               // 計算が空（材料待ち）でも過去に手入力した値が残っている場合は手入力欄を出す（データを隠さない）。
               const cv = f.computed ? f.computed(draft, flight) : null;
               const useComputed = f.computed && cv !== null && !(cv === '' && (draft[f.key] ?? '').trim() !== '');
-              return useComputed
-                ? <MemoComputedItem key={f.key} def={f} value={cv!} />
-                : <MemoInput key={f.key} def={f} value={draft[f.key] ?? ''}
-                    suggestions={suggestionMap[f.key] ?? []} items={codeItems[f.key]}
-                    onChange={(v) => setField(f.key, v)} />;
+              if (useComputed) return <MemoComputedItem key={f.key} def={f} value={cv!} />;
+              // callsign は「テキスト＋Heavy/Super のインライン選択」を1組で描画（wake は内部キーに保存）。
+              if (f.key === 'callsign') {
+                return <CallsignInput key={f.key} def={f}
+                  callsign={draft.callsign ?? ''} wake={draft.wake ?? ''}
+                  suggestions={suggestionMap.callsign ?? []} items={codeItems.callsign}
+                  onCallsign={(v) => setField('callsign', v)} onWake={(v) => setField('wake', v)} />;
+              }
+              return <MemoInput key={f.key} def={f} value={draft[f.key] ?? ''}
+                suggestions={suggestionMap[f.key] ?? []} items={codeItems[f.key]}
+                onChange={(v) => setField(f.key, v)}
+                decodeRefDate={f.decode === 'metar' ? metarRefDate(f.key, draft, flight.date) : undefined} />;
             })}
           </div>
           {i < MEMO_SECTIONS.length - 1 && <hr className="adv-divider" />}
@@ -255,8 +287,9 @@ function MemoComputedItem({ def, value }: { def: MemoFieldDef; value: string }) 
   );
 }
 
-function MemoInput({ def, value, suggestions, items, onChange }: {
-  def: MemoFieldDef; value: string; suggestions: string[]; items?: CodeItem[]; onChange: (v: string) => void;
+function MemoInput({ def, value, suggestions, items, onChange, decodeRefDate }: {
+  def: MemoFieldDef; value: string; suggestions: string[]; items?: CodeItem[];
+  onChange: (v: string) => void; decodeRefDate?: string;
 }) {
   const id = 'memo-' + def.key;
   // 単位つき項目はラベルに (kt) 等を明示＝「数値だけでよい」ことが分かる。
@@ -267,6 +300,7 @@ function MemoInput({ def, value, suggestions, items, onChange }: {
         <label className="form-label" htmlFor={id}>{label}</label>
         <textarea id={id} className="form-input memo-textarea" placeholder={def.placeholder}
           value={value} onChange={(e) => onChange(e.target.value)} />
+        {def.decode === 'metar' && <MetarDecoded raw={value} refDate={decodeRefDate} />}
       </div>
     );
   }
@@ -287,6 +321,31 @@ function MemoInput({ def, value, suggestions, items, onChange }: {
     <AutocompleteInput id={id} label={label} value={value} onChange={onChange}
       suggestions={suggestions} suggestionItems={items} placeholder={def.placeholder}
       wrapClassName={'form-group ac-wrap' + (def.half ? '' : ' memo-full')} />
+  );
+}
+
+// Callsign 専用：テキスト入力＋ Heavy/Super のインライン選択（1組）。
+// テキストは callsign、選択は wake（内部キー）に保存。閲覧では MemoViewBody が "ANA6 Heavy" と連結表示。
+function CallsignInput({ def, callsign, wake, suggestions, items, onCallsign, onWake }: {
+  def: MemoFieldDef; callsign: string; wake: string; suggestions: string[]; items?: CodeItem[];
+  onCallsign: (v: string) => void; onWake: (v: string) => void;
+}) {
+  const id = 'memo-' + def.key;
+  return (
+    <div className={'form-group' + (def.half ? '' : ' memo-full')}>
+      <label className="form-label" htmlFor={id}>{def.label}</label>
+      <div className="callsign-input">
+        <AutocompleteInput id={id} value={callsign} onChange={onCallsign}
+          suggestions={suggestions} suggestionItems={items} placeholder={def.placeholder}
+          wrapClassName="ac-wrap" />
+        <select className="form-input callsign-wake" value={wake}
+          onChange={(e) => onWake(e.target.value)} aria-label="Wake category (Heavy / Super)">
+          <option value="">—</option>
+          <option value="Heavy">Heavy</option>
+          <option value="Super">Super</option>
+        </select>
+      </div>
+    </div>
   );
 }
 
@@ -342,7 +401,9 @@ function MemoViewBody({ fields, flight }: { fields: Record<string, string>; flig
             {sec.fields.map((f) => {
               // computed が null（自動計算不能）or 空（材料待ち）の便では、手入力で保存された値を表示する。
               const stored = (fields[f.key] || '').trim();
-              const raw = f.computed ? (f.computed(fields, flight) || stored) : stored;
+              let raw = f.computed ? (f.computed(fields, flight) || stored) : stored;
+              // callsign は wake（Heavy/Super）を連結して1行で見せる（例："ANA6 Heavy"）。
+              if (f.key === 'callsign') raw = [stored, (fields.wake || '').trim()].filter(Boolean).join(' ');
               const shown = raw ? formatMemoValue(f, raw) : '';
               const isBlock = f.type === 'textarea';
               return (
@@ -352,6 +413,7 @@ function MemoViewBody({ fields, flight }: { fields: Record<string, string>; flig
                   {shown
                     ? <span className="memo-view-value">{shown}</span>
                     : <span className="memo-view-value memo-view-blank">—</span>}
+                  {f.decode === 'metar' && shown && <MetarDecoded raw={raw} refDate={metarRefDate(f.key, fields, flight.date)} />}
                 </div>
               );
             })}

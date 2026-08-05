@@ -8,6 +8,7 @@
 // 表示時に formatMemoValue() が自動で付ける（単位付きで書いた場合はそのまま尊重）。
 import { airportTz, locToUtc } from './timezone';
 import { AP } from '../data/airports';
+import { aircraftFullName } from '../data/aircraft';
 
 // 表示用：ICAO の後ろに都市名を併記（"RJTT (Tokyo)"・オーナー指定 2026-07-11）。
 // 複数空港都市の識別子（"Tokyo(HND)" の "(HND)"）はコードと重複するので外す。未収録はコードのみ。
@@ -20,8 +21,8 @@ function _airportLabel(icao: string): string {
 // 単位を返す唯一の窓口。将来 kg/lb・nm/km などを設定で切り替えるときは、
 // getMemoUnit() の中身を「localStorage の設定を読んで返す」に差し替えるだけ
 // （フィールド定義は unit キーを持つだけなので変更不要）。
-export type MemoUnitKey = 'speed' | 'distance' | 'weight' | 'vspeed' | 'gforce' | 'altitude';
-export const MEMO_UNIT_DEFAULTS: Record<MemoUnitKey, string> = { speed: 'kt', distance: 'nm', weight: 'kg', vspeed: 'fpm', gforce: 'G', altitude: 'ft' };
+export type MemoUnitKey = 'speed' | 'distance' | 'weight' | 'vspeed' | 'gforce' | 'altitude' | 'lengthm';
+export const MEMO_UNIT_DEFAULTS: Record<MemoUnitKey, string> = { speed: 'kt', distance: 'nm', weight: 'kg', vspeed: 'fpm', gforce: 'G', altitude: 'ft', lengthm: 'm' };
 export function getMemoUnit(key: MemoUnitKey): string {
   return MEMO_UNIT_DEFAULTS[key];
 }
@@ -38,6 +39,7 @@ export interface MemoFieldDef {
   type?: 'text' | 'textarea' | 'date' | 'clock' | 'duration'; // 省略時 text
   half?: boolean;             // true = 2カラムグリッドの半分幅（連続する half は横に並ぶ）
   unit?: MemoUnitKey;         // 数値だけの入力に表示時へ自動付与する単位
+  decode?: 'metar';           // textarea の下に解読結果を表示する（METAR デコーダ）
   // 自動項目：他のメモ項目 or フライト本体から導出して表示するだけで、保存はしない。
   // 編集モードでは読み取り専用表示になる（FlightMemoModal が分岐）。
   // 返り値 null ＝「この便では自動計算できない」（例：未収録空港で UTC 換算不能）→
@@ -165,10 +167,18 @@ export const MEMO_SECTIONS: MemoSectionDef[] = [
       { key: 'pilot',        label: 'Pilot',    placeholder: 'Your name / IFC handle', half: true },
       { key: 'autoFrom',     label: 'From',     half: true, computed: (_f, fl) => fl ? _airportLabel(fl.dep) : '' },
       { key: 'autoTo',       label: 'To',       half: true, computed: (_f, fl) => fl ? _airportLabel(fl.arr) : '' },
-      { key: 'autoAircraft', label: 'Aircraft', half: true, computed: (_f, fl) => fl?.ac ?? '' },
+      // 発着ターミナル/ゲート（地上・発着の場所情報＝From/To の近くに置く・オーナー指定 2026-08-06）。
+      { key: 'termDep',  label: 'Departure terminal', placeholder: 'T2',  half: true },
+      { key: 'termArr',  label: 'Arrival terminal',   placeholder: 'T1',  half: true },
+      { key: 'gateDep',  label: 'Departure gate',     placeholder: 'C11', half: true },
+      { key: 'gateArr',  label: 'Arrival gate',       placeholder: 'A20', half: true },
+      // 機材はコードでなくフルネーム表示（例：A332 → A330-200・オーナー指定 2026-08-06）。未収録はコードのまま。
+      { key: 'autoAircraft', label: 'Aircraft', half: true, computed: (_f, fl) => fl ? aircraftFullName(fl.ac) : '' },
       { key: 'autoAirline',  label: 'Airline',  half: true, computed: (_f, fl) => fl?.al ?? '' },
       { key: 'flightNo',  label: 'Flight number', placeholder: 'NH006',  half: true },
       { key: 'callsign',  label: 'Callsign',      placeholder: 'ANA6',   half: true },
+      // ↑ callsign は編集フォームで Heavy/Super のインライン選択を併せ持ち（値は内部キー 'wake' に保存）、
+      //   閲覧では "ANA6 Heavy" のように1行連結で表示する（FlightMemoModal 側で特別扱い・オーナー指定 2026-08-06）。
       { key: 'reg',       label: 'Registration',  placeholder: 'JA789A', half: true },
     ],
   },
@@ -208,15 +218,18 @@ export const MEMO_SECTIONS: MemoSectionDef[] = [
       { key: 'v1',       label: 'V1',  placeholder: '148', half: true, unit: 'speed' },
       { key: 'vr',       label: 'VR',  placeholder: '152', half: true, unit: 'speed' },
       { key: 'v2',       label: 'V2',  placeholder: '158', half: true, unit: 'speed' },
-      { key: 'vref',     label: 'VREF / VAPP', placeholder: '138', half: true, unit: 'speed' },
+      // VREF（基準進入速度）と VAPP（実進入速度）は別物なので分離（オーナー指定 2026-08-06）。
+      { key: 'vapp',     label: 'VAPP', placeholder: '145', half: true, unit: 'speed' },
+      { key: 'vref',     label: 'VREF', placeholder: '138', half: true, unit: 'speed' },
       // 巡航（オーナー指定 2026-07-11）：高度＋速度は Mach のみ（IAS 併記は不要・2026-07-11 削除）。
       // Mach は "0.85" のような小数＝単位の自動付与はしない（"M0.85" と書いてもそのまま尊重）。
       { key: 'cruiseAlt',  label: 'Cruise altitude', placeholder: '34,000 or FL340', half: true, unit: 'altitude' },
       { key: 'cruiseMach', label: 'Cruise speed · Mach', placeholder: '0.85', half: true },
       { key: 'distance',   label: 'Flight distance', placeholder: '520', half: true, unit: 'distance' },
-      // 着陸品質（IF が着陸時に表示する 2 値）：接地時の降下率と G。
+      // 着陸品質：接地時の降下率・G・センターライン偏差（C/L・m・オーナー指定 2026-08-06）。
       { key: 'tdRate',   label: 'Touchdown rate', placeholder: '-250', half: true, unit: 'vspeed' },
       { key: 'gForce',   label: 'Landing G',      placeholder: '1.32', half: true, unit: 'gforce' },
+      { key: 'clOffset', label: 'Centerline offset (C/L)', placeholder: '1.5', half: true, unit: 'lengthm' },
     ],
   },
   {
@@ -234,10 +247,15 @@ export const MEMO_SECTIONS: MemoSectionDef[] = [
     label: 'Route & Procedures',
     fields: [
       { key: 'route',    label: 'Route (flight plan)', placeholder: 'LAXIG Y56 SIRAKI ...', type: 'textarea' },
-      { key: 'sid',      label: 'SID (departure)', placeholder: 'LAXIG 1E', half: true },
-      { key: 'star',     label: 'STAR (arrival)',  placeholder: 'SIRAKI 2A', half: true },
+      // 地上のタキシー経路（flight plan とは別・出発/到着で分ける・オーナー指定 2026-08-06）。
+      { key: 'taxiRouteDep', label: 'Departure taxi route', placeholder: 'A, A1, hold short 24', half: true },
+      { key: 'taxiRouteArr', label: 'Arrival taxi route',   placeholder: 'B, C, to gate', half: true },
       { key: 'rwyDep',   label: 'Departure runway', placeholder: '34R', half: true },
       { key: 'rwyArr',   label: 'Arrival runway',   placeholder: '32L', half: true },
+      { key: 'sid',      label: 'SID (departure)', placeholder: 'LAXIG 1E', half: true },
+      { key: 'star',     label: 'STAR (arrival)',  placeholder: 'SIRAKI 2A', half: true },
+      // 進入方式（オーナー指定 2026-08-06）。App = approach type（例 ILS 34R）。
+      { key: 'approach', label: 'Approach (App)', placeholder: 'ILS 34R', half: true },
     ],
   },
   {
@@ -245,8 +263,11 @@ export const MEMO_SECTIONS: MemoSectionDef[] = [
     key: 'weather',
     label: 'Weather',
     fields: [
-      { key: 'metarDep', label: 'METAR · departure', placeholder: 'RJTT 070100Z 34008KT ...', type: 'textarea' },
-      { key: 'metarArr', label: 'METAR · arrival',   placeholder: 'RJOO 070200Z 32006KT ...', type: 'textarea' },
+      // METAR は貼り付けると下に自動解読を表示（decode: 'metar'・オーナー指定 2026-08-06）。
+      { key: 'metarDep', label: 'METAR · departure', placeholder: 'RJTT 070100Z 34008KT ...', type: 'textarea', decode: 'metar' },
+      { key: 'metarArr', label: 'METAR · arrival',   placeholder: 'RJOO 070200Z 32006KT ...', type: 'textarea', decode: 'metar' },
+      // RVR（滑走路視距離）は手入力（自動解読の対象外・オーナー指定 2026-08-06）。
+      { key: 'rvr',      label: 'RVR', placeholder: 'R24L 0800', half: true },
     ],
   },
   {

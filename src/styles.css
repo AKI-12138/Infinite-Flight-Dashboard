@@ -967,6 +967,19 @@ body.has-fullscreen-card{overflow:hidden;}
   min-height:42px;
 }
 
+/* METAR 自動解読ブロック（生の METAR の下・紙のログ帳に合わせた色/デザイン・オーナー指定 2026-08-06） */
+.metar-decoded{
+  margin-top:8px;padding:10px 12px;border-radius:8px;
+  background:var(--memo-rule-soft);border:1px solid var(--memo-rule);
+  display:flex;flex-direction:column;gap:4px;
+}
+.metar-decoded-row{display:flex;gap:10px;align-items:baseline;font-size:13px;line-height:1.4;}
+.metar-decoded-label{
+  flex:0 0 96px;color:var(--text-2);font-size:10px;font-weight:600;
+  letter-spacing:1px;text-transform:uppercase;
+}
+.metar-decoded-value{flex:1;color:var(--text);font-family:'JetBrains Mono',monospace;}
+
 /* ===================== SELF-CHECK ===================== */
 /* 設定 Status → Self-check。総合判定 1 行＋失敗した項目だけのリスト。 */
 .selfcheck-summary{
@@ -1365,6 +1378,11 @@ input[type="date"].form-input{
   font-size:14px;font-weight:600;user-select:none;flex:0 0 auto;
   padding:0 2px;
 }
+
+/* Callsign = テキスト＋ wake(Heavy/Super) のインライン選択を1組に（オーナー指定 2026-08-06） */
+.callsign-input{display:flex;align-items:center;gap:6px;}
+.callsign-input .ac-wrap{flex:1;min-width:0;}
+.callsign-input .callsign-wake{flex:0 0 auto;width:auto;}
 
 /* ===================== AUTOCOMPLETE ===================== */
 .ac-wrap{position:relative;}

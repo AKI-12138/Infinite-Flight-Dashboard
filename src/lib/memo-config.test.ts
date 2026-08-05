@@ -26,9 +26,10 @@ describe('formatMemoValue（表示時の単位自動付与）', () => {
     expect(formatMemoValue(v1, '')).toBe('');
   });
 
-  it('着陸品質：降下率は fpm（負数 OK）・G 値は G を付ける', () => {
+  it('着陸品質：降下率は fpm（負数 OK）・G 値は G・センターライン偏差は m を付ける', () => {
     expect(formatMemoValue(MEMO_FIELD_BY_KEY.tdRate, '-250')).toBe('-250 fpm');
     expect(formatMemoValue(MEMO_FIELD_BY_KEY.gForce, '1.32')).toBe('1.32 G');
+    expect(formatMemoValue(MEMO_FIELD_BY_KEY.clOffset, '1.5')).toBe('1.5 m');
   });
 
   it('桁区切りの自動付与（オーナー指定 2026-07-11）：量的項目の素の数値は 42,790 形式に', () => {
@@ -101,7 +102,9 @@ describe('定義の整合性', () => {
     // 未収録空港はコードのみ
     expect(MEMO_FIELD_BY_KEY.autoFrom.computed!({}, { ...fl, dep: 'ZZZZ' })).toBe('ZZZZ');
     expect(MEMO_FIELD_BY_KEY.autoDate.computed!({}, fl)).toBe('2026-07-09');
-    expect(MEMO_FIELD_BY_KEY.autoAircraft.computed!({}, fl)).toBe('A339');
+    // 機材はフルネーム表示（A339 → A330-900）。未収録コードはそのまま。
+    expect(MEMO_FIELD_BY_KEY.autoAircraft.computed!({}, fl)).toBe('A330-900');
+    expect(MEMO_FIELD_BY_KEY.autoAircraft.computed!({}, { ...fl, ac: 'ZZZZ' })).toBe('ZZZZ');
     expect(MEMO_FIELD_BY_KEY.autoAirline.computed!({}, fl)).toBe('Starlux Airlines');
     expect(MEMO_FIELD_BY_KEY.autoAirTime.computed!({}, fl)).toBe('1h20m');
     expect(MEMO_FIELD_BY_KEY.autoFrom.computed!({}, undefined)).toBe(''); // フライト未指定は空
@@ -109,9 +112,9 @@ describe('定義の整合性', () => {
 
   it('Flight Info の並び：DATE｜PILOT → FROM｜TO → 以降従来どおり／Weather は独立セクション', () => {
     const info = MEMO_SECTIONS.find((s) => s.key === 'flightinfo')!.fields.map((f) => f.key);
-    expect(info).toEqual(['autoDate', 'pilot', 'autoFrom', 'autoTo', 'autoAircraft', 'autoAirline', 'flightNo', 'callsign', 'reg']);
+    expect(info).toEqual(['autoDate', 'pilot', 'autoFrom', 'autoTo', 'termDep', 'termArr', 'gateDep', 'gateArr', 'autoAircraft', 'autoAirline', 'flightNo', 'callsign', 'reg']);
     const weather = MEMO_SECTIONS.find((s) => s.key === 'weather')!;
-    expect(weather.fields.map((f) => f.key)).toEqual(['metarDep', 'metarArr']);
+    expect(weather.fields.map((f) => f.key)).toEqual(['metarDep', 'metarArr', 'rvr']);
     // Route & Procedures から METAR が抜けている
     expect(MEMO_SECTIONS.find((s) => s.key === 'route')!.fields.some((f) => f.key.startsWith('metar'))).toBe(false);
   });

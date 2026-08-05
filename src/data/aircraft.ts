@@ -96,3 +96,31 @@ export const AIRCRAFT_CANONICAL_TABLE: Record<string, string[]> = {
   VC25A:['VC25', 'AIRFORCEONE', 'AF1', '747200B'],
   C40B: ['C40', 'C40C', 'C40BC'],
 };
+
+// 正準 ICAO コード → 表示用のフルネーム（ノート等の閲覧・自動項目の表示用・オーナー指定 2026-08-06）。
+// 例：A332 → "A330-200"。ここに無いコードは呼び出し側でコードそのものにフォールバックする。
+// 旅客機はモデル名（メーカー略・"737-800" 等）、GA/軍用は機種名で（コードだけでは分かりにくいため）。
+export const AIRCRAFT_FULL_NAME: Record<string, string> = {
+  C172: 'Cessna 172', C208: 'Cessna 208 Caravan', SR22: 'Cirrus SR22',
+  TBM9: 'TBM 930', PC12: 'Pilatus PC-12', GLF6: 'Gulfstream G650', CL35: 'Challenger 350',
+  BCS1: 'A220-100', BCS3: 'A220-300',
+  A318: 'A318', A319: 'A319', A320: 'A320', A321: 'A321', A310: 'A310-300',
+  A332: 'A330-200', A333: 'A330-300', A338: 'A330-800', A339: 'A330-900',
+  A342: 'A340-200', A343: 'A340-300', A345: 'A340-500', A346: 'A340-600',
+  A359: 'A350-900', A35K: 'A350-1000', A388: 'A380-800',
+  B737: '737-700', B738: '737-800', B739: '737-900',
+  B37M: '737 MAX 7', B38M: '737 MAX 8', B39M: '737 MAX 9', B3XM: '737 MAX 10',
+  B742: '747-200', B744: '747-400', B748: '747-8',
+  B752: '757-200', B753: '757-300', B763: '767-300', B764: '767-400',
+  B772: '777-200', B77L: '777-200LR', B773: '777-300', B77W: '777-300ER', B77F: '777F',
+  B788: '787-8', B789: '787-9', B78X: '787-10',
+  MD11: 'MD-11', DC10: 'DC-10',
+  E170: 'E170', E175: 'E175', E190: 'E190', E195: 'E195',
+  CRJ7: 'CRJ700', CRJ9: 'CRJ900', C919: 'C919',
+  F22: 'F-22 Raptor', C17: 'C-17 Globemaster III', VC25A: 'VC-25A', C40B: 'C-40B',
+};
+
+// 機材コードを表示名へ。未収録はコードのまま返す（データを隠さない）。
+export function aircraftFullName(code: string): string {
+  return AIRCRAFT_FULL_NAME[code] ?? code;
+}
