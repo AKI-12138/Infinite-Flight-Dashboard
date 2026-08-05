@@ -25,5 +25,6 @@ dist-ssr
 .gstack/
 
 CLAUDE.md
+AGENTS.md
 docs/
 .claude/
