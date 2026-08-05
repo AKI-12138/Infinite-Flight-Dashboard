@@ -114,7 +114,7 @@ describe('定義の整合性', () => {
     const info = MEMO_SECTIONS.find((s) => s.key === 'flightinfo')!.fields.map((f) => f.key);
     expect(info).toEqual(['autoDate', 'pilot', 'autoFrom', 'autoTo', 'termDep', 'termArr', 'gateDep', 'gateArr', 'autoAircraft', 'autoAirline', 'flightNo', 'callsign', 'reg']);
     const weather = MEMO_SECTIONS.find((s) => s.key === 'weather')!;
-    expect(weather.fields.map((f) => f.key)).toEqual(['metarDep', 'metarArr', 'rvr']);
+    expect(weather.fields.map((f) => f.key)).toEqual(['metarDep', 'metarArr', 'rvrDep', 'rvrArr']);
     // Route & Procedures から METAR が抜けている
     expect(MEMO_SECTIONS.find((s) => s.key === 'route')!.fields.some((f) => f.key.startsWith('metar'))).toBe(false);
   });

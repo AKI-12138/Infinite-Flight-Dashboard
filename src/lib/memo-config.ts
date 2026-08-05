@@ -266,8 +266,9 @@ export const MEMO_SECTIONS: MemoSectionDef[] = [
       // METAR は貼り付けると下に自動解読を表示（decode: 'metar'・オーナー指定 2026-08-06）。
       { key: 'metarDep', label: 'METAR · departure', placeholder: 'RJTT 070100Z 34008KT ...', type: 'textarea', decode: 'metar' },
       { key: 'metarArr', label: 'METAR · arrival',   placeholder: 'RJOO 070200Z 32006KT ...', type: 'textarea', decode: 'metar' },
-      // RVR（滑走路視距離）は手入力（自動解読の対象外・オーナー指定 2026-08-06）。
-      { key: 'rvr',      label: 'RVR', placeholder: 'R24L 0800', half: true },
+      // RVR（滑走路視距離）は手入力（自動解読の対象外・出発/到着で分ける・オーナー指定 2026-08-06）。
+      { key: 'rvrDep',   label: 'RVR · departure', placeholder: 'R24L 0800', half: true },
+      { key: 'rvrArr',   label: 'RVR · arrival',   placeholder: 'R09 0600',  half: true },
     ],
   },
   {
