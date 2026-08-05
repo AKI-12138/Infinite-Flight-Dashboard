@@ -4,6 +4,22 @@ User-facing highlights for each version of **Infinite Flight Dashboard**. The ve
 matches the number in the dashboard footer. This is a summary of notable changes — smaller or
 internal-only updates may be grouped.
 
+## v2.4 — 2026-08-06
+Your flight notes gain a weather brain — and a lot more detail.
+
+- **Paste a METAR, read it in plain English.** Drop a raw METAR into a note and a decoded
+  briefing appears right below it — wind (with gusts and variable direction), visibility,
+  clouds, temperature / dew point, and pressure in **hPa or inHg** (whichever the report uses),
+  plus weather like rain, snow and thunderstorms. It's decoded on your device — nothing is sent
+  anywhere — and the observation's month and year are filled in from your flight's date.
+- **More to record about each flight.** New note fields: departure / arrival **terminal and
+  gate**, **taxi routes** (out and in), **approach**, **centerline offset (C/L)**, and **RVR**.
+- **Callsign wake suffix is now a picker.** Choose Heavy / Super from a dropdown beside the
+  callsign; the saved note shows them together (e.g. "KLM 777 Heavy").
+- **Aircraft shown in full.** Notes now display the model name (e.g. A330-200) instead of the
+  ICAO code (A332).
+- **VREF and VAPP are separate fields** — they aren't always the same speed.
+
 ## v2.3 — 2026-07-11
 The post-flight ritual: your notes become a real paper logbook page.
 
