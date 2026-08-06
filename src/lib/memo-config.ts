@@ -40,6 +40,9 @@ export interface MemoFieldDef {
   half?: boolean;             // true = 2カラムグリッドの半分幅（連続する half は横に並ぶ）
   unit?: MemoUnitKey;         // 数値だけの入力に表示時へ自動付与する単位
   decode?: 'metar';           // textarea の下に解読結果を表示する（METAR デコーダ）
+  // Add Flight と同じ候補データを使う項目（現状 'airport' のみ＝空港DBから ICAO＋都市名を候補表示）。
+  // 自由入力は維持したまま、入力は大文字で保存する（ICAO の正準形）。
+  ac?: 'airport';
   // 自動項目：他のメモ項目 or フライト本体から導出して表示するだけで、保存はしない。
   // 編集モードでは読み取り専用表示になる（FlightMemoModal が分岐）。
   // 返り値 null ＝「この便では自動計算できない」（例：未収録空港で UTC 換算不能）→
@@ -218,9 +221,13 @@ export const MEMO_SECTIONS: MemoSectionDef[] = [
       { key: 'v1',       label: 'V1',  placeholder: '148', half: true, unit: 'speed' },
       { key: 'vr',       label: 'VR',  placeholder: '152', half: true, unit: 'speed' },
       { key: 'v2',       label: 'V2',  placeholder: '158', half: true, unit: 'speed' },
+      // 離陸/着陸の構成は1欄の自由入力（Flaps・推力設定・Autobrake を個別欄に細分化しない＝
+      // 入力負担と画面密度を抑える・ADV-008／オーナー指定 2026-08-07）。各 V 速度の直後に置く。
+      { key: 'cfgTakeoff', label: 'Takeoff configuration', placeholder: 'Flaps 5 / FLEX 50', half: true },
       // VREF（基準進入速度）と VAPP（実進入速度）は別物なので分離（オーナー指定 2026-08-06）。
       { key: 'vapp',     label: 'VAPP', placeholder: '145', half: true, unit: 'speed' },
       { key: 'vref',     label: 'VREF', placeholder: '138', half: true, unit: 'speed' },
+      { key: 'cfgLanding', label: 'Landing configuration', placeholder: 'Flaps 30 / Autobrake 2', half: true },
       // 巡航（オーナー指定 2026-07-11）：高度＋速度は Mach のみ（IAS 併記は不要・2026-07-11 削除）。
       // Mach は "0.85" のような小数＝単位の自動付与はしない（"M0.85" と書いてもそのまま尊重）。
       { key: 'cruiseAlt',  label: 'Cruise altitude', placeholder: '34,000 or FL340', half: true, unit: 'altitude' },
@@ -256,6 +263,8 @@ export const MEMO_SECTIONS: MemoSectionDef[] = [
       { key: 'star',     label: 'STAR (arrival)',  placeholder: 'SIRAKI 2A', half: true },
       // 進入方式（オーナー指定 2026-08-06）。App = approach type（例 ILS 34R）。
       { key: 'approach', label: 'Approach (App)', placeholder: 'ILS 34R', half: true },
+      // 代替空港（ADV-008／オーナー指定 2026-08-07）。ICAO の自由入力＋空港DBからの候補表示。
+      { key: 'altn',     label: 'Alternate airport', placeholder: 'RJAA', half: true, ac: 'airport' },
     ],
   },
   {

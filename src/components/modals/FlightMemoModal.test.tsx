@@ -119,6 +119,27 @@ describe('FlightMemoModal', () => {
     expect(screen.getByText('ANA57')).toBeInTheDocument(); // 候補リストに過去値
   });
 
+  // ---- 運航構成・代替空港（ADV-008・オーナー指定 2026-08-07）----
+  it('Takeoff/Landing configuration は自由入力1欄・そのまま保存＆表示される', () => {
+    render(<FlightMemoModal flight={FLIGHT} onClose={() => {}} />);
+    fireEvent.change(screen.getByLabelText('Takeoff configuration'), { target: { value: 'Flaps 5 / FLEX 50' } });
+    fireEvent.change(screen.getByLabelText('Landing configuration'), { target: { value: 'Flaps 30 / Autobrake 2' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save Notes' }));
+    expect(memoStore.get('test-id')?.fields.cfgTakeoff).toBe('Flaps 5 / FLEX 50');
+    expect(screen.getByText('Flaps 30 / Autobrake 2')).toBeInTheDocument(); // 閲覧モードで原文表示
+  });
+
+  it('Alternate airport：入力は大文字で保存され、空港DBの候補（ICAO＋都市）が出る', () => {
+    render(<FlightMemoModal flight={FLIGHT} onClose={() => {}} />);
+    const altn = screen.getByLabelText('Alternate airport');
+    fireEvent.focus(altn);
+    fireEvent.change(altn, { target: { value: 'rjaa' } });
+    expect(altn).toHaveValue('RJAA');
+    expect(screen.getByText('RJAA')).toBeInTheDocument(); // 候補リストに空港DBの ICAO
+    fireEvent.click(screen.getByRole('button', { name: 'Save Notes' }));
+    expect(memoStore.get('test-id')?.fields.altn).toBe('RJAA');
+  });
+
   it('変更せず ✕ で閉じると onClose（確認は出ない）', () => {
     const onClose = vi.fn();
     memoStore.save('test-id', { v1: '148 kt' });

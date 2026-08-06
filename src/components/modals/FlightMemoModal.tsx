@@ -10,6 +10,7 @@ import { showToast } from '../../lib/toast';
 import { useModalKeyboard } from '../../hooks/useModalKeyboard';
 import { AutocompleteInput } from './AutocompleteInput';
 import { airlineCodeSuggestions, type CodeItem } from '../../lib/airline-codes';
+import { getACData } from '../../lib/ac-data';
 import { decodeMetar } from '../../lib/metar';
 
 // METAR の参照日（年月の補完用）：出発/到着それぞれの LOC 日付、無ければフライトの日付。
@@ -233,16 +234,25 @@ function MemoEditForm({ flight, draft, setField }: {
 }) {
   // 過去の入力値からの候補（開いている間は固定＝編集中の値で候補が揺れない）。
   const suggestionMap = useMemo(() => buildSuggestionMap(), [flight]);
-  // 便名/Callsign のコード候補（オーナー指定 2026-07-11）：
-  // 自便のエアラインのコード → 過去の入力値 → 他社コード の順（code で重複排除）。自由入力は維持。
+  // 説明つき候補（code＋detail）を項目ごとに用意する。いずれも自由入力は維持。
+  // - 便名/Callsign（オーナー指定 2026-07-11）：自便のエアラインのコード → 過去の入力値 → 他社コード。
+  // - ac: 'airport' の項目（Alternate airport・ADV-008）：過去の入力値 → 空港DB（ICAO＋都市, 国）。
   const codeItems = useMemo(() => {
-    const build = (key: 'flightNo' | 'callsign'): CodeItem[] => {
-      const { own, others } = airlineCodeSuggestions(key, flight.al);
-      const history: CodeItem[] = (suggestionMap[key] ?? []).map((s) => ({ code: s, detail: '' }));
+    const dedup = (list: CodeItem[]) => {
       const seen = new Set<string>();
-      return [...own, ...history, ...others].filter((d) => !seen.has(d.code) && (seen.add(d.code), true));
+      return list.filter((d) => !seen.has(d.code) && (seen.add(d.code), true));
     };
-    return { flightNo: build('flightNo'), callsign: build('callsign') } as Record<string, CodeItem[]>;
+    const history = (key: string): CodeItem[] => (suggestionMap[key] ?? []).map((s) => ({ code: s, detail: '' }));
+    const map: Record<string, CodeItem[]> = {};
+    (['flightNo', 'callsign'] as const).forEach((key) => {
+      const { own, others } = airlineCodeSuggestions(key, flight.al);
+      map[key] = dedup([...own, ...history(key), ...others]);
+    });
+    const airports = getACData('airport', []);
+    MEMO_SECTIONS.flatMap((s) => s.fields).forEach((f) => {
+      if (f.ac === 'airport') map[f.key] = dedup([...history(f.key), ...airports]);
+    });
+    return map;
   }, [flight, suggestionMap]);
   return (
     <div>
@@ -317,8 +327,11 @@ function MemoInput({ def, value, suggestions, items, onChange, decodeRefDate }: 
   if (def.type === 'clock' || def.type === 'duration') {
     return <MemoTimePair def={def} label={label} value={value} onChange={onChange} />;
   }
+  // 空港コード欄（Alternate airport）は Add Flight の ICAO 入力と同じく大文字で扱う（自由入力は維持）。
+  const isIcao = def.ac === 'airport';
   return (
-    <AutocompleteInput id={id} label={label} value={value} onChange={onChange}
+    <AutocompleteInput id={id} label={label} value={value}
+      onChange={(v) => onChange(isIcao ? v.toUpperCase() : v)} uppercase={isIcao}
       suggestions={suggestions} suggestionItems={items} placeholder={def.placeholder}
       wrapClassName={'form-group ac-wrap' + (def.half ? '' : ' memo-full')} />
   );

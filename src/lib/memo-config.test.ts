@@ -94,6 +94,24 @@ describe('定義の整合性', () => {
     expect(MEMO_FIELD_BY_KEY.cruiseIas).toBeUndefined();
   });
 
+  it('運航構成・代替空港の3欄（ADV-008・2026-08-07）：構成は各 V 速度の直後・ALTN は Route 末尾', () => {
+    const perf = MEMO_SECTIONS.find((s) => s.key === 'performance')!.fields.map((f) => f.key);
+    expect(perf).toEqual([
+      'v1', 'vr', 'v2', 'cfgTakeoff', 'vapp', 'vref', 'cfgLanding',
+      'cruiseAlt', 'cruiseMach', 'distance', 'tdRate', 'gForce', 'clOffset',
+    ]);
+    const route = MEMO_SECTIONS.find((s) => s.key === 'route')!.fields.map((f) => f.key);
+    expect(route[route.length - 1]).toBe('altn');
+    // 構成欄は自由入力（単位の自動付与をしない＝"Flaps 5 / FLEX 50" をそのまま表示）
+    expect(MEMO_FIELD_BY_KEY.cfgTakeoff.unit).toBeUndefined();
+    expect(MEMO_FIELD_BY_KEY.cfgLanding.unit).toBeUndefined();
+    expect(formatMemoValue(MEMO_FIELD_BY_KEY.cfgTakeoff, 'Flaps 5 / FLEX 50')).toBe('Flaps 5 / FLEX 50');
+    // ALTN は空港DBの候補つき（ICAO 自由入力は維持）
+    expect(MEMO_FIELD_BY_KEY.altn.ac).toBe('airport');
+    expect(MEMO_FIELD_BY_KEY.altn.unit).toBeUndefined();
+    expect(formatMemoValue(MEMO_FIELD_BY_KEY.altn, 'RJAA')).toBe('RJAA');
+  });
+
   it('フライト本体からの自動項目：From/To/Date/Aircraft/Airline/air time（保存せず常にログの値）', () => {
     const fl = { date: '2026-07-09', dep: 'RCTP', arr: 'VMMC', ac: 'A339', al: 'Starlux Airlines', t: '1h20m' };
     // From/To は都市名併記（"Taipei(TPE)" の "(TPE)" は ICAO と重複するので外れる）
