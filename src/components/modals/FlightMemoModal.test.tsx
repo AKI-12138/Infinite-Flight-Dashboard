@@ -129,6 +129,16 @@ describe('FlightMemoModal', () => {
     expect(screen.getByText('Flaps 30 / Autobrake 2')).toBeInTheDocument(); // 閲覧モードで原文表示
   });
 
+  it('Reverser credit は Yes/No の選択式（既定は未選択＝保存されない）', () => {
+    render(<FlightMemoModal flight={FLIGHT} onClose={() => {}} />);
+    const sel = screen.getByLabelText('Reverser credit');
+    expect(sel).toHaveValue(''); // 既定は未選択（任意入力）
+    fireEvent.change(sel, { target: { value: 'Yes' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save Notes' }));
+    expect(memoStore.get('test-id')?.fields.revCredit).toBe('Yes');
+    expect(screen.getByText('Yes')).toBeInTheDocument(); // 閲覧モードにそのまま表示
+  });
+
   it('Alternate airport：入力は大文字で保存され、空港DBの候補（ICAO＋都市）が出る', () => {
     render(<FlightMemoModal flight={FLIGHT} onClose={() => {}} />);
     const altn = screen.getByLabelText('Alternate airport');

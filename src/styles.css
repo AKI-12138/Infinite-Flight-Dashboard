@@ -918,6 +918,7 @@ body.has-fullscreen-card{overflow:hidden;}
 .memo-intro{font-size:12.5px;color:var(--text-3);margin-bottom:14px;line-height:1.5;}
 .memo-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 14px;margin-bottom:14px;}
 .memo-full{grid-column:1/-1;}
+.memo-row-start{grid-column:1;}  /* 必ず左カラムから（対で見せたい2欄の行頭・2026-08-07） */
 .memo-textarea{min-height:64px;resize:vertical;font-size:14px;line-height:1.5;}
 .memo-view-item{display:flex;flex-direction:column;gap:3px;min-width:0;}
 .memo-view-value{font-family:'JetBrains Mono';font-size:14px;color:var(--text);white-space:pre-wrap;word-break:break-word;}
@@ -1629,8 +1630,21 @@ body.is-empty #settingsSaveDivider{display:none;}
 .aa-hint{font-size:12px;color:var(--text-3);margin:2px 0 14px;line-height:1.5;}
 .aa-hint a{color:var(--accent);text-decoration:none;font-weight:600;}
 .aa-hint a:hover{text-decoration:underline;}
-/* form-input を <select> にも適用したときの見た目調整（ネイティブ矢印は残す） */
-select.form-input{cursor:pointer;appearance:auto;-webkit-appearance:auto;}
+/* form-input を <select> にも適用したときの見た目調整（2026-08-07 改）：
+   ネイティブの menulist は padding を無視して高さが input より低くなる（並べると段差になる）。
+   appearance:none で枠を自前にし、.form-input と同じ padding／行高で揃える。
+   ▼ は CSS グラデーションで描く（テーマ変数の色を使う＝light/dark 両対応・画像もフォントも足さない）。 */
+select.form-input{
+  cursor:pointer;appearance:none;-webkit-appearance:none;
+  /* 高さは padding・font-size を input と同一にして自然に揃える（数値の決め打ちはしない）。 */
+  padding:11px 34px 11px 14px;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--text-3) 50%),
+    linear-gradient(135deg, var(--text-3) 50%, transparent 50%);
+  background-position:calc(100% - 19px) calc(50% - 1px), calc(100% - 14px) calc(50% - 1px);
+  background-size:5px 5px, 5px 5px;
+  background-repeat:no-repeat;
+}
 .dc-lookup{margin-top:4px;}
 .dc-lookup-input{
   width:100%;box-sizing:border-box;padding:11px 14px;

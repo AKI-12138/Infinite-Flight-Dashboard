@@ -94,12 +94,21 @@ describe('定義の整合性', () => {
     expect(MEMO_FIELD_BY_KEY.cruiseIas).toBeUndefined();
   });
 
-  it('運航構成・代替空港の3欄（ADV-008・2026-08-07）：構成は各 V 速度の直後・ALTN は Route 末尾', () => {
+  it('運航構成・代替空港の3欄（ADV-008・2026-08-07）：構成は V 速度の後ろに横並び・ALTN は Route 末尾', () => {
     const perf = MEMO_SECTIONS.find((s) => s.key === 'performance')!.fields.map((f) => f.key);
     expect(perf).toEqual([
-      'v1', 'vr', 'v2', 'cfgTakeoff', 'vapp', 'vref', 'cfgLanding',
-      'cruiseAlt', 'cruiseMach', 'distance', 'tdRate', 'gForce', 'clOffset',
+      'v1', 'vr', 'v2', 'vapp', 'vref', 'costIndex', 'cfgTakeoff', 'cfgLanding',
+      'cruiseAlt', 'cruiseMach', 'tdRate', 'gForce', 'clOffset', 'revCredit',
     ]);
+    // Reverser credit は Yes/No の選択式（未選択は空＝任意入力・オーナー指定 2026-08-07）
+    expect(MEMO_FIELD_BY_KEY.revCredit.type).toBe('select');
+    expect(MEMO_FIELD_BY_KEY.revCredit.options).toEqual(['Yes', 'No']);
+    // Takeoff｜Landing は横並びで1行（左カラム固定・オーナー指定 2026-08-07）
+    expect(MEMO_FIELD_BY_KEY.cfgTakeoff.rowStart).toBe(true);
+    expect(MEMO_FIELD_BY_KEY.cfgLanding.rowStart).toBeUndefined();
+    // Cost Index は無次元＝単位を付けない（オーナー指定 2026-08-07）
+    expect(MEMO_FIELD_BY_KEY.costIndex.unit).toBeUndefined();
+    expect(formatMemoValue(MEMO_FIELD_BY_KEY.costIndex, '30')).toBe('30');
     const route = MEMO_SECTIONS.find((s) => s.key === 'route')!.fields.map((f) => f.key);
     expect(route[route.length - 1]).toBe('altn');
     // 構成欄は自由入力（単位の自動付与をしない＝"Flaps 5 / FLEX 50" をそのまま表示）
@@ -130,7 +139,8 @@ describe('定義の整合性', () => {
 
   it('Flight Info の並び：DATE｜PILOT → FROM｜TO → 以降従来どおり／Weather は独立セクション', () => {
     const info = MEMO_SECTIONS.find((s) => s.key === 'flightinfo')!.fields.map((f) => f.key);
-    expect(info).toEqual(['autoDate', 'pilot', 'autoFrom', 'autoTo', 'termDep', 'termArr', 'gateDep', 'gateArr', 'autoAircraft', 'autoAirline', 'flightNo', 'callsign', 'reg']);
+    // Flight distance は便の事実＝Flight Info の末尾（Registration の右・オーナー指定 2026-08-07）
+    expect(info).toEqual(['autoDate', 'pilot', 'autoFrom', 'autoTo', 'termDep', 'termArr', 'gateDep', 'gateArr', 'autoAircraft', 'autoAirline', 'flightNo', 'callsign', 'reg', 'distance']);
     const weather = MEMO_SECTIONS.find((s) => s.key === 'weather')!;
     expect(weather.fields.map((f) => f.key)).toEqual(['metarDep', 'metarArr', 'rvrDep', 'rvrArr']);
     // Route & Procedures から METAR が抜けている

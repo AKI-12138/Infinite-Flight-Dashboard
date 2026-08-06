@@ -35,9 +35,12 @@ export interface MemoFieldDef {
   label: string;
   placeholder?: string;
   // text（候補つき1行）/ textarea / date（ネイティブ日付ピッカー）/
-  // clock（HH:MM の2箱・Add Flight の Flight Time と同じ操作感）/ duration（h+m の2箱・所要時間）
-  type?: 'text' | 'textarea' | 'date' | 'clock' | 'duration'; // 省略時 text
+  // clock（HH:MM の2箱・Add Flight の Flight Time と同じ操作感）/ duration（h+m の2箱・所要時間）/
+  // select（決まった選択肢から選ぶ・options 必須。未選択は空＝"—"）
+  type?: 'text' | 'textarea' | 'date' | 'clock' | 'duration' | 'select'; // 省略時 text
+  options?: string[];         // type: 'select' の選択肢（保存されるのはこの文字列そのもの）
   half?: boolean;             // true = 2カラムグリッドの半分幅（連続する half は横に並ぶ）
+  rowStart?: boolean;         // true = 必ず左カラムから始める（直前の行に隙間ができても対にして見せたい2欄用）
   unit?: MemoUnitKey;         // 数値だけの入力に表示時へ自動付与する単位
   decode?: 'metar';           // textarea の下に解読結果を表示する（METAR デコーダ）
   // Add Flight と同じ候補データを使う項目（現状 'airport' のみ＝空港DBから ICAO＋都市名を候補表示）。
@@ -183,6 +186,9 @@ export const MEMO_SECTIONS: MemoSectionDef[] = [
       // ↑ callsign は編集フォームで Heavy/Super のインライン選択を併せ持ち（値は内部キー 'wake' に保存）、
       //   閲覧では "ANA6 Heavy" のように1行連結で表示する（FlightMemoModal 側で特別扱い・オーナー指定 2026-08-06）。
       { key: 'reg',       label: 'Registration',  placeholder: 'JA789A', half: true },
+      // 飛行距離は「操縦の出来」ではなく From→To から決まる便の事実＝Performance から Flight Info へ移動
+      // （オーナー指定 2026-08-07）。末尾に置くと Registration と同じ行に収まり空きマスが出ない。
+      { key: 'distance',  label: 'Flight distance', placeholder: '520', half: true, unit: 'distance' },
     ],
   },
   {
@@ -221,22 +227,27 @@ export const MEMO_SECTIONS: MemoSectionDef[] = [
       { key: 'v1',       label: 'V1',  placeholder: '148', half: true, unit: 'speed' },
       { key: 'vr',       label: 'VR',  placeholder: '152', half: true, unit: 'speed' },
       { key: 'v2',       label: 'V2',  placeholder: '158', half: true, unit: 'speed' },
-      // 離陸/着陸の構成は1欄の自由入力（Flaps・推力設定・Autobrake を個別欄に細分化しない＝
-      // 入力負担と画面密度を抑える・ADV-008／オーナー指定 2026-08-07）。各 V 速度の直後に置く。
-      { key: 'cfgTakeoff', label: 'Takeoff configuration', placeholder: 'Flaps 5 / FLEX 50', half: true },
       // VREF（基準進入速度）と VAPP（実進入速度）は別物なので分離（オーナー指定 2026-08-06）。
       { key: 'vapp',     label: 'VAPP', placeholder: '145', half: true, unit: 'speed' },
       { key: 'vref',     label: 'VREF', placeholder: '138', half: true, unit: 'speed' },
+      // Cost Index（CI）＝燃料と時間のどちらを優先するかの係数。無次元なので単位は付けない
+      // （オーナー指定 2026-08-07・VREF の隣＝V 速度5つで半端になっていた行を埋める）。
+      { key: 'costIndex', label: 'Cost Index (CI)', placeholder: '30', half: true },
+      // 離陸/着陸の構成は1欄の自由入力（Flaps・推力設定・Autobrake を個別欄に細分化しない＝
+      // 入力負担と画面密度を抑える・ADV-008／オーナー指定 2026-08-07）。
+      // Takeoff｜Landing は必ず横並びで1行にする（rowStart＝前の行が埋まっても左カラムから始める）。
+      { key: 'cfgTakeoff', label: 'Takeoff configuration', placeholder: 'Flaps 5 / FLEX 50', half: true, rowStart: true },
       { key: 'cfgLanding', label: 'Landing configuration', placeholder: 'Flaps 30 / Autobrake 2', half: true },
       // 巡航（オーナー指定 2026-07-11）：高度＋速度は Mach のみ（IAS 併記は不要・2026-07-11 削除）。
       // Mach は "0.85" のような小数＝単位の自動付与はしない（"M0.85" と書いてもそのまま尊重）。
       { key: 'cruiseAlt',  label: 'Cruise altitude', placeholder: '34,000 or FL340', half: true, unit: 'altitude' },
       { key: 'cruiseMach', label: 'Cruise speed · Mach', placeholder: '0.85', half: true },
-      { key: 'distance',   label: 'Flight distance', placeholder: '520', half: true, unit: 'distance' },
       // 着陸品質：接地時の降下率・G・センターライン偏差（C/L・m・オーナー指定 2026-08-06）。
       { key: 'tdRate',   label: 'Touchdown rate', placeholder: '-250', half: true, unit: 'vspeed' },
       { key: 'gForce',   label: 'Landing G',      placeholder: '1.32', half: true, unit: 'gforce' },
       { key: 'clOffset', label: 'Centerline offset (C/L)', placeholder: '1.5', half: true, unit: 'lengthm' },
+      // 逆推力を着陸距離の計算に織り込んだか（実機の着陸性能計算と同じ Yes/No・オーナー指定 2026-08-07）。
+      { key: 'revCredit', label: 'Reverser credit', type: 'select', options: ['Yes', 'No'], half: true },
     ],
   },
   {

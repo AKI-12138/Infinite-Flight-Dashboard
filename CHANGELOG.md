@@ -14,8 +14,9 @@ Your flight notes gain a weather brain — and a lot more detail.
   anywhere — and the observation's month and year are filled in from your flight's date.
 - **More to record about each flight.** New note fields: departure / arrival **terminal and
   gate**, **taxi routes** (out and in), **approach**, **centerline offset (C/L)**, **RVR**,
-  **takeoff / landing configuration** (one free-text line each, e.g. "Flaps 5 / FLEX 50"), and
-  an **alternate airport** that suggests ICAO codes as you type.
+  **takeoff / landing configuration** (one free-text line each, e.g. "Flaps 5 / FLEX 50"),
+  **cost index**, **reverser credit** (Yes / No), and an **alternate airport** that suggests
+  ICAO codes as you type.
 - **Callsign wake suffix is now a picker.** Choose Heavy / Super from a dropdown beside the
   callsign; the saved note shows them together (e.g. "KLM 777 Heavy").
 - **Aircraft shown in full.** Notes now display the model name (e.g. A330-200) instead of the

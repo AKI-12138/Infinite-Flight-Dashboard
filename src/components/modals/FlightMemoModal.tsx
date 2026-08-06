@@ -56,6 +56,11 @@ function buildSuggestionMap(): Record<string, string[]> {
   return map;
 }
 
+// グリッド配置のクラス（memo-grid は 2 カラム）：half でない＝全幅、rowStart＝必ず左カラムから。
+function gridClass(def: MemoFieldDef): string {
+  return (def.half ? '' : ' memo-full') + (def.rowStart ? ' memo-row-start' : '');
+}
+
 // 時刻・所要時間の2箱入力の固定候補（Add Flight の time-h/time-m と同じ見た目のリスト）。
 const CLOCK_HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
 const CLOCK_MINUTES = Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, '0'));
@@ -290,7 +295,7 @@ function MemoEditForm({ flight, draft, setField }: {
 // 入力欄と同じ位置に読み取り専用で live 表示。値は保存されない（導出のみ）＝「auto」バッジでそれを示す。
 function MemoComputedItem({ def, value }: { def: MemoFieldDef; value: string }) {
   return (
-    <div className={'form-group' + (def.half ? '' : ' memo-full')}>
+    <div className={'form-group' + gridClass(def)}>
       <span className="form-label">{def.label} <span className="memo-auto-tag">auto</span></span>
       <div className="memo-computed">{value || '—'}</div>
     </div>
@@ -317,9 +322,21 @@ function MemoInput({ def, value, suggestions, items, onChange, decodeRefDate }: 
   // 日付：Add Flight の Date と同じネイティブ日付ピッカー（カレンダー UI・値は YYYY-MM-DD）。
   if (def.type === 'date') {
     return (
-      <div className={'form-group' + (def.half ? '' : ' memo-full')}>
+      <div className={'form-group' + gridClass(def)}>
         <label className="form-label" htmlFor={id}>{label}</label>
         <input id={id} type="date" className="form-input" value={value} onChange={(e) => onChange(e.target.value)} />
+      </div>
+    );
+  }
+  // 選択式（Yes/No 等）：未選択は空（"—"）＝任意入力の原則を保つ。
+  if (def.type === 'select') {
+    return (
+      <div className={'form-group' + gridClass(def)}>
+        <label className="form-label" htmlFor={id}>{label}</label>
+        <select id={id} className="form-input" value={value} onChange={(e) => onChange(e.target.value)}>
+          <option value="">—</option>
+          {(def.options ?? []).map((o) => <option key={o} value={o}>{o}</option>)}
+        </select>
       </div>
     );
   }
@@ -333,7 +350,7 @@ function MemoInput({ def, value, suggestions, items, onChange, decodeRefDate }: 
     <AutocompleteInput id={id} label={label} value={value}
       onChange={(v) => onChange(isIcao ? v.toUpperCase() : v)} uppercase={isIcao}
       suggestions={suggestions} suggestionItems={items} placeholder={def.placeholder}
-      wrapClassName={'form-group ac-wrap' + (def.half ? '' : ' memo-full')} />
+      wrapClassName={'form-group ac-wrap' + gridClass(def)} />
   );
 }
 
@@ -345,7 +362,7 @@ function CallsignInput({ def, callsign, wake, suggestions, items, onCallsign, on
 }) {
   const id = 'memo-' + def.key;
   return (
-    <div className={'form-group' + (def.half ? '' : ' memo-full')}>
+    <div className={'form-group' + gridClass(def)}>
       <label className="form-label" htmlFor={id}>{def.label}</label>
       <div className="callsign-input">
         <AutocompleteInput id={id} value={callsign} onChange={onCallsign}
@@ -384,7 +401,7 @@ function MemoTimePair({ def, label, value, onChange }: {
   const update = (na: string, nb: string) => { setA(na); setB(nb); onChange(combine(na, nb)); };
   const id = 'memo-' + def.key;
   return (
-    <div className={'form-group' + (def.half ? '' : ' memo-full')}>
+    <div className={'form-group' + gridClass(def)}>
       <label className="form-label" htmlFor={id + '-h'}>{label}</label>
       <div className="flight-time-input">
         <AutocompleteInput id={id + '-h'} wrapClassName="ac-wrap" inputMode="numeric" maxLength={2}
@@ -420,7 +437,7 @@ function MemoViewBody({ fields, flight }: { fields: Record<string, string>; flig
               const shown = raw ? formatMemoValue(f, raw) : '';
               const isBlock = f.type === 'textarea';
               return (
-                <div key={f.key} className={'memo-view-item' + (isBlock ? ' memo-full memo-view-block' : '')}>
+                <div key={f.key} className={'memo-view-item' + (isBlock ? ' memo-full memo-view-block' : '') + (f.rowStart ? ' memo-row-start' : '')}>
                   <span className="form-label">{f.label}</span>
                   {!isBlock && <span className="memo-view-leader" aria-hidden="true" />}
                   {shown
