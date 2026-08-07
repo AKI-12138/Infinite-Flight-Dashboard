@@ -129,8 +129,10 @@ export function _flightCities(f: FlightEndpoints): string[]{
 //   親国民がパスポートなしで自由往来でき、親国エアラインが国内便として運航しているなら登録。
 //   別税関・別出入国管理を持つ領土は登録しない（自動的に国際線扱いになる）。
 const DOMESTIC_REGIMES = [
-  // デンマーク王国構成領（EU 圏外・独自政府だが北欧パスポート同盟下でデンマーク国民は自由往来）
-  new Set(['Denmark', 'Greenland(Denmark)', 'Faroe Islands(Denmark)']),
+  // デンマーク王国構成領のうちフェロー諸島のみ（北欧パスポート同盟下でデンマーク国民は自由往来）。
+  // グリーンランドは EU 税関同盟外＝本土との往来でも税関手続きが発生するため意図的に未登録
+  // （2026-08-07 オーナー判断で国内→国際へ変更。グリーンランド内の便は co 一致で国内線のまま）。
+  new Set(['Denmark', 'Faroe Islands(Denmark)']),
   // フランス（海外県 DOM のみ。海外準県 COM の French Polynesia / New Caledonia は
   //          EU 圏外・別税関なので登録しない＝自動的に国際線扱い）
   new Set(['France', 'Martinique(France)', 'Guadeloupe(France)', 'Réunion(France)', 'Mayotte(France)', 'French Guiana(France)']),

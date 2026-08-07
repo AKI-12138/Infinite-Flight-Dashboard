@@ -16,8 +16,10 @@ vi.mock('../data/airports', () => ({
     KSEA: { co:'USA',                city:'Seattle',    ct:'North America' },
     KFRC: { co:'USA',                city:'ForceUSA',   ct:'North America', forceIntl:true },
     EKCH: { co:'Denmark',            city:'Copenhagen', ct:'Europe' },
+    EKVG: { co:'Faroe Islands(Denmark)', city:'Vágar',  ct:'Europe' },
     BGGH: { co:'Greenland(Denmark)', city:'Nuuk',       ct:'North America' },
-    BGBW: { co:'Greenland(Denmark)', city:'Narsarsuaq', ct:'North America', forceIntl:true },
+    BGBW: { co:'Greenland(Denmark)', city:'Narsarsuaq', ct:'North America' },
+    TJSJ: { co:'Puerto Rico(USA)',   city:'San Juan',   ct:'North America', forceIntl:true },
     ZBAA: { co:'China',              city:'Beijing',    ct:'Asia' },
     VHHH: { co:'Hong Kong(China)',   city:'Hong Kong',  ct:'Asia' },
   },
@@ -43,7 +45,7 @@ import {
 const flights: Flight[] = [
   { date:'2024-01-05', dep:'RJTT', arr:'RJAA', ac:'B738', al:'ANA', t:'1h00m' }, // 国内JP / 金(wd4)
   { date:'2024-07-20', dep:'RJTT', arr:'KSEA', ac:'B77W', al:'ANA', t:'9h30m' }, // 国際   / 土(wd5)
-  { date:'2025-03-10', dep:'EKCH', arr:'BGGH', ac:'A320', al:'SAS', t:'4h15m' }, // 管轄国内 / 月(wd0)
+  { date:'2025-03-10', dep:'EKCH', arr:'BGGH', ac:'A320', al:'SAS', t:'4h15m' }, // 国際(DK/GL) / 月(wd0)
   { date:'2025-03-11', dep:'ZBAA', arr:'VHHH', ac:'A333', al:'CCA', t:'3h00m' }, // 国際(CN/HK) / 火(wd1)
   { date:'2025-12-25', dep:'RJTT', arr:'ZZZZ', ac:'B738', al:'JAL', t:'2h00m' }, // unknown(ZZZZ未収録) / 木(wd3)
 ];
