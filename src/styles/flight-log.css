@@ -1,0 +1,265 @@
+/* -------------------------------------------------------------------------
+   flight-log.css — フライトログの表・行選択と削除・フライトノート・セルフチェック。
+
+   ⚠️ 読み込み順に意味がある。順番の変更＝見た目の変更になり得るので、
+      並べ替えるときは src/styles.css の @import の順を必ず確認すること。
+   ------------------------------------------------------------------------- */
+
+/* ===================== FLIGHT TABLE ===================== */
+.table-section{margin-top:16px;}
+.table-tools{
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+}
+.search-input{
+  display:flex;align-items:center;gap:8px;background:var(--border-soft);
+  border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 14px;
+  width:280px;transition:border-color 0.2s;
+}
+.search-input:focus-within{border-color:var(--accent);}
+.search-input input{
+  flex:1;background:none;border:none;outline:none;color:var(--text);
+  /* font-size:16px は iOS オートズーム防止 */
+  font-family:'Outfit';font-size:16px;
+}
+.search-input input::placeholder{color:var(--text-3);}
+.table-wrap{overflow-x:auto;max-height:480px;overflow-y:auto;}
+.ftable{width:100%;border-collapse:separate;border-spacing:0;font-size:13px;min-width:640px;}
+.ftable thead th{
+  position:sticky;top:0;background:var(--bg-card);z-index:2;
+  padding:12px 14px;text-align:left;font-weight:600;color:var(--text-3);
+  text-transform:uppercase;letter-spacing:1px;font-size:10px;
+  border-bottom:1px solid var(--border);cursor:pointer;user-select:none;
+  transition:color 0.2s;white-space:nowrap;
+}
+.ftable thead th:hover{color:var(--accent);}
+.ftable tbody tr{transition:background 0.15s;}
+.ftable tbody tr:hover{background:rgba(var(--accent-rgb),0.03);}
+.ftable td{
+  padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.02);
+  font-family:'JetBrains Mono',monospace;font-size:12px;
+  /* 縦中央揃え：cb / aircraft-tag / text 等で内容の高さが違っても行内で中央に揃える */
+  vertical-align:middle;
+  /* セル内の改行を抑止して行高を均一化（airline 名が長い行だけ 2 行になるのを防ぐ） */
+  white-space:nowrap;
+}
+/* .cb-wrap は基底で display:flex だが、td に flex を適用するとブラウザによって
+   セル高さの計算がずれて行ごとに高さが変わってしまう。
+   テーブル内では table-cell に戻して text-align:center で水平中央に。 */
+.ftable td.cb-wrap{display:table-cell;text-align:center;}
+.route-tag{color:var(--accent);font-weight:600;white-space:nowrap;}
+.aircraft-tag{
+  display:inline-block;padding:2px 8px;background:rgba(var(--violet-rgb),0.1);
+  border-radius:4px;color:var(--violet);font-size:11px;font-weight:600;white-space:nowrap;
+}
+.airline-tag{color:var(--text-2);font-family:'Outfit';font-weight:400;}
+.time-tag{color:var(--amber);font-weight:600;white-space:nowrap;}
+.date-tag{color:var(--text-3);white-space:nowrap;}
+
+/* ===================== DELETE / SELECTION ===================== */
+.select-bar{
+  display:none;align-items:center;gap:12px;padding:12px 20px;
+  background:rgba(var(--red-rgb),0.06);border-bottom:1px solid rgba(var(--red-rgb),0.15);
+  animation:fadeIn 0.2s ease;
+}
+.select-bar.show{display:flex;}
+.select-bar .sel-count{
+  font-family:'JetBrains Mono';font-size:13px;font-weight:600;color:var(--red);
+  margin-right:auto;
+}
+.btn-danger{
+  padding:8px 18px;background:rgba(var(--red-rgb),0.12);border:1px solid rgba(var(--red-rgb),0.25);
+  border-radius:var(--radius-sm);color:var(--red);font-family:'Outfit';font-size:12px;
+  font-weight:600;cursor:pointer;transition:var(--tr-tint),var(--tr-press);display:flex;align-items:center;gap:6px;
+}
+.btn-danger:hover{background:rgba(var(--red-rgb),0.2);border-color:var(--red);}
+.btn-danger-solid{
+  padding:8px 18px;background:var(--red);border:none;
+  border-radius:var(--radius-sm);color:#fff;font-family:'Outfit';font-size:12px;
+  font-weight:600;cursor:pointer;transition:var(--tr-tint),var(--tr-press),var(--tr-shadow);display:flex;align-items:center;gap:6px;
+}
+.btn-danger-solid:hover{background:#e6003a;transform:translateY(-1px);box-shadow:0 4px 16px rgba(var(--red-rgb),0.3);}
+.btn-cancel{
+  padding:8px 18px;background:transparent;border:1px solid var(--border);
+  border-radius:var(--radius-sm);color:var(--text-2);font-family:'Outfit';font-size:12px;
+  font-weight:600;cursor:pointer;transition:var(--tr-tint),var(--tr-press);
+}
+.btn-cancel:hover{background:rgba(var(--red-rgb),0.1);border-color:var(--red);color:var(--red);}
+
+/* Custom checkbox */
+.cb-wrap{display:flex;align-items:center;justify-content:center;}
+.cb{
+  appearance:none;-webkit-appearance:none;width:18px;height:18px;
+  border:1.5px solid var(--text-3);border-radius:4px;cursor:pointer;
+  background:transparent;transition:var(--tr-tint);position:relative;flex-shrink:0;
+}
+.cb:checked{background:var(--accent);border-color:var(--accent);}
+.cb:checked::after{
+  content:'✓';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  color:#fff;font-size:11px;font-weight:700;
+}
+.cb:hover:not(:checked){border-color:var(--text-2);}
+.cb.partial{background:var(--accent);border-color:var(--accent);}
+.cb.partial::after{content:'−';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#fff;font-size:14px;font-weight:700;line-height:1;}
+
+/* Restore modal — 新セッション時にのみ表示。confirm-overlay と同じ階層だが
+   ボタンの色味（accent 寄り）と icon（無限ロゴ）で差別化。 */
+.restore-overlay{
+  display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:260;
+  background:rgba(6,11,20,0.94);backdrop-filter:blur(16px);
+  align-items:center;justify-content:center;padding:20px;
+}
+.restore-overlay.show{display:flex;}
+.restore-box{
+  background:var(--bg-card);border:1px solid rgba(var(--accent-rgb),0.25);border-radius:18px;
+  width:100%;max-width:440px;padding:32px;text-align:center;
+  animation:slideUp 0.3s var(--ease-out);
+}
+/* ヒーロー部の無限ロゴと同じビジュアル言語：青→紫グラデの正方形に白い ∞ */
+.restore-icon{
+  width:56px;height:56px;border-radius:14px;
+  background:linear-gradient(135deg,var(--accent),#6c5ce7);
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;margin:0 auto 18px;
+}
+.restore-icon svg{width:64%;height:auto;display:block;}
+.restore-title{font-size:20px;font-weight:700;margin-bottom:10px;}
+.restore-desc{font-size:14px;color:var(--text-2);margin-bottom:8px;line-height:1.6;}
+.restore-desc strong{color:var(--accent);font-weight:700;}
+.restore-note{font-size:11px;color:var(--text-3);margin-bottom:24px;}
+.restore-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+.restore-actions button{min-width:140px;justify-content:center;padding:11px 18px;}
+
+/* Save Status Info モーダルの状態別カラー（ok/error/disabled で box の border 色を変える） */
+#saveStatusBox.is-error{border-color:rgba(var(--red-rgb),0.4);}
+#saveStatusBox.is-error .restore-icon{background:linear-gradient(135deg,#ff4d6a,#e6334e);}
+#saveStatusBox.is-error .restore-desc strong{color:var(--red);}
+#saveStatusBox.is-disabled{border-color:rgba(140,155,181,0.3);}
+#saveStatusBox.is-disabled .restore-icon{background:linear-gradient(135deg,#4d5f7a,#2e3a52);color:var(--text-2);}
+
+/* Confirm modal */
+.confirm-overlay{
+  display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:250;
+  background:rgba(6,11,20,0.9);backdrop-filter:blur(16px);
+  align-items:center;justify-content:center;padding:20px;
+}
+.confirm-overlay.show{display:flex;}
+.confirm-box{
+  background:var(--bg-card);border:1px solid rgba(var(--red-rgb),0.2);border-radius:18px;
+  width:100%;max-width:420px;padding:32px;text-align:center;
+  animation:slideUp 0.3s var(--ease-out);
+}
+.confirm-icon{font-size:48px;margin-bottom:16px;}
+.confirm-title{font-size:18px;font-weight:700;margin-bottom:8px;}
+.confirm-desc{font-size:13px;color:var(--text-2);margin-bottom:24px;line-height:1.6;}
+.confirm-desc strong{color:var(--red);font-weight:700;}
+.confirm-actions{display:flex;gap:10px;justify-content:center;}
+.confirm-actions button{min-width:120px;justify-content:center;}
+
+/* Row delete hover */
+.row-delete-btn{
+  opacity:0;padding:4px 8px;background:rgba(var(--red-rgb),0.08);border:1px solid transparent;
+  border-radius:4px;color:var(--red);font-size:11px;cursor:pointer;
+  transition:var(--tr-tint),var(--tr-press),opacity var(--t-ui) var(--ease-out);font-family:'Outfit';font-weight:500;
+}
+.ftable tbody tr:hover .row-delete-btn{opacity:1;}
+.row-delete-btn:hover{background:rgba(var(--red-rgb),0.15);border-color:rgba(var(--red-rgb),0.3);}
+.ftable tbody tr.selected{background:rgba(var(--red-rgb),0.04);}
+.ftable tbody tr.selected td{color:var(--text);}
+
+/* ===================== FLIGHT NOTES (MEMO) ===================== */
+/* Notes 専用列：記入あり＝📝（アクセント色）／なし＝＋（薄色）。常時表示・Notes 列見出しで並び替え可。 */
+.note-cell{text-align:center;}
+.row-note-btn{
+  padding:4px 10px;background:rgba(var(--accent-rgb),0.08);border:1px solid transparent;
+  border-radius:4px;color:var(--accent);font-size:12px;cursor:pointer;
+  transition:var(--tr-tint),var(--tr-press);font-family:'Outfit';font-weight:600;line-height:1.4;
+}
+.row-note-btn:hover{background:rgba(var(--accent-rgb),0.15);border-color:rgba(var(--accent-rgb),0.3);}
+.row-note-btn.row-note-add{background:transparent;border-color:var(--border);color:var(--text-3);}
+.row-note-btn.row-note-add:hover{background:rgba(var(--accent-rgb),0.10);border-color:rgba(var(--accent-rgb),0.3);color:var(--accent);}
+
+/* メモモーダル（FlightMemoModal）。編集＝2カラムのフォーム／閲覧＝記入済み項目だけ表示。 */
+.memo-intro{font-size:12.5px;color:var(--text-3);margin-bottom:14px;line-height:1.5;}
+.memo-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 14px;margin-bottom:14px;}
+.memo-full{grid-column:1/-1;}
+.memo-row-start{grid-column:1;}  /* 必ず左カラムから（対で見せたい2欄の行頭・2026-08-07） */
+.memo-textarea{min-height:64px;resize:vertical;font-size:14px;line-height:1.5;}
+.memo-view-item{display:flex;flex-direction:column;gap:3px;min-width:0;}
+.memo-view-value{font-family:'JetBrains Mono';font-size:14px;color:var(--text);white-space:pre-wrap;word-break:break-word;}
+.memo-view-blank{color:var(--text-3);}  /* 未入力の空欄（—）は薄く＝紙のログの空マス */
+@media (max-width:560px){ .memo-grid{grid-template-columns:1fr;} }
+
+/* ---- 閲覧モード＝紙のログ帳（2026-07-11 オーナー指定）----
+   紙面（--memo-paper）の上に「ラベル ……… 値」の点線リーダー記入行を並べ、
+   自由記述（Route・METAR・Notes）は罫線ノートに書かれた体にする。
+   編集モードのフォームには影響させない（.memo-sheet スコープ内のみ）。 */
+.memo-sheet{
+  background:var(--memo-paper);border:1px solid var(--memo-paper-border);
+  border-radius:10px;padding:18px 20px 6px;
+}
+.memo-sheet .adv-section-label{
+  border-bottom:1px solid var(--memo-rule);
+  padding-bottom:5px;letter-spacing:1.6px;
+}
+/* セクション間の区切りは紙らしく極薄に（下線つき見出しと二重にならないよう控えめ） */
+.memo-sheet .adv-divider{background:transparent;margin:14px 0;}
+/* 記入行：ラベル → 点線リーダー → 値（右寄せ・ベースライン揃え）＝帳簿の1行 */
+.memo-sheet .memo-view-item{flex-direction:row;align-items:baseline;gap:8px;}
+.memo-sheet .memo-view-item .form-label{flex-shrink:0;}
+.memo-view-leader{
+  flex:1 1 12px;min-width:12px;align-self:flex-end;margin-bottom:4px;
+  border-bottom:1px dotted var(--memo-rule);
+}
+.memo-sheet .memo-view-value{text-align:right;font-size:13.5px;}
+/* 自由記述：ラベルの下に罫線ノート（1.7em ごとの横罫。空でも2行分の升目を見せる） */
+.memo-sheet .memo-view-block{flex-direction:column;align-items:stretch;gap:6px;}
+.memo-sheet .memo-view-block .memo-view-value{
+  text-align:left;line-height:1.7;min-height:3.4em;padding:0 2px;
+  background:repeating-linear-gradient(to bottom,
+    transparent 0,transparent calc(1.7em - 1px),
+    var(--memo-rule-soft) calc(1.7em - 1px),var(--memo-rule-soft) 1.7em);
+}
+
+/* ---- 自動計算項目（Taxi total）：編集モードの読み取り専用表示 ---- */
+.memo-auto-tag{
+  display:inline-block;padding:1px 6px;margin-left:4px;border-radius:999px;
+  background:rgba(var(--accent-rgb),0.12);color:var(--accent);
+  font-size:9px;font-weight:700;letter-spacing:0.5px;text-transform:lowercase;vertical-align:middle;
+}
+.memo-computed{
+  padding:11px 14px;background:transparent;border:1px dashed var(--border);
+  border-radius:10px;color:var(--text-2);font-family:'JetBrains Mono';font-size:16px;
+  min-height:42px;
+}
+
+/* METAR 自動解読ブロック（生の METAR の下・紙のログ帳に合わせた色/デザイン・オーナー指定 2026-08-06） */
+.metar-decoded{
+  margin-top:8px;padding:10px 12px;border-radius:8px;
+  background:var(--memo-rule-soft);border:1px solid var(--memo-rule);
+  display:flex;flex-direction:column;gap:4px;
+}
+.metar-decoded-row{display:flex;gap:10px;align-items:baseline;font-size:13px;line-height:1.4;}
+.metar-decoded-label{
+  flex:0 0 96px;color:var(--text-2);font-size:10px;font-weight:600;
+  letter-spacing:1px;text-transform:uppercase;
+}
+.metar-decoded-value{flex:1;color:var(--text);font-family:'JetBrains Mono',monospace;}
+
+/* ===================== SELF-CHECK ===================== */
+/* 設定 Status → Self-check。総合判定 1 行＋失敗した項目だけのリスト。 */
+.selfcheck-summary{
+  padding:12px 16px;border-radius:10px;font-weight:700;font-size:15px;margin-bottom:14px;
+}
+.selfcheck-summary.is-ok{background:rgba(var(--green-rgb),0.10);color:var(--green);border:1px solid rgba(var(--green-rgb),0.25);}
+.selfcheck-summary.is-fail{background:rgba(var(--red-rgb),0.08);color:var(--red);border:1px solid rgba(var(--red-rgb),0.25);}
+.selfcheck-fails{list-style:none;margin:0 0 14px;padding:0;display:flex;flex-direction:column;gap:10px;}
+.selfcheck-fails li{
+  padding:10px 14px;border:1px solid rgba(var(--red-rgb),0.2);border-radius:10px;
+  background:var(--border-soft);font-size:13px;display:flex;flex-direction:column;gap:4px;
+}
+.selfcheck-detail{color:var(--text-2);line-height:1.5;}
+.selfcheck-note{font-size:12px;color:var(--text-3);line-height:1.6;margin-bottom:4px;}
+a.btn-outline{text-decoration:none;}  /* Report a bug（リンクをボタン見た目で） */
+
+/* toast variants */
+.toast.toast-red{border-color:var(--red);color:var(--red);}

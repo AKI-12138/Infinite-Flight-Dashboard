@@ -1,0 +1,206 @@
+/* -------------------------------------------------------------------------
+   foundation.css — 色トークン（ダーク/ライト）・リセット・body・スクロールバー。
+   他の全ファイルがここの var(--*) を参照する。
+
+   ⚠️ 読み込み順に意味がある。順番の変更＝見た目の変更になり得るので、
+      並べ替えるときは src/styles.css の @import の順を必ず確認すること。
+   ------------------------------------------------------------------------- */
+
+/* ===================== RESET & BASE ===================== */
+/* :root はダークテーマがデフォルト。ライトテーマは [data-theme="light"] で上書き。
+   ブランドカラー（accent / red / amber / green / violet / orange / cyan / rose）は
+   データ可視化用なので両テーマで「だいたい同じ」を保つが、ライト用には背景白上で
+   コントラストが落ちる cyan / amber などをわずかに濃くしている。
+   JS から色を参照するときは render.js の `cssVar()` ヘルパ経由で読む（テーマ切替時に追従）。 */
+:root {
+  --bg: #060b14;
+  --bg-card: #0d1520;
+  --bg-card-alt: #111c2e;
+  --bg-elevated: #162033;
+  --border: #1a2744;
+  --border-hover: #243a5e;
+  --text: #e8edf5;
+  --text-2: #8c9bb5;
+  --text-3: #4d5f7a;
+  --accent: #3b9eff;
+  --accent-glow: rgba(var(--accent-rgb),0.15);
+  --red: #ff4d6a;
+  --amber: #ffb020;
+  --green: #00d68f;
+  --violet: #9d7aff;
+  --orange: #ff8a3d;
+  --cyan: #00d4ff;
+  --rose: #ff6b9d;
+  /* RGB トリプレット（rgba() でアルファ可変に使う用）。テーマ切替で追従。
+     使用例: background: rgba(var(--accent-rgb),0.12); */
+  --accent-rgb: 59,158,255;
+  --red-rgb:    255,77,106;
+  --green-rgb:  0,214,143;
+  --violet-rgb: 157,122,255;
+  /* フライトノート閲覧モード（紙のログ帳風）。ダークは「夜間コクピットの照明下の用紙」＝
+     カードよりわずかに明るい藍のシート。ライトはクリーム色の紙（ライトブロックで上書き）。 */
+  --memo-paper: #101b2e;
+  --memo-paper-border: #22345a;
+  --memo-rule: rgba(140,155,181,0.35);       /* 記入行の点線・セクション下線 */
+  --memo-rule-soft: rgba(140,155,181,0.15);  /* 自由記述の罫線 */
+  --radius: 14px;
+  --radius-sm: 8px;
+
+  /* ── 動きの共通定義（2026-08-18）──────────────────────────────────
+     --ease-out … 元々15箇所で使っていた曲線に名前を付けたもの＝唯一の正。
+                  入場・ホバー・押下など「反応」系は全部これ（ease-in は使わない）。
+     --t-press  … 押した瞬間の反応。100〜160ms が「即座」に感じる範囲。
+     --t-ui     … ホバー等の状態変化の標準速度。UI の動きは 300ms を超えない。
+     --tr-tint  … 色だけが変わる要素の共通トランジション。
+                  「まとめて全部」指定と違い、レイアウト（幅・高さ・位置）を巻き込まない。
+     --tr-press … 押下の沈み込み。--tr-shadow … 影の変化。必要な要素だけ足す。 */
+  --ease-out: cubic-bezier(0.22,1,0.36,1);
+  --t-press: 130ms;
+  --t-ui: 180ms;
+  --tr-tint: background-color var(--t-ui) var(--ease-out),
+             border-color var(--t-ui) var(--ease-out),
+             color var(--t-ui) var(--ease-out);
+  --tr-press: transform var(--t-press) var(--ease-out);
+  --tr-shadow: box-shadow var(--t-ui) var(--ease-out);
+  /* 汎用サーフェストークン（薄い半透明 overlay の階段）。テーマ切替で白基調 ↔ 黒基調が反転する。 */
+  --surface-elev1: rgba(255,255,255,0.025);  /* カード等の控えめな塗り */
+  --surface-elev2: rgba(255,255,255,0.04);   /* ホバー前のカード塗り、薄ボーダー塗り */
+  --surface-elev3: rgba(255,255,255,0.06);   /* ホバー後のやや明るい塗り */
+  --border-soft: rgba(255,255,255,0.03);     /* セクション境界の極薄ボーダー */
+  --border-medium: rgba(255,255,255,0.08);   /* ホバー時のやや明るいボーダー */
+  --backdrop: rgba(6,11,20,0.92);            /* オーバーレイ背景（モーダル後ろの暗幕） */
+
+  /* ── カードの素材（フェーズJ-2・2026-08-18）─────────────────────────
+     平らな 1px 枠線だけだった面に、影・上辺の光・ごく薄い傾斜で厚みを与える。
+     ダークでは「上から光が当たっている」表現が効くので、
+       --card-sheen      … 背景グラデーションの起点（上端だけ僅かに明るい）
+       --shadow-card     … inset の 1px＝上辺で光を受ける縁 ＋ 外側の2段の影
+     の 2 つで作る。影を2段（近い硬い影＋遠い柔らかい影）にするのは、
+     1段だとぼやけて「浮いている」ではなく「ぼけている」に見えるため。
+     ⚠️ ガラス（backdrop-filter）はここでは使わない。カードの背後は単色 --bg の
+        塗りなので、ぼかしても見た目が変わらず合成コストだけ増えるため
+        （ガラスは拡大表示・モーダル＝コンテンツの上に浮かぶ層の役目・J-3）。 */
+  --card-sheen: #101a28;
+  --shadow-card:       inset 0 1px 0 rgba(255,255,255,0.16),
+                       0 1px 2px rgba(0,0,0,0.30),
+                       0 10px 28px -12px rgba(0,0,0,0.55);
+  --shadow-card-hover: inset 0 1px 0 rgba(255,255,255,0.20),
+                       0 2px 5px rgba(0,0,0,0.34),
+                       0 20px 46px -16px rgba(0,0,0,0.68);
+  --hero-grad: linear-gradient(160deg,#060b14 0%,#0a1628 40%,#0f1d35 70%,#060b14 100%);
+  /* チャート専用トークン（JS の cssVar 経由で参照される。ダーク基準値）。 */
+  --chart-grid: var(--border-soft);
+  --chart-tick: var(--text-3);
+  --chart-legend: var(--text-2);
+  --chart-legend-strong: #c8d3e3;  /* 拡大版で大きめのフォント色（--text より明るい中間値） */
+  --chart-point-border: var(--bg); /* 背景に対して点が浮く色 */
+  /* 地図（Leaflet）/ Globe 専用トークン */
+  --map-bg: var(--bg);
+  --map-tile-style: dark;          /* 'dark' or 'light'。JS が読んでタイルレイヤを選ぶ */
+  --globe-canvas-bg: #000;         /* 3D Globe の球周りの「宇宙」色（ダーク=真っ黒） */
+  --globe-atmosphere: var(--accent);
+  --globe-poly-cap: rgba(var(--accent-rgb),0.04);
+  --globe-poly-side: rgba(0,0,0,0.05);
+  --globe-poly-stroke: rgba(220,230,245,0.7);
+  --globe-arc: rgba(var(--accent-rgb),0.6);
+  --map-route-line: var(--accent);
+  --map-idl: var(--amber);         /* 国際日付変更線（アンバー点線） */
+  --map-equator: var(--violet);    /* 赤道（紫の点々） */
+  /* 通知バナーのベース色（テーマ追従）。
+     ダークは濃紺、ライトは白に近い色。alpha は .notify-banner 側で付与する。 */
+  --notify-bg-rgb: 15,29,53;
+  /* OS/ブラウザに「今ダークテーマ」と伝える。
+     これで input[type=date] のカレンダーアイコンや scrollbar / select のドロップダウンが
+     ブラウザ標準のダーク見た目になり、白浮きしなくなる。 */
+  color-scheme: dark;
+}
+
+/* ===================== LIGHT THEME ===================== */
+/* 「白基調・水色アクセント」のソフトな配色。
+   ブランドカラーは少し濃いめにして白背景でも視認性を保つ。 */
+[data-theme="light"] {
+  --bg: #f4f6fa;
+  --bg-card: #ffffff;
+  --bg-card-alt: #f4f6fa;
+  --bg-elevated: #e6ebf3;
+  --border: #dce3ec;
+  --border-hover: #b4bdca;
+  --text: #1a2744;
+  --text-2: #4d5f7a;
+  --text-3: #8c9bb5;
+  --accent: #2680e0;
+  --accent-glow: rgba(var(--accent-rgb),0.10);
+  --red: #dc2848;
+  --amber: #d49000;
+  --green: #00a86b;
+  --violet: #7b4dff;
+  --orange: #e06a1a;
+  --cyan: #0091b3;
+  --rose: #d04880;
+  /* RGB トリプレット（ライト用） */
+  --accent-rgb: 38,128,224;
+  --red-rgb:    220,40,72;
+  --green-rgb:  0,168,107;
+  --violet-rgb: 123,77,255;
+  /* フライトノート：ライトはクリーム色の紙＋インク寄りの罫線（本物のログ帳の見立て） */
+  --memo-paper: #fbf8f1;
+  --memo-paper-border: #e6dfcd;
+  --memo-rule: rgba(92,76,46,0.30);
+  --memo-rule-soft: rgba(92,76,46,0.13);
+  /* サーフェスは黒基調に反転（白背景にうっすら黒を載せる） */
+  --surface-elev1: rgba(0,0,0,0.02);
+  --surface-elev2: rgba(0,0,0,0.04);
+  --surface-elev3: rgba(0,0,0,0.06);
+  --border-soft: rgba(0,0,0,0.04);
+  --border-medium: rgba(0,0,0,0.10);
+  --backdrop: rgba(244,246,250,0.92);
+
+  /* カードの素材（ライト）。白い面の上では「上辺の光」は原理的に見えないので、
+     inset の光の線は持たず、奥行きは影だけで出す（ダークとは作り方が違う）。
+     グラデーションも掛けない（--card-sheen = --bg-card と同値＝実質フラット）。
+     影の色は真っ黒ではなく紙面に合う青寄りのグレー。黒だと白地で濁って見える。 */
+  --card-sheen: #ffffff;
+  --shadow-card:       0 1px 2px rgba(20,27,38,0.05),
+                       0 10px 28px -12px rgba(20,27,38,0.22);
+  --shadow-card-hover: 0 2px 5px rgba(20,27,38,0.07),
+                       0 20px 46px -16px rgba(20,27,38,0.28);
+  --hero-grad: linear-gradient(160deg,#f4f6fa 0%,#e6ebf3 40%,#dce3ec 70%,#f4f6fa 100%);
+  /* チャート専用トークン（ライト基準値）。grid はやや薄い黒、tick は中明度グレー。 */
+  --chart-grid: rgba(0,0,0,0.05);
+  --chart-tick: var(--text-3);
+  --chart-legend: var(--text-2);
+  --chart-legend-strong: var(--text);
+  --chart-point-border: var(--bg-card);
+  /* 地図 / Globe */
+  --map-bg: #e6ebf3;
+  --map-tile-style: light;
+  --globe-canvas-bg: #0a1628;       /* Light モードでも宇宙感は維持（deep navy） */
+  --globe-atmosphere: var(--accent);
+  --globe-poly-cap: rgba(var(--accent-rgb),0.04);
+  --globe-poly-side: var(--surface-elev3);
+  /* ライトは Blue Marble（昼）テクスチャ上。明るい地表に埋もれないよう濃く・高 alpha に。 */
+  --globe-poly-stroke: rgba(28,42,66,0.9);
+  --globe-arc: rgba(var(--accent-rgb),0.7);
+  --map-route-line: var(--accent);
+  --map-idl: var(--amber);
+  --map-equator: var(--violet);
+  /* 通知バナーはライトモードでは白基調にして浮かないようにする */
+  --notify-bg-rgb: 255,255,255;
+  /* OS/ブラウザに「今ライトテーマ」と伝える。
+     :root のダーク宣言を上書きする。 */
+  color-scheme: light;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+/* キーボード操作（Tab キー）でフォーカスが当たった時だけ青い枠を出す。
+   マウスクリック時は出ないので、マウスユーザーには見えない。
+   var(--accent) はテーマ追従するので、ライト＝青／ダーク＝同等の青で統一感が出る。 */
+*:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;-webkit-font-smoothing:antialiased;}
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--text-3);border-radius:10px;}
+::-webkit-scrollbar-thumb:hover{background:var(--text-2);}

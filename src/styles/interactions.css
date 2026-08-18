@@ -1,0 +1,180 @@
+/* -------------------------------------------------------------------------
+   interactions.css — 押下時の沈み込み・タッチ端末の :hover 抑止・OS の「動きを減らす」設定への追従。
+   ⚠️ このファイルは既存の指定を打ち消す役目なので、必ず最後に読み込むこと。
+
+   ⚠️ 読み込み順に意味がある。順番の変更＝見た目の変更になり得るので、
+      並べ替えるときは src/styles.css の @import の順を必ず確認すること。
+   ------------------------------------------------------------------------- */
+
+/* ===================== PRESS FEEDBACK ===================== */
+/* 押した瞬間にわずかに沈む＝「操作を受け取った」という即時の返事（2026-08-18 追加）。
+   それまでは :hover しか無く、押してから結果が出るまで無反応だった。
+
+   :hover ではなく :active に置くのは、指を離す前＝いちばん注視している瞬間に返すため。
+   タッチ端末でも :active は発火するので @media(hover:hover) では囲まない
+   （囲うのは「浮き上がる」系の hover 演出だけ＝下の TOUCH DEVICES 節が担当）。
+
+   scale はどれも 0.94〜0.97 の範囲。小さい要素ほど強く縮めるのは、
+   見た目の移動量（px）を揃えて同じ手応えにするため。
+
+   ⚠️ ドロップダウンを内包する .filter-chip / .adv-filter-btn は意図的に除外している。
+      親を縮めると、開いているメニューごと一緒に縮んでしまうため。 */
+.btn-primary:active,
+.btn-outline:active,
+.btn-danger:active,
+.btn-danger-solid:active,
+.btn-cancel:active,
+.btn-sample:active,
+.file-upload-btn:active,
+.toggle-btn:active,
+.modal-tab:active,
+.bulk-clear-btn:active,
+.row-delete-btn:active,
+.row-note-btn:active,
+.map-globe-btn:active,
+.map-expand-btn:active,
+.filter-toggle-btn:active,
+.filter-clear:active,
+.adv-preset:active,
+.adv-saved-edit:active,
+.barcust-chip:active,
+.export-option:active{
+  transform:scale(0.97);
+}
+/* 正方形のアイコンボタン（28〜42px）は小さいので、同じ体感になるよう少し強めに縮める */
+.card-expand-btn:active,
+.btn-close:active,
+.map-reset-btn:active,
+.globe-rotate-btn:active,
+.header-icon-btn:active,
+.adv-date-clear:active{
+  transform:scale(0.94);
+}
+
+/* ===================== TOUCH DEVICES: suppress :hover ===================== */
+/* タッチデバイスでは tap で :hover が発火し、次の tap までスタイルが残り続ける。
+   hover: none の環境では各 :hover ルールを「base 状態に戻す」値で上書きして
+   視覚効果を出さないようにする。デスクトップ（hover: hover）には影響しない。 */
+@media (hover: none) {
+  .btn-primary:hover { background:var(--accent); transform:none; box-shadow:none; }
+  .btn-primary[style*="violet"]:hover { background:var(--violet) !important; box-shadow:none !important; }
+  .btn-outline:hover { background:transparent; border-color:var(--border); color:var(--text-2); }
+  .btn-close:hover { background:transparent; border-color:var(--border); color:var(--text-2); }
+  .btn-danger:hover { background:rgba(var(--red-rgb),0.12); border-color:rgba(var(--red-rgb),0.25); }
+  .btn-danger-solid:hover { background:var(--red); transform:none; box-shadow:none; }
+  .btn-cancel:hover { background:transparent; border-color:var(--border); color:var(--text-2); }
+  .card.card-fullscreen .card-expand-btn:hover { background:transparent; border-color:var(--border); color:var(--text-3); }
+  .toggle-btn:hover:not(.active) { color:var(--text-3); }
+  .modal-tab:hover:not(.active) { color:var(--text-3); }
+  .stat-box:hover { background:var(--surface-elev1); border-color:var(--surface-elev2); }
+  .stat-box.is-clickable:hover { background:var(--surface-elev1); border-color:var(--surface-elev2); transform:none; box-shadow:none; }
+  .card:hover { border-color:var(--border); box-shadow:var(--shadow-card); transform:none; }
+  .expanded-bar-col:hover { filter:none; }
+  .ftable thead th:hover { color:var(--text-3); }
+  .ftable tbody tr:hover { background:transparent; }
+  .ftable tbody tr.selected:hover { background:rgba(var(--red-rgb),0.04); }
+  .row-delete-btn:hover { background:rgba(var(--red-rgb),0.08); border-color:transparent; }
+  .row-note-btn:hover { background:rgba(var(--accent-rgb),0.08); border-color:transparent; }
+  .cb:hover:not(:checked) { border-color:var(--text-3); }
+  .ac-item:hover { background:transparent; }
+  .file-upload-btn:hover { border-color:var(--border); color:var(--text-2); background:var(--surface-elev2); }
+  .filter-chip:hover { border-color:var(--border); color:var(--text-2); }
+  .filter-clear:hover { color:var(--text-3); background:transparent; }
+  .chip-menu-item:hover { background:transparent; color:var(--text-2); }
+  .adv-date-clear:hover { border-color:var(--border); color:var(--text-3); background:transparent; }
+  /* ヘッダ ≡/⚙️：トリガーは閉じている間だけ hover を打ち消す（開いている間は .open のアクティブ表示を活かす）。
+     メニュー内の項目はタップ操作なので hover は中立に戻す（chip-menu-item と同じ方針）。 */
+  .header-menu-wrap:not(.open) .header-icon-btn:hover { background:var(--surface-elev2); border-color:var(--border); }
+  .header-menu-item:hover { background:transparent; color:var(--text-2); }
+  .header-menu-item.is-danger:hover { background:transparent; color:var(--red); }
+  .header-menu-item.is-active { color:var(--text); }
+
+  /* --- 2026-07-03 追記：上記から漏れていた :hover を全て base 値に戻して網羅 ---
+     （back-to-top のタップ後「青が張り付く」報告を機に、全 :hover を総点検した結果）。 */
+  .btn-primary[style*="green"]:hover { background:var(--green) !important; box-shadow:none !important; }
+  .btn-primary[style*="red"]:hover { background:var(--red) !important; box-shadow:none !important; }
+  #restoreNoBtn:hover { background:transparent; border-color:var(--border); color:var(--text-2); }
+  .btn-save-preset:hover { background:transparent; border-color:rgba(var(--green-rgb),0.5); color:var(--green); }
+  .back-to-top:hover { border-color:var(--border); color:var(--text-2); }
+  .map-globe-btn:hover { background:rgba(var(--accent-rgb),0.12); border-color:rgba(var(--accent-rgb),0.3); }
+  .globe-rotate-btn:hover { background:transparent; border-color:var(--border); color:var(--text-2); }
+  .map-expand-btn:hover { background:var(--surface-elev3); border-color:var(--border); color:var(--text-2); }
+  .card-expand-btn:hover { background:transparent; border-color:var(--border); color:var(--text-3); }
+  .expanded-sort-select:hover { border-color:var(--border); color:var(--text-2); }
+  .expanded-bar-item.is-drillable:hover .expanded-bar-col { filter:none; }
+  .bulk-clear-btn:hover { color:var(--text-3); border-color:var(--border); background:var(--surface-elev2); }
+  .export-option:hover { border-color:var(--border); background:var(--border-soft); }
+  .btn-sample:hover,
+  .empty-sample .btn-sample:hover { background:var(--bg-card-alt); border-color:var(--border); color:var(--text-2); }
+  .sample-or-btn:hover { text-decoration:none; }
+  .aa-hint a:hover { text-decoration:none; }
+  .notify-close:hover { opacity:0.7; }
+  .dc-add-btn:hover { background:rgba(var(--accent-rgb),0.12); border-color:rgba(var(--accent-rgb),0.35); }
+  .filter-toggle-btn:hover { background:rgba(255,176,32,0.10); border-color:rgba(255,176,32,0.5); box-shadow:none; }
+  .adv-filter-btn:hover { border-color:var(--border); color:var(--text-2); }
+  .adv-preset:hover { border-color:var(--border); color:var(--text-2); }
+  .adv-saved-edit:hover { border-color:var(--border); color:var(--text-3); }
+  .adv-preset-del:hover { background:rgba(var(--red-rgb),0.14); }
+  .yoy-yr-select:hover { background-color:rgba(var(--accent-rgb),0.08); border-color:rgba(var(--accent-rgb),0.25); }
+}
+
+/* ===================== REDUCED MOTION ===================== */
+/* OS の「動きを減らす」設定に追従（2026-08-18 追加）。
+   macOS/iOS＝「視差効果を減らす」、Windows＝「アニメーションを表示する」OFF。
+   前庭障害などで動きに酔う人のための設定で、それまでは一切見ていなかった。
+
+   方針は「全部止める」ではなく【動きだけ止めて、色と不透明度の変化は残す】。
+   状態が変わったこと自体は伝わり続ける必要があるため（WCAG 2.3.3 の趣旨）。
+
+   ⚠️ ここで * に一括指定はしない。Leaflet（地図）の内部 transform トランジションを
+      巻き込むと、ズーム完了イベントが飛ばず地図が固まる恐れがあるため、
+      自前で足した動きだけを名指しで無効化する。 */
+@media (prefers-reduced-motion: reduce){
+  /* 押下の沈み込み・ホバーの浮き上がりは「動き」なので無効化。
+     背景色や枠色の変化は残るので、反応が消えるわけではない。 */
+  .btn-primary:active,
+  .btn-outline:active,
+  .btn-danger:active,
+  .btn-danger-solid:active,
+  .btn-cancel:active,
+  .btn-sample:active,
+  .file-upload-btn:active,
+  .toggle-btn:active,
+  .modal-tab:active,
+  .bulk-clear-btn:active,
+  .row-delete-btn:active,
+  .row-note-btn:active,
+  .map-globe-btn:active,
+  .map-expand-btn:active,
+  .filter-toggle-btn:active,
+  .filter-clear:active,
+  .adv-preset:active,
+  .adv-saved-edit:active,
+  .barcust-chip:active,
+  .export-option:active,
+  .card-expand-btn:active,
+  .btn-close:active,
+  .map-reset-btn:active,
+  .globe-rotate-btn:active,
+  .header-icon-btn:active,
+  .adv-date-clear:active,
+  .btn-primary:hover,
+  .btn-danger-solid:hover,
+  .file-upload-btn:hover,
+  .stat-box.is-clickable:hover,
+  .stat-box.is-clickable:active,
+  .card:hover{
+    transform:none !important;
+  }
+
+  /* 登場アニメーションは keyframes 自体を差し替える。
+     これで slideUp/slideDown を使う 11 箇所の宣言に手を入れずに、
+     「せり上がり」「スライドイン」だけを淡い表示へ落とせる。
+     読み込み中の回転（globe-spin）は、止めると「固まった」に見えるのであえて残す。 */
+  @keyframes slideUp{from{opacity:0}to{opacity:1}}
+  @keyframes slideDown{from{opacity:0}to{opacity:1}}
+
+  /* データバーが伸びる演出（幅・高さの変化）も動きなので即座に確定させる。 */
+  .bar-fill,.flight-row-fill{transition:width 0.01ms linear !important;}
+  .expanded-bar-col{transition:height 0.01ms linear !important;}
+}

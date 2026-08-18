@@ -1,0 +1,223 @@
+/* -------------------------------------------------------------------------
+   cards-and-charts.css — メイン領域のカード・一覧バー・縦バー拡大表示・Chart.js 描画域。
+
+   ⚠️ 読み込み順に意味がある。順番の変更＝見た目の変更になり得るので、
+      並べ替えるときは src/styles.css の @import の順を必ず確認すること。
+   ------------------------------------------------------------------------- */
+
+/* ===================== MAIN CONTENT ===================== */
+.main{max-width:1360px;margin:0 auto;padding:0 32px 60px;}
+
+/* Card
+   フェーズJ-2（2026-08-18）：平らな枠線だけの面 → 影・上辺の光・ごく薄い傾斜で立体に。
+   色（--card-sheen / --shadow-card）はテーマごとに foundation.css で定義。
+   ⚠️ 上辺の光は疑似要素ではなく box-shadow の inset で出している。
+      ::after にすると .card へ position:relative が必要になり、カード内の絶対配置要素
+      （.bar-value 等）の基準が変わってしまうため。inset なら border-radius にも自然に沿う。 */
+.card{
+  background:linear-gradient(180deg,var(--card-sheen) 0%,var(--bg-card) 62%);
+  border:1px solid var(--border);border-radius:var(--radius);
+  overflow:hidden;box-shadow:var(--shadow-card);
+  transition:border-color var(--t-ui) var(--ease-out),
+             box-shadow var(--t-ui) var(--ease-out),
+             transform var(--t-ui) var(--ease-out);
+}
+.card:hover{
+  border-color:var(--border-hover);
+  box-shadow:var(--shadow-card-hover);
+  transform:translateY(-2px);
+}
+.card-header{
+  padding:16px 20px;display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid var(--border-soft);
+}
+.card-title{font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px;}
+/* カードヘッダ右の小型「拡大」アイコンボタン（toggle が無いカード用） */
+.card-expand-btn{
+  width:30px;height:30px;border-radius:7px;border:1px solid var(--border);
+  background:transparent;color:var(--text-3);font-size:14px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:var(--tr-tint),var(--tr-press);
+  flex-shrink:0;
+}
+.card-expand-btn:hover{border-color:var(--border-hover);color:var(--text);background:var(--surface-elev2);}
+/* Flight Log 拡大中は同じボタンが ✕（Close）になる → その時は ❌ と同じく hover で赤く光る（2026-07-02）。 */
+.card.card-fullscreen .card-expand-btn:hover{background:rgba(var(--red-rgb),0.1);border-color:var(--red);color:var(--red);}
+/* カードヘッダ右端のアクション帯（共通）。
+   トグル / ⛶ 拡大ボタン / ✕ などを並べる統一ラッパー。
+   margin-left:auto で右端寄せ、flex-shrink:0 で縮まない。 */
+.card-actions{
+  display:flex;align-items:center;gap:8px;
+  margin-left:auto;flex-shrink:0;
+}
+
+/* Toggle tabs */
+.toggle{display:flex;gap:3px;background:var(--border-soft);padding:3px;border-radius:var(--radius-sm);}
+.toggle-btn{
+  padding:5px 14px;border:none;background:transparent;color:var(--text-3);
+  font-family:'Outfit';font-size:11px;font-weight:600;cursor:pointer;
+  border-radius:6px;transition:var(--tr-tint),var(--tr-press);text-transform:uppercase;letter-spacing:0.8px;
+  white-space:nowrap;
+}
+.toggle-btn.active{background:rgba(var(--accent-rgb),0.12);color:var(--accent);}
+.toggle-btn:hover:not(.active){color:var(--text-2);}
+
+/* Grid */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px;}
+
+/* ===================== BAR ROWS (compact mode) ===================== */
+.bars-compact{padding:16px 20px;}
+.bar-row{
+  display:flex;align-items:center;gap:10px;padding:7px 0;
+}
+.bar-label{
+  font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;
+  width:110px;min-width:110px;text-align:right;color:var(--text-2);
+  word-break:break-all;line-height:1.3;
+}
+.bar-track{flex:1;height:30px;background:var(--surface-elev1);border-radius:6px;overflow:hidden;}
+.bar-fill{
+  height:100%;border-radius:6px;display:flex;align-items:center;padding:0 12px;
+  font-family:'JetBrains Mono';font-size:11px;font-weight:700;color:#fff;
+  transition:width 0.7s var(--ease-out);min-width:fit-content;
+}
+.bar-pct{font-size:10px;color:var(--text-3);width:36px;min-width:36px;text-align:right;font-family:'JetBrains Mono';font-weight:500;}
+/* 総飛行時間カラム（機材／航空会社のバー右側）— bar-pct と並ぶ控えめな数値表示 */
+.bar-time{
+  font-family:'JetBrains Mono';font-size:10px;font-weight:500;color:var(--text-3);
+  width:62px;min-width:62px;text-align:right;white-space:nowrap;
+}
+
+/* ===================== HORIZONTAL EXPANDED VIEW ===================== */
+.expanded-overlay{
+  display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:100;
+  background:rgba(6,11,20,0.85);backdrop-filter:blur(12px);
+  padding:40px 20px;overflow-y:auto;
+  animation:fadeIn 0.25s ease;
+}
+.expanded-overlay.show{display:flex;flex-direction:column;align-items:center;justify-content:center;}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.expanded-panel{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);
+  width:100%;max-width:1200px;max-height:85vh;overflow:hidden;
+  animation:slideUp 0.3s var(--ease-out);
+}
+@keyframes slideUp{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:translateY(0)}}
+.expanded-header{
+  padding:20px 24px;display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg-card);z-index:2;
+}
+.expanded-header h3{font-size:18px;font-weight:700;}
+/* 拡大表示のソートセレクタ — タイトルと閉じるボタンの間に配置 */
+.expanded-sort{display:flex;align-items:center;gap:8px;margin-left:auto;margin-right:14px;}
+.expanded-sort-label{
+  font-size:10px;color:var(--text-3);text-transform:uppercase;
+  letter-spacing:1.5px;font-weight:600;
+}
+.expanded-sort-select{
+  appearance:none;-webkit-appearance:none;
+  background:var(--surface-elev2);border:1px solid var(--border);
+  border-radius:8px;padding:6px 28px 6px 12px;
+  color:var(--text-2);font-family:'Outfit';font-size:12px;font-weight:500;
+  cursor:pointer;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='%238c9bb5' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 8px center;
+  transition:border-color 0.15s,color 0.15s;
+}
+.expanded-sort-select:hover{border-color:var(--border-hover);color:var(--text);}
+.btn-close{
+  width:36px;height:36px;border-radius:10px;border:1px solid var(--border);
+  background:transparent;color:var(--text-2);font-size:18px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:var(--tr-tint),var(--tr-press);
+}
+.btn-close:hover{background:rgba(var(--red-rgb),0.1);border-color:var(--red);color:var(--red);}
+/* 拡大地図ヘッダーの「表示リセット」（⌖）。✕ と同じ 36px 角・ただしホバーは中立（赤にしない＝閉じる示唆と区別）。 */
+.map-panel-actions{display:flex;gap:8px;align-items:center;}
+.map-reset-btn{
+  width:36px;height:36px;border-radius:10px;border:1px solid var(--border);
+  background:transparent;color:var(--text-2);font-size:16px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:var(--tr-tint),var(--tr-press);
+}
+.map-reset-btn:hover{background:var(--surface-elev2);border-color:var(--border-hover);color:var(--text);}
+.expanded-scroll{
+  overflow-x:auto;overflow-y:hidden;padding:24px;white-space:nowrap;
+  display:flex;gap:0;align-items:flex-end;min-height:320px;
+}
+.expanded-bar-item{
+  display:inline-flex;flex-direction:column;align-items:center;gap:8px;
+  min-width:72px;flex-shrink:0;padding:0 6px;
+}
+/* ドリルダウン可能なバー（Aircraft / Airlines / Countries）：クリックでフィルタ反映。 */
+.expanded-bar-item.is-drillable{cursor:pointer;}
+.expanded-bar-item.is-drillable:hover .expanded-bar-col{filter:brightness(1.12);}
+.expanded-bar-item.is-drillable:hover .expanded-bar-name{color:var(--text);}
+/* 値ラベル＋バーを固定高さのスタックでまとめ、
+   値ラベルを上端で揃える（バーの高さに応じてラベルが上下しない）。 */
+.expanded-bar-stack{
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:space-between; /* val を上端、col を下端に */
+  height:248px; /* val 領域 ~24 + max bar 220 + 余白 */
+  width:100%;
+}
+.expanded-bar-col{
+  width:40px;border-radius:6px 6px 0 0;transition:height 0.6s var(--ease-out);
+  position:relative;cursor:pointer;flex-shrink:0;
+  /* 内部に時間ラベルを表示するためのレイアウト */
+  display:flex;flex-direction:column;align-items:center;overflow:hidden;
+}
+.expanded-bar-col:hover{filter:brightness(1.2);}
+.expanded-bar-val{
+  font-family:'JetBrains Mono';font-size:13px;font-weight:700;color:var(--text);
+  line-height:1.2;min-height:18px;
+}
+/* minsMap が無い card では val が空 → 上端の余白を詰める */
+.expanded-bar-val:empty{min-height:0;}
+/* バー内部の時間表示（例「165h 30m」）— 上端に控えめに */
+.expanded-bar-time-in{
+  font-family:'JetBrains Mono';font-size:9px;font-weight:600;
+  color:rgba(255,255,255,0.92);
+  margin-top:4px;white-space:nowrap;letter-spacing:-0.2px;
+  text-shadow:0 1px 2px rgba(0,0,0,0.25);
+  pointer-events:none;
+}
+/* バー内部の回数表示（Continents / Routes / Airports / Countries / Cities 用）。
+   minsMap が無い card では、上の val 領域は空 → バー内に大きめに回数を表示。 */
+.expanded-bar-count-in{
+  font-family:'JetBrains Mono';font-size:14px;font-weight:700;
+  color:rgba(255,255,255,0.95);
+  margin-top:6px;white-space:nowrap;
+  text-shadow:0 1px 2px rgba(0,0,0,0.3);
+  pointer-events:none;
+}
+.expanded-bar-name{
+  font-family:'JetBrains Mono';font-size:11px;font-weight:600;color:var(--text);
+  text-align:center;
+  /* 長いラベル（"All Nippon Airways" など）は最大幅で折り返し、2 行を超えたら "…" 省略。
+     完全な名前は title 属性で hover 表示される。 */
+  max-width:90px;white-space:normal;word-break:break-word;line-height:1.25;
+  display:-webkit-box;-webkit-line-clamp:2;line-clamp: 2;-webkit-box-orient:vertical;
+  overflow:hidden;text-overflow:ellipsis;
+  /* 1 行名でも 2 行分の高さを確保 → 各 item の total height が揃い、
+     scroll コンテナ内の flex-end 整列でも上端（stack top）が揃う。 */
+  min-height:2.5em;
+}
+.expanded-bar-pct{
+  font-size:10px;color:var(--text-3);font-family:'JetBrains Mono';font-weight:500;
+}
+.expanded-footer{
+  padding:16px 24px;border-top:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.expanded-footer .total-label{font-size:32px;font-weight:800;line-height:1;}
+.expanded-footer .total-sub{font-size:13px;color:var(--text-3);}
+
+/* ===================== CHART WRAPPER ===================== */
+.chart-wrap{position:relative;height:280px;padding:20px;}
+/* 年チャート：カードは直近10年に切り詰め＝右下に案内（⛶ で全期間） */
+.chart-truncate-hint{
+  position:absolute;right:14px;bottom:6px;font-size:10.5px;color:var(--text-3);
+  letter-spacing:0.4px;pointer-events:none;
+}
+/* 拡大チャートの横スクロール器（年数が多いとき）。inner の min-width が親を超えるとスクロール。 */
+.chart-scroll-x{width:100%;height:100%;overflow-x:auto;overflow-y:hidden;}
+.chart-scroll-inner{position:relative;height:100%;}

@@ -1,0 +1,215 @@
+/* -------------------------------------------------------------------------
+   responsive.css — 共通のメディアクエリ（max-width 1100 / 860 / 560px）。
+   ⚠️ 機能別ファイル側にも個別のメディアクエリが残っている（分割前からの状態）。
+      それらをここへ集約する再整理は、順序が変わる＝カスケードが変わるため別作業。
+
+   ⚠️ 読み込み順に意味がある。順番の変更＝見た目の変更になり得るので、
+      並べ替えるときは src/styles.css の @import の順を必ず確認すること。
+   ------------------------------------------------------------------------- */
+
+/* ===================== RESPONSIVE ===================== */
+@media(max-width:1100px){
+  .grid-3{grid-template-columns:1fr 1fr;}
+}
+@media(max-width:860px){
+  .stats-grid{grid-template-columns:repeat(3,1fr);}
+  .grid-2,.grid-3{grid-template-columns:1fr;}
+  .hero{padding:32px 20px 24px;}
+  .map-section,.main{padding-left:16px;padding-right:16px;}
+  #flightMap{height:300px;}
+  .hero-top{flex-direction:column;align-items:flex-start;}
+  .hero-actions{width:100%;flex-wrap:wrap;}
+  /* 空状態（フライト未登録）はテーマトグルしか表示されない。左端に孤立すると見栄えが悪いので右寄せ。 */
+  body.is-empty .hero-actions{justify-content:flex-end;}
+  .search-input{width:100%;}
+  .table-tools{flex-direction:column;align-items:stretch;}
+  .bar-label{width:90px;min-width:90px;font-size:11px;}
+  .bar-time{font-size:9px;width:54px;min-width:54px;}
+  .card-header{flex-wrap:wrap;gap:10px;}
+  .card-title{font-size:14px;}
+  .select-bar{flex-wrap:wrap;gap:8px;}
+  .expanded-bar-item{min-width:60px;}
+  .expanded-bar-name{font-size:10px;max-width:74px;}
+  /* 拡大オーバーレイのヘッダ — モバイルでは「タイトルは改行可、ボタンは右端固定」。
+     align-items:flex-start にすることで、タイトルが複数行になっても
+     右側のソート＋✕は上端で揃ったまま左にずれない。
+     対象は .expanded-header（汎用バー拡大）と .flights-panel-header（Top Flights 拡大）。 */
+  .expanded-header,
+  .flights-panel-header{
+    padding:14px 16px;flex-wrap:nowrap;gap:8px;
+    align-items:flex-start;
+  }
+  .expanded-header h3,
+  .flights-panel-header h3{
+    min-width:0;flex:1 1 auto;
+    font-size:15px;line-height:1.3;
+  }
+  .expanded-sort{margin-left:auto;margin-right:0;flex-shrink:0;}
+  .expanded-sort-label{display:none;}
+  .btn-close{flex-shrink:0;}
+  /* インラインのカードヘッダも同じ原則：タイトルは縮ませて改行 OK、アクションは右端固定 */
+  .card-header{
+    flex-wrap:nowrap;align-items:flex-start;gap:10px;
+  }
+  .card-title{min-width:0;flex:1 1 auto;line-height:1.3;}
+  .card-actions,.toggle{flex-shrink:0;}
+  /* Flight Log だけは例外：search input が広いため card-header の wrap を維持し、
+     stacking 時は ⛶ を右上に逃がす */
+  .table-section .card-header{flex-wrap:wrap;}
+  .table-tools{flex-direction:column;align-items:stretch;}
+  .table-tools > .card-expand-btn{align-self:flex-end;order:-1;}
+}
+@media(max-width:560px){
+  .stats-grid{grid-template-columns:repeat(2,1fr);}
+  .stat-box{padding:14px 10px;}
+  .stat-box .num{font-size:22px;}
+  .stat-box .lbl{font-size:9px;letter-spacing:1px;}
+  .hero-title{font-size:20px;}
+  .form-row{grid-template-columns:1fr;}
+  .expanded-panel{max-height:95vh;}
+  .expanded-scroll{min-height:240px;padding:12px;}
+  .expanded-sort-select{font-size:11px;padding:5px 24px 5px 10px;}
+  .bar-label{width:76px;min-width:76px;font-size:10px;}
+  .bars-compact{padding:12px 14px;}
+  .bar-row{gap:8px;}
+  .bar-fill{font-size:10px;padding:0 8px;}
+  .bar-pct{font-size:9px;width:30px;min-width:30px;}
+  .bar-time{font-size:8px;width:44px;min-width:44px;}
+  /* バー内時間は 32px 幅でも収まるよう 2 行へ折り返す */
+  .expanded-bar-time-in{font-size:8px;white-space:normal;line-height:1.1;text-align:center;}
+  .bar-track{height:26px;}
+  /* K-7 / P-3：地図ヘッダ 2 段組み（モバイル）
+     row1：[h3] [3D Globe ⛶]（タイトルと水平に右上）
+     row2：[Hub Airport Route]（中央揃え）
+     - .map-actions は HTML 3 番目だが flex の wrap で自然に row1 に収まる。
+     - .map-legend は HTML 2 番目だが order:99 で row2 に落とす + width:100% + 中央揃え。 */
+  .map-header{flex-wrap:wrap;gap:10px;row-gap:10px;}
+  .map-legend{
+    font-size:10px;gap:10px;
+    order:99;width:100%;margin-left:0;justify-content:center;
+  }
+  .map-actions{margin-left:auto;}
+  .ftable{min-width:580px;}
+  .ftable td{padding:8px 10px;font-size:11px;}
+  .ftable thead th{padding:10px;font-size:9px;}
+  .expanded-bar-item{min-width:52px;padding:0 3px;}
+  .expanded-bar-col{width:32px;}
+  .expanded-bar-val{font-size:10px;}
+  .expanded-bar-name{font-size:9px;}
+  .expanded-bar-pct{font-size:9px;}
+  .modal{border-radius:14px;}
+  .modal-head{padding:20px 20px 0;}
+  .modal-body{padding:16px 20px 24px;}
+  .modal-head h3{font-size:18px;}
+  .confirm-box{padding:24px;}
+  .confirm-title{font-size:16px;}
+  /* Top Flights 拡大の各行 — モバイルでは固定幅カラム合計が画面を超えて時間バーが右にはみ出してしまうため、
+     2 段組みに切り替える：行1 = rank/date/route/ac、行2 = airline + 時間バー */
+  .flights-panel-body{padding:8px 12px;}
+  .flight-row{flex-wrap:wrap;row-gap:6px;gap:8px;padding:10px 4px;}
+  .flight-row-rank{width:30px;min-width:30px;font-size:10px;}
+  .flight-row-date{width:80px;min-width:80px;font-size:10px;}
+  .flight-row-route{width:96px;min-width:96px;font-size:11px;}
+  .flight-row-ac{width:48px;min-width:48px;font-size:10px;padding:2px 4px;}
+  .flight-row-airline{flex:0 1 100px;min-width:0;font-size:10px;order:98;}
+  .flight-row-track{flex:1 1 auto;min-width:0;order:99;height:20px;}
+  .flight-row-fill{font-size:10px;padding:0 8px;}
+
+  /* ===== ヘッダー（フェーズS・2026-07-01 再編）：タイトル中央 + アクション 3 要素 ===== */
+  /* 860px の `.hero-top{align-items:flex-start}` を上書きしてタイトル＋ロゴを中央寄せ。
+     hero-brand は flex 子要素のグループなので、align-items:center で水平方向に中央配置される。 */
+  .hero-top{align-items:center;}
+  .hero-brand{justify-content:center;}
+  /* 3 要素を 1 行に集約：Add CTA が余白を埋めて伸び、≡/⚙️ は 42px 正方形のまま右に並ぶ。
+     旧 6 ボタン × 3列グリッドの複雑さは不要になった（K-2 解消）。 */
+  .hero-actions{
+    display:flex;flex-wrap:nowrap;gap:8px;width:100%;align-items:center;
+  }
+  .hero-actions .btn-primary{
+    min-width:0;flex:1 1 auto;padding:11px 8px;font-size:13px;
+  }
+  /* 空状態のスマホ：⚙️（設定）も隠し、ヘッダをブランドだけに詰めてスッキリさせる。
+     テーマ既定は auto（OS 追従）なので、空状態で ⚙️ が無くても通常は正しい見た目になる。
+     データを入れれば通常ヘッダに戻り ⚙️ も再表示される（＝この非表示は最初の画面だけ）。 */
+  body.is-empty .hero-actions{display:none;}
+  body.is-empty .hero{padding:18px 20px 14px;}
+  body.is-empty .hero-top{margin-bottom:0;}
+
+  /* ===== K-7 / P-2（改訂）：フィルターチップを 1 列・統一幅で表示 =====
+     2 列レイアウトは iOS Safari で安定しなかったので、1 列で全 chip 同じ幅に揃える方式へ変更。
+     - .filter-chips-group を flex-direction:column にして縦並び強制
+     - 各 chip は align-items:stretch で chips-group 幅一杯に揃う
+     - dropdown 用に overflow:hidden は使わない（chip 内に絶対配置される chip-menu を見切らせない）
+     - 長文ラベル（"All Countries/Regions" 等）も chip 幅が広いので折り返さず収まる */
+  .filter-chips-group{
+    gap:8px;flex-basis:100%;width:100%;
+    flex-direction:column;align-items:stretch;
+  }
+  .filter-chips-group > .filter-chip{
+    width:100%;box-sizing:border-box;
+  }
+  /* chip-btn を chip 全幅に広げる（タップ領域拡大） */
+  .filter-chip-multi .chip-btn{
+    width:100%;justify-content:flex-start;min-width:0;
+  }
+  /* chip-label：chip 幅に余裕があるので nowrap 維持・truncate なし */
+  .filter-chip-multi .chip-label{
+    flex:1 1 auto;min-width:0;white-space:nowrap;
+  }
+  /* ⚙ More ボタンも他フィルターと同じ全幅ピルに揃える（1 列化に追従）。
+     base の .filter-chips-group{align-items:center}（ソース後方＝後勝ち）が
+     モバイルの align-items:stretch を打ち消すため、チップ同様に width:100% を明示。
+     内側の flex 設定も chip-btn / chip-label に合わせて構造的に一致させる。 */
+  .filter-chips-group > .adv-filter-btn{
+    width:100%;box-sizing:border-box;justify-content:flex-start;
+  }
+  /* "More" ラベルを表示（640px の .adv-filter-btn-label{display:none} を上書き）。
+     チップの chip-label と同じく flex:1 で残り幅を埋め、末尾の件数バッジは右端に残る。 */
+  .filter-chips-group > .adv-filter-btn .adv-filter-btn-label{
+    display:inline;flex:1 1 auto;min-width:0;white-space:nowrap;
+  }
+
+  /* ===== K-7 / P-4 + P-6：タイトル折り返し時の hanging indent ===== */
+  /* "⏱️ Top Flights by Time" のように長いタイトルが折り返したとき、2 行目を
+     アイコンではなく 1 行目テキスト（"Top" の "T"）の位置に揃える。
+     padding-left + 負の text-indent で 1 行目だけ左に押し出すクラシック手法。
+     アイコン幅は概ね 1em（絵文字 + 半角スペース）なので 1.4em で揃う。 */
+  .card-title,
+  .expanded-header h3,
+  .flights-panel-header h3{
+    display:block;padding-left:1.4em;text-indent:-1.4em;
+  }
+
+  /* ===== K-7 / P-4：Flight Log カードヘッダ（モバイル） =====
+     - ⛶ ボタンをタイトル行の右上端へ（絶対配置で .table-tools から視覚的に抜き出す）
+     - 検索欄 + Clear All を半分幅で 1 行に並べる */
+  .table-section .card-header{
+    position:relative;flex-wrap:wrap;
+    padding-right:60px; /* 絶対配置 ⛶ 用の余白 */
+  }
+  .table-section .table-tools > .card-expand-btn{
+    position:absolute;top:13px;right:16px;
+    align-self:auto;order:0; /* 860px の align-self:flex-end / order:-1 を打ち消し */
+  }
+  /* ソートリセット ↺ は ⛶ の真下（Clear All の右の空き列）に絶対配置（オーナー指定 2026-07-12）。
+     サイズは base の .card-expand-btn（30×30）＝⛶ と同じ。上の共通ルールが right:16px を
+     与えるので top だけ上書き（⛶ top13 + 高さ30 + 間隔8 = 51px）。 */
+  .table-section .table-tools > .sort-reset-btn{
+    top:51px;
+  }
+  /* 860px の column を上書きして 1 行配置に。search 70% / Clear All 30% 程度の比率。
+     search-input は基底で width:280px、860px で width:100% が効いているので、
+     ここで auto + max-width:none で両方とも打ち消して flex に任せる。 */
+  .table-section .table-tools{
+    flex-direction:row;align-items:stretch;gap:8px;width:100%;
+  }
+  .table-section .table-tools .search-input{
+    flex:1 1 0;width:auto;max-width:none;min-width:0;
+  }
+  /* search-input の中の input が text-overflow を持たないため、shrink 時に
+     placeholder/値が幅を押し広げないように min-width:0 を input にも。 */
+  .table-section .table-tools .search-input > input{min-width:0;}
+  .table-section .table-tools > .btn-danger{
+    flex:0 0 auto;padding:8px 12px;white-space:nowrap;
+  }
+}

@@ -1,0 +1,121 @@
+/* -------------------------------------------------------------------------
+   hero.css — ヘッダ（ロゴ・ボタン共通）とインライン 2D 地図コンテナ。
+
+   ⚠️ 読み込み順に意味がある。順番の変更＝見た目の変更になり得るので、
+      並べ替えるときは src/styles.css の @import の順を必ず確認すること。
+   ------------------------------------------------------------------------- */
+
+/* ===================== HERO ===================== */
+/* かつて右上に α=0.06 の青いグロー装飾（.hero::after）を載せていたが、
+   Safari の PDF 書き出しで擬似要素が overflow:hidden / clip-path を尊重せず
+   右上に大きな青ブロブとして漏れる症状が複数経路で再発したため装飾自体を撤去。
+   @media print で隠す方法も試したが PDF 側で効かないケースが残ったため断念。
+   元のグローは α=0.06 でほぼ視認できないレベルだったので視覚的損失はほぼなし。 */
+.hero{
+  position:relative;padding:48px 32px 32px;
+  background:var(--hero-grad);
+  /* overflow は visible。かつてグロー装飾（.hero::after）を切るため hidden にしていたが
+     装飾は撤去済み（上記コメント）。hidden のままだと ≡/⚙️ ドロップダウンの下側が
+     hero 枠で切れて「下の枠線が消える」ため visible に戻す（フェーズS・2026-07-01）。 */
+  overflow:visible;
+}
+/* z-index は付けない：かつて hero::after グロー装飾より前面に出すための z-index:1 だったが、
+   装飾は撤去済み。z-index:1 が残ると hero-inner が低い stacking context を作り、
+   その中の ≡/⚙️ ドロップダウン（z-index:60）が hero より後ろのセクションに覆われて
+   「下が切れて見える」原因になる。position:relative だけ残す（z-index 無し＝stacking context を作らない）。 */
+.hero-inner{max-width:1360px;margin:0 auto;position:relative;}
+.hero-top{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:28px;}
+.hero-brand{display:flex;align-items:center;gap:12px;}
+.hero-logo{
+  width:44px;height:44px;border-radius:12px;
+  background:linear-gradient(135deg,var(--accent),#6c5ce7);
+  display:flex;align-items:center;justify-content:center;
+  color:#fff; /* SVG の stroke="currentColor" がここから色を取る */
+}
+/* SVG ロゴ：ボックスの 64% 幅で配置 → 元の絵文字（font-size:22px）とほぼ同じ視覚サイズ。
+   全環境で同一比率・同一描画。 */
+.hero-logo svg{
+  width:64%;
+  height:auto;
+  display:block;
+}
+.hero-title{font-size:26px;font-weight:700;letter-spacing:-0.5px;}
+.hero-title span{color:var(--accent);}
+.hero-actions{display:flex;gap:10px;align-items:center;}
+.btn-primary{
+  padding:10px 20px;background:var(--accent);border:none;border-radius:var(--radius-sm);
+  color:#fff;font-family:'Outfit';font-size:13px;font-weight:600;cursor:pointer;
+  display:flex;align-items:center;gap:7px;transition:var(--tr-tint),var(--tr-press),var(--tr-shadow);
+}
+/* ヘッダの 4 ボタン（Add Flight / Import / Export / Clear）は中身の文字数・絵文字幅が
+   バラバラなので、min-width で揃えて中央寄せにしないと縦の整列がガタガタになる。 */
+.hero-actions .btn-primary{min-width:130px;justify-content:center;}
+.btn-primary:hover{background:#2b88e6;transform:translateY(-1px);box-shadow:0 6px 20px rgba(var(--accent-rgb),0.3);}
+.btn-primary[style*="violet"]:hover{background:#7b4dff !important;box-shadow:0 6px 20px rgba(var(--violet-rgb),0.3) !important;}
+.btn-primary[style*="green"]:hover{background:#00b377 !important;box-shadow:0 6px 20px rgba(var(--green-rgb),0.3) !important;}
+.btn-primary[style*="red"]:hover{background:#e6334e !important;box-shadow:0 6px 20px rgba(var(--red-rgb),0.3) !important;}
+.btn-outline{
+  padding:10px 20px;background:transparent;border:1px solid var(--border);
+  border-radius:var(--radius-sm);color:var(--text-2);font-family:'Outfit';font-size:13px;
+  font-weight:500;cursor:pointer;transition:var(--tr-tint),var(--tr-press);display:flex;align-items:center;gap:7px;
+}
+/* Cancel / Clear / Close 系（dismiss ボタン）は ❌（.btn-close）と同じく hover で赤く光る（全ウィンドウ統一・2026-07-02）。
+   例外：非破壊的な選択肢「+ Start fresh」(#restoreNoBtn) は下で accent に戻す。 */
+.btn-outline:hover{background:rgba(var(--red-rgb),0.1);border-color:var(--red);color:var(--red);}
+/* Restore モーダルの「+ Start fresh」は dismiss ではなく前向きな選択なので赤くしない（accent のまま）。 */
+#restoreNoBtn:hover{background:transparent;border-color:var(--accent);color:var(--accent);}
+
+/* Stats grid */
+.stats-grid{
+  display:grid;grid-template-columns:repeat(6,1fr);gap:12px;
+}
+.stat-box{
+  background:var(--surface-elev1);border:1px solid var(--surface-elev2);
+  border-radius:var(--radius);padding:20px 16px;text-align:center;
+  transition:var(--tr-tint),var(--tr-press),var(--tr-shadow);position:relative;overflow:hidden;
+}
+.stat-box:hover{background:var(--surface-elev2);border-color:var(--border-medium);}
+/* クリックで対応拡大ウィンドウを開くカード（Flight Time 以外）。
+   通常 hover よりさらに強い縁色とアクセント影で「押せる」ことを示す。 */
+.stat-box.is-clickable{cursor:pointer;}
+.stat-box.is-clickable:hover{
+  background:var(--surface-elev3);border-color:rgba(255,255,255,0.18);
+  transform:translateY(-1px);
+  box-shadow:0 6px 20px rgba(0,0,0,0.25);
+}
+.stat-box.is-clickable:active{transform:translateY(0) scale(0.99);box-shadow:none;}
+.stat-box .num{
+  font-family:'JetBrains Mono',monospace;font-size:32px;font-weight:700;
+  line-height:1;margin-bottom:6px;
+}
+.stat-box .lbl{font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:1.5px;font-weight:600;}
+.stat-box:nth-child(1) .num{color:var(--accent);}
+.stat-box:nth-child(2) .num{color:var(--amber);}
+.stat-box:nth-child(3) .num{color:var(--red);}
+.stat-box:nth-child(4) .num{color:var(--green);}
+.stat-box:nth-child(5) .num{color:var(--violet);}
+.stat-box:nth-child(6) .num{color:var(--cyan);}
+
+/* ===================== MAP ===================== */
+.map-section{
+  max-width:1360px;margin:0 auto;padding:20px 32px;
+}
+/* 地図カードは .card と並ぶ最上位の面なので、同じ素材（J-2）を当てて見た目を揃える。
+   hover は付けない＝元々ホバー状態が無い面に浮きを足すと「押せそう」に見えて誤解を招くため。 */
+.map-card{
+  background:linear-gradient(180deg,var(--card-sheen) 0%,var(--bg-card) 62%);
+  border:1px solid var(--border);border-radius:var(--radius);
+  overflow:hidden;position:relative;box-shadow:var(--shadow-card);
+}
+.map-card .map-header{
+  padding:16px 20px;display:flex;align-items:center;gap:16px;
+  border-bottom:1px solid var(--border);
+}
+.map-header h3{font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px;}
+/* 凡例は右寄せ（margin-left:auto）。アクション（.map-actions）はその直後に並ぶ。 */
+.map-legend{display:flex;gap:16px;font-size:11px;color:var(--text-2);margin-left:auto;}
+.map-legend span{display:flex;align-items:center;gap:5px;}
+.map-legend .dot{width:8px;height:8px;border-radius:50%;}
+/* 3D Globe ボタンと拡大ボタンをまとめる。.card-actions と同じ gap:8px。 */
+.map-actions{display:flex;align-items:center;gap:8px;}
+#flightMap{height:420px;background:var(--map-bg);z-index:1;}

@@ -1,0 +1,437 @@
+/* -------------------------------------------------------------------------
+   data-entry-and-header.css — CSV 一括取り込み・入力補完・ファイル選択・自動保存バナー・保存ステータス・
+   ヘッダメニュー・データチェック・初回起動時の空状態。
+
+   ⚠️ 読み込み順に意味がある。順番の変更＝見た目の変更になり得るので、
+      並べ替えるときは src/styles.css の @import の順を必ず確認すること。
+   ------------------------------------------------------------------------- */
+
+/* ===================== BULK IMPORT MODAL ===================== */
+.modal-wide{max-width:720px;}
+.bulk-textarea{
+  width:100%;min-height:180px;max-height:360px;resize:vertical;
+  padding:14px;background:var(--border-soft);border:1px solid var(--border);
+  /* font-size:16px は iOS オートズーム防止（<16px で発動） */
+  border-radius:10px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:16px;
+  line-height:1.6;outline:none;transition:border-color 0.2s;
+}
+.bulk-textarea:focus{border-color:var(--accent);}
+.bulk-textarea::placeholder{color:var(--text-3);}
+/* テキストエリア右上の Clear ボタン（入力があるときだけ表示・clearBulkInput）。
+   .bulk-textarea-wrap は textarea を内包する relative コンテナ。 */
+.bulk-textarea-wrap{position:relative;}
+.bulk-clear-btn{
+  position:absolute;top:8px;right:14px;z-index:2;
+  display:inline-flex;align-items:center;gap:4px;
+  padding:4px 10px;border-radius:6px;cursor:pointer;
+  background:var(--surface-elev2);border:1px solid var(--border);
+  color:var(--text-3);font-family:'Outfit';font-size:11px;font-weight:600;
+  transition:var(--tr-tint),var(--tr-press);
+}
+.bulk-clear-btn:hover{color:var(--red);border-color:rgba(var(--red-rgb),0.4);background:rgba(var(--red-rgb),0.08);}
+.bulk-hint{font-size:11px;color:var(--text-3);margin-top:6px;line-height:1.5;}
+.bulk-hint code{
+  background:rgba(var(--accent-rgb),0.08);color:var(--accent);padding:1px 5px;border-radius:4px;
+  font-family:'JetBrains Mono';font-size:11px;
+}
+.bulk-preview{
+  margin-top:14px;max-height:200px;overflow-y:auto;
+  border:1px solid var(--border);border-radius:10px;
+}
+.bulk-preview table{width:100%;border-collapse:collapse;font-size:11px;}
+.bulk-preview th{
+  position:sticky;top:0;background:var(--bg-elevated);
+  padding:8px 10px;text-align:left;font-size:10px;color:var(--text-3);
+  text-transform:uppercase;letter-spacing:1px;font-weight:600;
+  border-bottom:1px solid var(--border);
+}
+.bulk-preview td{padding:6px 10px;border-bottom:1px solid rgba(255,255,255,0.02);font-family:'JetBrains Mono';font-size:11px;color:var(--text-2);}
+.bulk-preview tr.row-error td{color:var(--red);background:rgba(var(--red-rgb),0.04);}
+.bulk-count{display:flex;align-items:center;gap:16px;margin-top:10px;font-size:12px;font-weight:600;}
+/* ✓ / 🔧 / ✕ の各項目内も絵文字とテキストを縦中央で揃える（絵文字の字形高さ差で行がガタつくのを防ぐ） */
+.bulk-count>span{display:inline-flex;align-items:center;gap:4px;}
+.bulk-count .valid{color:var(--green);}
+.bulk-count .invalid{color:var(--red);}
+
+/* Export options */
+.export-option{
+  display:flex;align-items:center;gap:12px;
+  padding:14px;margin-bottom:10px;
+  background:var(--border-soft);border:1px solid var(--border);
+  border-radius:10px;cursor:pointer;transition:var(--tr-tint),var(--tr-press),opacity var(--t-ui) var(--ease-out);
+}
+.export-option:hover{border-color:var(--border-hover);background:rgba(255,255,255,0.05);}
+.export-option:has(input:checked){border-color:rgba(var(--accent-rgb),0.4);background:rgba(var(--accent-rgb),0.05);}
+.export-option:has(input:disabled){opacity:0.4;cursor:not-allowed;}
+.export-option .cb{margin:0;flex-shrink:0;}
+.export-option-text{display:flex;flex-direction:column;gap:2px;}
+.export-option-text strong{font-size:14px;color:var(--text);}
+.export-option-detail{font-size:12px;color:var(--text-3);font-family:'JetBrains Mono';}
+/* チェックボックス行の下に並ぶ「ファイル名プレフィックス」入力行（File: [____] preview.csv） */
+.export-filename-row{
+  display:flex;align-items:center;gap:8px;
+  margin:-4px 4px 10px 38px; /* 左 38px はチェックボックス＋ラベル分のインデント */
+  font-size:11px;color:var(--text-3);
+}
+.export-filename-label{font-family:'JetBrains Mono';letter-spacing:0.5px;}
+.export-filename-input{
+  padding:5px 9px;background:var(--border-soft);border:1px solid var(--border);
+  border-radius:6px;color:var(--text);font-family:'JetBrains Mono';font-size:11px;
+  outline:none;transition:border-color 0.15s;width:140px;
+}
+.export-filename-input:focus{border-color:var(--accent);background:rgba(var(--accent-rgb),0.05);}
+.export-filename-preview{
+  color:var(--text-3);font-family:'JetBrains Mono';font-size:11px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;
+}
+
+/* Tab buttons for modal */
+.modal-tabs{display:flex;gap:2px;background:var(--border-soft);padding:3px;border-radius:var(--radius-sm);margin-bottom:16px;}
+.modal-tab{
+  flex:1;padding:8px 12px;border:none;background:transparent;color:var(--text-3);
+  font-family:'Outfit';font-size:12px;font-weight:600;cursor:pointer;
+  border-radius:6px;transition:var(--tr-tint),var(--tr-press);text-align:center;
+}
+.modal-tab.active{background:rgba(var(--accent-rgb),0.12);color:var(--accent);}
+.modal-tab:hover:not(.active){color:var(--text-2);}
+
+/* ===================== FLIGHT TIME (SPLIT INPUT) ===================== */
+/* Add Flight モーダルの Flight Time は h と m を分離した 2 入力 + 固定ラベル。
+   各入力はそれぞれ ac-list 付き（履歴頻度 + プリセット）。 */
+.flight-time-input{
+  display:flex;align-items:center;gap:6px;
+}
+.flight-time-input .ac-wrap{flex:1;min-width:0;}
+.flight-time-input .form-input{text-align:center;}
+.flight-time-input .time-unit{
+  color:var(--text-2);font-family:'JetBrains Mono',monospace;
+  font-size:14px;font-weight:600;user-select:none;flex:0 0 auto;
+  padding:0 2px;
+}
+
+/* Callsign = テキスト＋ wake(Heavy/Super) のインライン選択を1組に（オーナー指定 2026-08-06） */
+.callsign-input{display:flex;align-items:center;gap:6px;}
+.callsign-input .ac-wrap{flex:1;min-width:0;}
+.callsign-input .callsign-wake{flex:0 0 auto;width:auto;}
+
+/* ===================== AUTOCOMPLETE ===================== */
+.ac-wrap{position:relative;}
+.ac-list{
+  display:none;position:absolute;top:100%;left:0;right:0;z-index:50;
+  background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;
+  max-height:200px;overflow-y:auto;margin-top:4px;
+  box-shadow:0 12px 40px rgba(0,0,0,0.5);
+}
+/* 下に十分なスペースが取れない場合は上方向に開く（モーダル全体のスクロールを避けるため）。
+   _acShow() が動的に付け外しする。 */
+.ac-list.ac-up{
+  top:auto;bottom:100%;
+  margin-top:0;margin-bottom:4px;
+  box-shadow:0 -12px 40px rgba(0,0,0,0.5);
+}
+.ac-list.show{display:block;}
+.ac-item{
+  padding:8px 14px;cursor:pointer;font-size:12px;
+  display:flex;align-items:center;gap:10px;
+  transition:background 0.1s;border-bottom:1px solid rgba(255,255,255,0.02);
+}
+.ac-item:hover,.ac-item.active{background:rgba(var(--accent-rgb),0.08);}
+.ac-item .ac-code{
+  font-family:'JetBrains Mono';font-weight:600;color:var(--accent);
+  min-width:48px;
+}
+.ac-item .ac-detail{color:var(--text-2);font-size:11px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ac-item .ac-badge{
+  font-size:9px;padding:1px 6px;border-radius:3px;font-weight:600;
+  background:rgba(255,255,255,0.05);color:var(--text-3);
+}
+
+/* ===================== FILE UPLOAD ===================== */
+.file-upload-row{
+  display:flex;align-items:center;gap:10px;margin-bottom:12px;
+}
+/* CSV 選択ボタン — Import 内で最も使うアクションなので、accent カラーの実線塗りで目立たせる */
+.file-upload-btn{
+  padding:10px 18px;background:var(--accent);border:1px solid var(--accent);
+  border-radius:var(--radius-sm);color:#fff;font-family:'Outfit';font-size:13px;
+  font-weight:600;cursor:pointer;transition:var(--tr-tint),var(--tr-press),var(--tr-shadow);display:flex;align-items:center;gap:8px;
+  box-shadow:0 4px 14px rgba(var(--accent-rgb),0.25);
+}
+.file-upload-btn:hover{
+  background:#5cb0ff;border-color:#5cb0ff;
+  transform:translateY(-1px);box-shadow:0 6px 18px rgba(var(--accent-rgb),0.35);
+}
+.file-upload-name{font-size:12px;color:var(--text-3);font-family:'JetBrains Mono';}
+.file-upload-or{color:var(--text-3);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;}
+
+/* サンプルデータ行（Bulk Import の Flights タブ）。
+   各行 = [塗りボタン] + [OR(gray) + アクション(青・クリック可)]。2行の OR... は縦に揃う。 */
+.sample-row{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:12px;}
+/* 「Load sample data」— 薄いグレー塗りの控えめなボタン（主役は塗りの濃い Select CSV のまま） */
+.btn-sample{
+  padding:7px 14px;background:var(--bg-card-alt);border:1px solid var(--border);
+  border-radius:var(--radius-sm);color:var(--text-2);font-family:'Outfit';font-size:12px;
+  font-weight:600;cursor:pointer;transition:var(--tr-tint),var(--tr-press);
+}
+.btn-sample:hover{background:var(--bg-elevated);border-color:var(--accent);color:var(--accent);}
+/* 「OR PASTE ↓」「OR DOWNLOAD SAMPLE CSV ↓」— OR はグレーの非クリック前置き、
+   アクション側（Paste / Download）だけ青のクリック可ボタンに分離。 */
+.sample-or-group{display:inline-flex;align-items:center;gap:4px;}
+.sample-or-prefix{color:var(--text-3);font-family:'Outfit';font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;}
+.sample-or-btn{
+  background:transparent;border:none;padding:0;cursor:pointer;
+  color:var(--accent);font-family:'Outfit';font-size:11px;font-weight:600;
+  text-transform:uppercase;letter-spacing:1px;transition:color 0.2s;
+}
+.sample-or-btn:hover{text-decoration:underline;}
+/* 空状態の「サンプルで試す」行（控えめなボタン。主役の Import/Add より一段下）。
+   下の説明欄（.empty-hint）との間に余白を確保。 */
+.empty-sample{margin-top:14px;margin-bottom:22px;}
+.empty-sample .btn-sample{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;  /* 👀 と文字を縦中央で揃える */
+  font-size:13px;padding:9px 18px;
+  color:var(--accent);                /* 文字は青（アクセント） */
+  background:var(--bg-card-alt);       /* 薄いグレーの塗り */
+  border-color:var(--border);
+}
+.empty-sample .btn-sample:hover{background:var(--bg-elevated);border-color:var(--accent);color:var(--accent);}
+
+/* Leaflet overrides */
+.leaflet-container{background:var(--map-bg) !important;}
+.leaflet-control-zoom a{background:var(--bg-card) !important;color:var(--text) !important;border-color:var(--border) !important;}
+.leaflet-control-attribution{display:none !important;}
+
+/* ===================== NOTIFY BANNER (auto-save events) ===================== */
+/* イベントベースの通知バナー。常設ではなく、保存成功時は 10 秒で自動消滅、
+   保存失敗時は ✕ で閉じるまで常設。 */
+.notify-banner{
+  display:none;align-items:center;justify-content:center;gap:14px;
+  padding:10px 22px;
+  position:sticky;top:0;z-index:170;
+  background:linear-gradient(90deg,rgba(var(--notify-bg-rgb),0.96),rgba(var(--notify-bg-rgb),0.96)),
+             linear-gradient(90deg,rgba(var(--green-rgb),0.18),rgba(0,212,255,0.18));
+  backdrop-filter:blur(8px);
+  border-bottom:1px solid rgba(var(--green-rgb),0.4);
+  font-size:12px;color:var(--green);font-weight:600;
+  animation:slideDown 0.3s var(--ease-out);
+}
+.notify-banner.show{display:flex;}
+.notify-banner.notify-error{
+  background:linear-gradient(90deg,rgba(var(--notify-bg-rgb),0.96),rgba(var(--notify-bg-rgb),0.96)),
+             linear-gradient(90deg,rgba(var(--red-rgb),0.18),rgba(255,138,61,0.18));
+  border-bottom-color:rgba(var(--red-rgb),0.45);
+  color:var(--red);
+}
+.notify-msg b{font-weight:700;}
+.notify-close{
+  background:transparent;border:1px solid currentColor;border-radius:50%;
+  width:22px;height:22px;color:inherit;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;line-height:1;opacity:0.7;transition:opacity 0.2s;
+  padding:0;
+}
+.notify-close:hover{opacity:1;}
+@keyframes slideDown{from{transform:translateY(-100%);opacity:0;}to{transform:translateY(0);opacity:1;}}
+
+/* ===================== SAVE STATUS INDICATOR ===================== */
+/* ヘッダ右端の小さな保存ステータスアイコン。常設バナーの代替。
+   通常：緑✓ / エラー：赤! / ストレージ無効：灰○
+   クリックで Export モーダルを開いて CSV バックアップに誘導。 */
+/* ===================== HEADER MENUS（フェーズS・2026-07-01） =====================
+   ヘッダ右側を 3 要素（Add CTA / ≡ 機能 / ⚙️ 設定）に集約。
+   ≡ と ⚙️ は中性アイコンボタン → クリックで右寄せドロップダウン。
+   外側クリック / ESC で閉じる（chip-menu と同じ作法・JS は toggleHeaderMenu）。 */
+.header-menu-wrap{position:relative;flex-shrink:0;}
+.header-icon-btn{
+  width:42px;height:42px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--surface-elev2);border:1px solid var(--border);
+  border-radius:var(--radius-sm);color:var(--text);
+  font-size:18px;cursor:pointer;transition:var(--tr-tint),var(--tr-press);
+  font-family:'Outfit';line-height:1;
+}
+.header-icon-btn:hover{background:var(--surface-elev3);border-color:var(--border-hover);}
+.header-icon-btn .header-icon-glyph{line-height:1;pointer-events:none;}
+/* ≡ のハンバーガー：中央の 1 本＋疑似要素で上下 2 本。flex 中央寄せのボタン内で正確に中央。 */
+.header-hamburger{
+  position:relative;display:block;width:18px;height:2px;border-radius:2px;
+  background:currentColor;pointer-events:none;
+}
+.header-hamburger::before,
+.header-hamburger::after{
+  content:"";position:absolute;left:0;width:18px;height:2px;border-radius:2px;background:currentColor;
+}
+.header-hamburger::before{top:-6px;}
+.header-hamburger::after{top:6px;}
+/* メニューが開いている間はトリガーをアクティブ表示 */
+.header-menu-wrap.open .header-icon-btn{
+  background:var(--surface-elev3);border-color:var(--border-hover);
+}
+
+.header-menu{
+  display:none;position:absolute;top:calc(100% + 8px);right:0;z-index:60;
+  min-width:210px;
+  /* 項目が増えても画面外に溢れないよう内部スクロールを保険で持たせる（通常は溢れない） */
+  max-height:min(70vh, 480px);overflow-y:auto;
+  background:var(--bg-card);border:1px solid var(--border-hover);border-radius:10px;
+  box-shadow:0 12px 32px rgba(0,0,0,0.45);
+  padding:5px;
+}
+.header-menu-wrap.open .header-menu{display:block;}
+
+.header-menu-item{
+  display:flex;align-items:center;gap:10px;width:100%;
+  padding:9px 12px;border-radius:7px;border:none;background:transparent;
+  font-family:'Outfit';font-size:13px;color:var(--text-2);
+  text-align:left;cursor:pointer;transition:background 0.15s,color 0.15s;
+  white-space:nowrap;
+}
+.header-menu-item:hover{background:var(--surface-elev2);color:var(--text);}
+.header-menu-ico{font-size:14px;line-height:1;flex-shrink:0;width:18px;text-align:center;}
+.header-menu-sub{color:var(--text-3);font-size:11px;}
+.header-menu-divider{height:1px;background:var(--border);margin:5px 8px;}
+.header-menu-label{
+  padding:7px 12px 4px;font-size:10px;font-weight:700;letter-spacing:0.8px;
+  text-transform:uppercase;color:var(--text-3);
+}
+/* Clear all：破壊的操作なので赤系で警告 */
+.header-menu-item.is-danger{color:var(--red);}
+.header-menu-item.is-danger:hover{background:rgba(var(--red-rgb),0.12);color:var(--red);}
+
+/* テーマ 3 択：選択中の項目に ✓ を表示 */
+.header-menu-item.is-choice{padding-right:32px;position:relative;}
+.header-menu-item .header-menu-check{
+  position:absolute;right:12px;color:var(--accent);font-weight:700;
+  opacity:0;font-size:13px;
+}
+.header-menu-item.is-active .header-menu-check{opacity:1;}
+.header-menu-item.is-active{color:var(--text);}
+
+/* 保存ステータス行（旧 .save-status ボタンの格下げ先）：状態でアイコン色だけ変える */
+.header-menu-item.is-status .save-status-icon{color:var(--green);font-weight:700;}
+#saveStatus.is-error .save-status-icon{color:var(--red);}
+#saveStatus.is-disabled .save-status-icon{color:var(--text-3);}
+/* データ収録ステータス行（フェーズX）：✓ は save-status-icon クラス共有で緑（上の is-status ルール）。
+   未収録あり（is-warn）はアイコン・ラベルともアンバー。 */
+#dataStatus.is-warn{color:var(--amber);}
+#dataStatus.is-warn .save-status-icon{color:var(--amber);}
+/* データゼロのときは Status 見出し・保存・データ収録ステータス行（と直前の区切り線）を隠す。
+   これらは ⚙️ 設定メニュー側にあり ⚙️ は空状態でも残るため、ここで個別に隠す。 */
+body.is-empty #saveStatus,
+body.is-empty #dataStatus,
+body.is-empty #settingsStatusLabel,
+body.is-empty #settingsSaveDivider{display:none;}
+
+/* ===================== DATA CHECK（フェーズX：未収録の検出） ===================== */
+.dc-intro{margin-bottom:6px;color:var(--text-2);font-size:13px;line-height:1.65;}
+.dc-section-title{
+  font-size:11px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;
+  color:var(--text-3);margin:20px 0 8px;
+}
+.dc-list{display:flex;flex-direction:column;gap:5px;}
+.dc-ok{color:var(--green);font-size:13px;padding:6px 2px;}
+.dc-row{
+  display:flex;align-items:center;gap:12px;
+  padding:9px 12px;border-radius:8px;
+  background:var(--surface-elev1);border:1px solid var(--border);
+  font-size:13px;
+}
+/* 未収録コードは amber で「認識できていない」ことを一目で示す（⚙️ の ⚠️ 表示と同系統） */
+.dc-code{
+  font-family:'JetBrains Mono',monospace;font-weight:600;color:var(--amber);
+  min-width:64px;
+}
+.dc-count{color:var(--text-2);font-size:12px;white-space:nowrap;}
+.dc-eg{
+  color:var(--text-3);font-size:11px;font-family:'JetBrains Mono',monospace;
+  margin-left:auto;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  min-width:0;/* 長いルート例でも「+ Add」ボタンを押し出さないよう縮小を許可 */
+}
+/* Data check の未収録空港行にある「+ Add」ボタン（手動追加フォームを開く導線） */
+.dc-add-btn{
+  flex-shrink:0;padding:5px 12px;border-radius:7px;
+  background:rgba(var(--accent-rgb),0.12);border:1px solid rgba(var(--accent-rgb),0.35);
+  color:var(--accent);font-family:'Outfit';font-size:12px;font-weight:600;
+  cursor:pointer;white-space:nowrap;transition:background 0.15s,border-color 0.15s;
+}
+.dc-add-btn:hover{background:rgba(var(--accent-rgb),0.2);border-color:var(--accent);}
+/* Add Airport モーダルの座標調べ補助リンク */
+.aa-hint{font-size:12px;color:var(--text-3);margin:2px 0 14px;line-height:1.5;}
+.aa-hint a{color:var(--accent);text-decoration:none;font-weight:600;}
+.aa-hint a:hover{text-decoration:underline;}
+/* form-input を <select> にも適用したときの見た目調整（2026-08-07 改）：
+   ネイティブの menulist は padding を無視して高さが input より低くなる（並べると段差になる）。
+   appearance:none で枠を自前にし、.form-input と同じ padding／行高で揃える。
+   ▼ は CSS グラデーションで描く（テーマ変数の色を使う＝light/dark 両対応・画像もフォントも足さない）。 */
+select.form-input{
+  cursor:pointer;appearance:none;-webkit-appearance:none;
+  /* 高さは padding・font-size を input と同一にして自然に揃える（数値の決め打ちはしない）。 */
+  padding:11px 34px 11px 14px;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--text-3) 50%),
+    linear-gradient(135deg, var(--text-3) 50%, transparent 50%);
+  background-position:calc(100% - 19px) calc(50% - 1px), calc(100% - 14px) calc(50% - 1px);
+  background-size:5px 5px, 5px 5px;
+  background-repeat:no-repeat;
+}
+.dc-lookup{margin-top:4px;}
+.dc-lookup-input{
+  width:100%;box-sizing:border-box;padding:11px 14px;
+  background:var(--surface-elev1);border:1px solid var(--border);border-radius:8px;
+  color:var(--text);font-family:'Outfit';font-size:14px;
+}
+.dc-lookup-input:focus{outline:none;border-color:var(--accent);}
+.dc-lookup-input::placeholder{color:var(--text-3);}
+.dc-lookup-result{
+  margin-top:10px;font-size:13px;min-height:20px;
+  font-family:'JetBrains Mono',monospace;
+}
+.dc-lookup-result.is-ok{color:var(--green);}
+.dc-lookup-result.is-no{color:var(--red);}
+
+/* ===================== EMPTY STATE ===================== */
+/* 空状態では中央ヒーローの CTA が primary action を担うため、
+   ヘッダーの Add CTA と ≡（機能：Import/Export/Clear/保存ステータス）は丸ごと非表示にして
+   重複をなくす。⚙️（設定＝テーマ）だけは空状態でも役立つので残す（旧・単独テーマトグルの代替）。
+   将来サーバー化したら、空いたヘッダー右側に Sign in / Sync 系を入れる予定地。 */
+body.is-empty .map-section,
+body.is-empty .main,
+body.is-empty .stats-grid,
+body.is-empty .filter-bar,
+body.is-empty .yoy-section,
+body.is-empty #btnHeaderAdd,
+body.is-empty #dataMenuWrap { display:none !important; }
+body:not(.is-empty) #emptyState { display:none; }
+#emptyState{ max-width:760px;margin:60px auto;padding:0 32px; }
+/* 初回起動時に最初に見える面。ページ背景の上に直接乗る最上位の面なので、
+   .card / .map-card / .yoy-card と同じ素材（J-2）を当てて揃える。
+   hover は付けない（カード自体は操作対象ではなく、中のボタンが操作対象のため）。 */
+.empty-card{
+  background:linear-gradient(180deg,var(--card-sheen) 0%,var(--bg-card) 62%);
+  border:1px solid var(--border);border-radius:18px;
+  padding:48px 40px;text-align:center;box-shadow:var(--shadow-card);
+}
+.empty-icon{ font-size:56px;margin-bottom:18px;display:inline-block;
+  filter:drop-shadow(0 0 24px rgba(var(--accent-rgb),0.3)); }
+.empty-title{font-size:24px;font-weight:700;margin-bottom:8px;letter-spacing:-0.5px;}
+.empty-sub{font-size:14px;color:var(--text-2);margin-bottom:32px;line-height:1.6;}
+.empty-actions{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:28px;}
+.empty-actions button{font-size:14px;padding:14px 26px;}
+.empty-hint{
+  padding:16px 20px;background:rgba(var(--accent-rgb),0.04);
+  border:1px solid rgba(var(--accent-rgb),0.12);border-radius:10px;
+  font-size:12px;color:var(--text-2);line-height:1.7;text-align:left;
+}
+.empty-hint code{
+  background:rgba(var(--accent-rgb),0.12);color:var(--accent);
+  padding:1px 6px;border-radius:4px;font-family:'JetBrains Mono';font-size:11px;
+}
+.empty-hint strong{color:var(--text);}
+@media(max-width:560px){
+  #emptyState{margin:24px auto;padding:0 16px;}
+  .empty-card{padding:32px 20px;}
+  .empty-icon{font-size:44px;}
+  .empty-title{font-size:20px;}
+  .empty-actions{flex-direction:column;}
+  .empty-actions button{width:100%;}
+}
