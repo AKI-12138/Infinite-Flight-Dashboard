@@ -29,6 +29,8 @@
      FILTER BAR                        — フィルターチップ、複数選択ドロップダウン
      YoY CARDS                         — 比較カード（任意 2 年）
      TOUCH DEVICES                     — タッチデバイス向け :hover 抑止
+     PRESS FEEDBACK                    — 押下時の沈み込み（:active）
+     REDUCED MOTION                    — OS の「動きを減らす」設定への追従
 
    並び順は歴史的経緯で「base → 各オーバーレイ → メイン → 各種コンポーネント → 後付け」
    になっている。CSS カスケードの順序依存が強く、並び替えは挙動変化のリスクがあるため、
@@ -74,6 +76,23 @@
   --memo-rule-soft: rgba(140,155,181,0.15);  /* 自由記述の罫線 */
   --radius: 14px;
   --radius-sm: 8px;
+
+  /* ── 動きの共通定義（2026-08-18）──────────────────────────────────
+     --ease-out … 元々15箇所で使っていた曲線に名前を付けたもの＝唯一の正。
+                  入場・ホバー・押下など「反応」系は全部これ（ease-in は使わない）。
+     --t-press  … 押した瞬間の反応。100〜160ms が「即座」に感じる範囲。
+     --t-ui     … ホバー等の状態変化の標準速度。UI の動きは 300ms を超えない。
+     --tr-tint  … 色だけが変わる要素の共通トランジション。
+                  「まとめて全部」指定と違い、レイアウト（幅・高さ・位置）を巻き込まない。
+     --tr-press … 押下の沈み込み。--tr-shadow … 影の変化。必要な要素だけ足す。 */
+  --ease-out: cubic-bezier(0.22,1,0.36,1);
+  --t-press: 130ms;
+  --t-ui: 180ms;
+  --tr-tint: background-color var(--t-ui) var(--ease-out),
+             border-color var(--t-ui) var(--ease-out),
+             color var(--t-ui) var(--ease-out);
+  --tr-press: transform var(--t-press) var(--ease-out);
+  --tr-shadow: box-shadow var(--t-ui) var(--ease-out);
   /* 汎用サーフェストークン（薄い半透明 overlay の階段）。テーマ切替で白基調 ↔ 黒基調が反転する。 */
   --surface-elev1: rgba(255,255,255,0.025);  /* カード等の控えめな塗り */
   --surface-elev2: rgba(255,255,255,0.04);   /* ホバー前のカード塗り、薄ボーダー塗り */
@@ -229,7 +248,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);over
 .btn-primary{
   padding:10px 20px;background:var(--accent);border:none;border-radius:var(--radius-sm);
   color:#fff;font-family:'Outfit';font-size:13px;font-weight:600;cursor:pointer;
-  display:flex;align-items:center;gap:7px;transition:all 0.25s;
+  display:flex;align-items:center;gap:7px;transition:var(--tr-tint),var(--tr-press),var(--tr-shadow);
 }
 /* ヘッダの 4 ボタン（Add Flight / Import / Export / Clear）は中身の文字数・絵文字幅が
    バラバラなので、min-width で揃えて中央寄せにしないと縦の整列がガタガタになる。 */
@@ -241,7 +260,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);over
 .btn-outline{
   padding:10px 20px;background:transparent;border:1px solid var(--border);
   border-radius:var(--radius-sm);color:var(--text-2);font-family:'Outfit';font-size:13px;
-  font-weight:500;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:7px;
+  font-weight:500;cursor:pointer;transition:var(--tr-tint),var(--tr-press);display:flex;align-items:center;gap:7px;
 }
 /* Cancel / Clear / Close 系（dismiss ボタン）は ❌（.btn-close）と同じく hover で赤く光る（全ウィンドウ統一・2026-07-02）。
    例外：非破壊的な選択肢「+ Start fresh」(#restoreNoBtn) は下で accent に戻す。 */
@@ -256,7 +275,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);over
 .stat-box{
   background:var(--surface-elev1);border:1px solid var(--surface-elev2);
   border-radius:var(--radius);padding:20px 16px;text-align:center;
-  transition:all 0.3s;position:relative;overflow:hidden;
+  transition:var(--tr-tint),var(--tr-press),var(--tr-shadow);position:relative;overflow:hidden;
 }
 .stat-box:hover{background:var(--surface-elev2);border-color:var(--border-medium);}
 /* クリックで対応拡大ウィンドウを開くカード（Flight Time 以外）。
@@ -267,7 +286,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);over
   transform:translateY(-1px);
   box-shadow:0 6px 20px rgba(0,0,0,0.25);
 }
-.stat-box.is-clickable:active{transform:translateY(0);box-shadow:none;}
+.stat-box.is-clickable:active{transform:translateY(0) scale(0.99);box-shadow:none;}
 .stat-box .num{
   font-family:'JetBrains Mono',monospace;font-size:32px;font-weight:700;
   line-height:1;margin-bottom:6px;
@@ -305,7 +324,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);over
 .map-globe-btn{
   padding:5px 12px;background:rgba(var(--accent-rgb),0.12);border:1px solid rgba(var(--accent-rgb),0.3);
   border-radius:6px;color:var(--accent);font-family:'Outfit';font-size:11px;font-weight:600;
-  cursor:pointer;transition:all 0.2s;
+  cursor:pointer;transition:var(--tr-tint),var(--tr-press);
 }
 .map-globe-btn:hover{background:rgba(var(--accent-rgb),0.2);border-color:var(--accent);}
 .globe-overlay{
@@ -318,7 +337,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);over
   background:var(--bg-card);border:1px solid var(--border);border-radius:14px;
   width:100%;max-width:1100px;height:85vh;max-height:880px;
   display:flex;flex-direction:column;overflow:hidden;
-  animation:slideUp 0.3s cubic-bezier(0.22,1,0.36,1);
+  animation:slideUp 0.3s var(--ease-out);
 }
 .globe-header{
   padding:14px 20px;display:flex;align-items:center;justify-content:space-between;
@@ -330,7 +349,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);over
 .globe-rotate-btn{
   width:36px;height:36px;border-radius:10px;border:1px solid var(--border);
   background:transparent;color:var(--text-2);font-size:15px;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;transition:all 0.2s;
+  display:flex;align-items:center;justify-content:center;transition:var(--tr-tint),var(--tr-press);
 }
 .globe-rotate-btn:hover{background:var(--bg-card-alt);border-color:var(--border-hover);color:var(--text);}
 .globe-body{flex:1;min-height:0;min-width:0;position:relative;display:flex;}
@@ -356,7 +375,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);over
 .map-expand-btn{
   padding:5px 12px;background:var(--surface-elev3);border:1px solid var(--border);
   border-radius:6px;color:var(--text-2);font-family:'Outfit';font-size:11px;font-weight:600;
-  cursor:pointer;transition:all 0.2s;
+  cursor:pointer;transition:var(--tr-tint),var(--tr-press);
 }
 .map-expand-btn:hover{background:rgba(255,255,255,0.12);border-color:var(--text-2);color:var(--text-1);}
 .map-overlay{
@@ -369,7 +388,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);over
   background:var(--bg-card);border:1px solid var(--border);border-radius:14px;
   width:100%;max-width:1400px;height:90vh;max-height:920px;
   display:flex;flex-direction:column;overflow:hidden;
-  animation:slideUp 0.3s cubic-bezier(0.22,1,0.36,1);
+  animation:slideUp 0.3s var(--ease-out);
 }
 .map-panel-header{
   padding:14px 20px;display:flex;align-items:center;justify-content:space-between;
@@ -390,7 +409,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);over
   background:var(--bg-card);border:1px solid var(--border);border-radius:14px;
   width:100%;max-width:900px;height:85vh;max-height:820px;
   display:flex;flex-direction:column;overflow:hidden;
-  animation:slideUp 0.3s cubic-bezier(0.22,1,0.36,1);
+  animation:slideUp 0.3s var(--ease-out);
 }
 /* ヘッダ：タイトルが余白を取り、アクション（表示形式トグル）と ✕ は右端に寄る（2026-07-12） */
 .continents-panel-header{
@@ -415,7 +434,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);over
   background:var(--bg-card);border:1px solid var(--border);border-radius:14px;
   width:100%;max-width:1100px;height:80vh;max-height:720px;
   display:flex;flex-direction:column;overflow:hidden;
-  animation:slideUp 0.3s cubic-bezier(0.22,1,0.36,1);
+  animation:slideUp 0.3s var(--ease-out);
 }
 .chart-panel-header{
   padding:14px 20px;display:flex;align-items:center;gap:12px;
@@ -439,7 +458,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);over
   background:var(--bg-card);border:1px solid var(--border);border-radius:14px;
   width:100%;max-width:1100px;height:90vh;max-height:900px;
   display:flex;flex-direction:column;overflow:hidden;
-  animation:slideUp 0.3s cubic-bezier(0.22,1,0.36,1);
+  animation:slideUp 0.3s var(--ease-out);
 }
 .flights-panel-header{
   padding:14px 20px;display:flex;align-items:center;justify-content:space-between;
@@ -496,7 +515,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);over
   height:100%;border-radius:5px;display:flex;align-items:center;
   padding:0 10px;font-family:'JetBrains Mono';font-size:11px;
   font-weight:700;color:#fff;min-width:fit-content;
-  transition:width 0.5s cubic-bezier(0.22,1,0.36,1);
+  transition:width 0.5s var(--ease-out);
 }
 
 /* ===================== FLIGHT LOG EXPANDED ===================== */
@@ -511,7 +530,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);over
   height:90vh;max-height:900px;
   z-index:200;
   display:flex;flex-direction:column;overflow:hidden;
-  animation:slideUp 0.3s cubic-bezier(0.22,1,0.36,1);
+  animation:slideUp 0.3s var(--ease-out);
 }
 .card.card-fullscreen .table-wrap{
   flex:1;max-height:none;overflow-y:auto;
@@ -543,7 +562,7 @@ body.has-fullscreen-card{overflow:hidden;}
 /* Card */
 .card{
   background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);
-  overflow:hidden;transition:border-color 0.3s;
+  overflow:hidden;transition:border-color var(--t-ui) var(--ease-out);
 }
 .card:hover{border-color:var(--border-hover);}
 .card-header{
@@ -555,7 +574,7 @@ body.has-fullscreen-card{overflow:hidden;}
 .card-expand-btn{
   width:30px;height:30px;border-radius:7px;border:1px solid var(--border);
   background:transparent;color:var(--text-3);font-size:14px;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;transition:all 0.2s;
+  display:flex;align-items:center;justify-content:center;transition:var(--tr-tint),var(--tr-press);
   flex-shrink:0;
 }
 .card-expand-btn:hover{border-color:var(--border-hover);color:var(--text);background:var(--surface-elev2);}
@@ -574,7 +593,7 @@ body.has-fullscreen-card{overflow:hidden;}
 .toggle-btn{
   padding:5px 14px;border:none;background:transparent;color:var(--text-3);
   font-family:'Outfit';font-size:11px;font-weight:600;cursor:pointer;
-  border-radius:6px;transition:all 0.2s;text-transform:uppercase;letter-spacing:0.8px;
+  border-radius:6px;transition:var(--tr-tint),var(--tr-press);text-transform:uppercase;letter-spacing:0.8px;
   white-space:nowrap;
 }
 .toggle-btn.active{background:rgba(var(--accent-rgb),0.12);color:var(--accent);}
@@ -598,7 +617,7 @@ body.has-fullscreen-card{overflow:hidden;}
 .bar-fill{
   height:100%;border-radius:6px;display:flex;align-items:center;padding:0 12px;
   font-family:'JetBrains Mono';font-size:11px;font-weight:700;color:#fff;
-  transition:width 0.7s cubic-bezier(0.22,1,0.36,1);min-width:fit-content;
+  transition:width 0.7s var(--ease-out);min-width:fit-content;
 }
 .bar-pct{font-size:10px;color:var(--text-3);width:36px;min-width:36px;text-align:right;font-family:'JetBrains Mono';font-weight:500;}
 /* 総飛行時間カラム（機材／航空会社のバー右側）— bar-pct と並ぶ控えめな数値表示 */
@@ -619,7 +638,7 @@ body.has-fullscreen-card{overflow:hidden;}
 .expanded-panel{
   background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);
   width:100%;max-width:1200px;max-height:85vh;overflow:hidden;
-  animation:slideUp 0.3s cubic-bezier(0.22,1,0.36,1);
+  animation:slideUp 0.3s var(--ease-out);
 }
 @keyframes slideUp{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:translateY(0)}}
 .expanded-header{
@@ -647,7 +666,7 @@ body.has-fullscreen-card{overflow:hidden;}
 .btn-close{
   width:36px;height:36px;border-radius:10px;border:1px solid var(--border);
   background:transparent;color:var(--text-2);font-size:18px;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;transition:all 0.2s;
+  display:flex;align-items:center;justify-content:center;transition:var(--tr-tint),var(--tr-press);
 }
 .btn-close:hover{background:rgba(var(--red-rgb),0.1);border-color:var(--red);color:var(--red);}
 /* 拡大地図ヘッダーの「表示リセット」（⌖）。✕ と同じ 36px 角・ただしホバーは中立（赤にしない＝閉じる示唆と区別）。 */
@@ -655,7 +674,7 @@ body.has-fullscreen-card{overflow:hidden;}
 .map-reset-btn{
   width:36px;height:36px;border-radius:10px;border:1px solid var(--border);
   background:transparent;color:var(--text-2);font-size:16px;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;transition:all 0.2s;
+  display:flex;align-items:center;justify-content:center;transition:var(--tr-tint),var(--tr-press);
 }
 .map-reset-btn:hover{background:var(--surface-elev2);border-color:var(--border-hover);color:var(--text);}
 .expanded-scroll{
@@ -679,7 +698,7 @@ body.has-fullscreen-card{overflow:hidden;}
   width:100%;
 }
 .expanded-bar-col{
-  width:40px;border-radius:6px 6px 0 0;transition:height 0.6s cubic-bezier(0.22,1,0.36,1);
+  width:40px;border-radius:6px 6px 0 0;transition:height 0.6s var(--ease-out);
   position:relative;cursor:pointer;flex-shrink:0;
   /* 内部に時間ラベルを表示するためのレイアウト */
   display:flex;flex-direction:column;align-items:center;overflow:hidden;
@@ -805,19 +824,19 @@ body.has-fullscreen-card{overflow:hidden;}
 .btn-danger{
   padding:8px 18px;background:rgba(var(--red-rgb),0.12);border:1px solid rgba(var(--red-rgb),0.25);
   border-radius:var(--radius-sm);color:var(--red);font-family:'Outfit';font-size:12px;
-  font-weight:600;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:6px;
+  font-weight:600;cursor:pointer;transition:var(--tr-tint),var(--tr-press);display:flex;align-items:center;gap:6px;
 }
 .btn-danger:hover{background:rgba(var(--red-rgb),0.2);border-color:var(--red);}
 .btn-danger-solid{
   padding:8px 18px;background:var(--red);border:none;
   border-radius:var(--radius-sm);color:#fff;font-family:'Outfit';font-size:12px;
-  font-weight:600;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:6px;
+  font-weight:600;cursor:pointer;transition:var(--tr-tint),var(--tr-press),var(--tr-shadow);display:flex;align-items:center;gap:6px;
 }
 .btn-danger-solid:hover{background:#e6003a;transform:translateY(-1px);box-shadow:0 4px 16px rgba(var(--red-rgb),0.3);}
 .btn-cancel{
   padding:8px 18px;background:transparent;border:1px solid var(--border);
   border-radius:var(--radius-sm);color:var(--text-2);font-family:'Outfit';font-size:12px;
-  font-weight:600;cursor:pointer;transition:all 0.2s;
+  font-weight:600;cursor:pointer;transition:var(--tr-tint),var(--tr-press);
 }
 .btn-cancel:hover{background:rgba(var(--red-rgb),0.1);border-color:var(--red);color:var(--red);}
 
@@ -826,7 +845,7 @@ body.has-fullscreen-card{overflow:hidden;}
 .cb{
   appearance:none;-webkit-appearance:none;width:18px;height:18px;
   border:1.5px solid var(--text-3);border-radius:4px;cursor:pointer;
-  background:transparent;transition:all 0.15s;position:relative;flex-shrink:0;
+  background:transparent;transition:var(--tr-tint);position:relative;flex-shrink:0;
 }
 .cb:checked{background:var(--accent);border-color:var(--accent);}
 .cb:checked::after{
@@ -848,7 +867,7 @@ body.has-fullscreen-card{overflow:hidden;}
 .restore-box{
   background:var(--bg-card);border:1px solid rgba(var(--accent-rgb),0.25);border-radius:18px;
   width:100%;max-width:440px;padding:32px;text-align:center;
-  animation:slideUp 0.3s cubic-bezier(0.22,1,0.36,1);
+  animation:slideUp 0.3s var(--ease-out);
 }
 /* ヒーロー部の無限ロゴと同じビジュアル言語：青→紫グラデの正方形に白い ∞ */
 .restore-icon{
@@ -882,7 +901,7 @@ body.has-fullscreen-card{overflow:hidden;}
 .confirm-box{
   background:var(--bg-card);border:1px solid rgba(var(--red-rgb),0.2);border-radius:18px;
   width:100%;max-width:420px;padding:32px;text-align:center;
-  animation:slideUp 0.3s cubic-bezier(0.22,1,0.36,1);
+  animation:slideUp 0.3s var(--ease-out);
 }
 .confirm-icon{font-size:48px;margin-bottom:16px;}
 .confirm-title{font-size:18px;font-weight:700;margin-bottom:8px;}
@@ -895,7 +914,7 @@ body.has-fullscreen-card{overflow:hidden;}
 .row-delete-btn{
   opacity:0;padding:4px 8px;background:rgba(var(--red-rgb),0.08);border:1px solid transparent;
   border-radius:4px;color:var(--red);font-size:11px;cursor:pointer;
-  transition:all 0.15s;font-family:'Outfit';font-weight:500;
+  transition:var(--tr-tint),var(--tr-press),opacity var(--t-ui) var(--ease-out);font-family:'Outfit';font-weight:500;
 }
 .ftable tbody tr:hover .row-delete-btn{opacity:1;}
 .row-delete-btn:hover{background:rgba(var(--red-rgb),0.15);border-color:rgba(var(--red-rgb),0.3);}
@@ -908,7 +927,7 @@ body.has-fullscreen-card{overflow:hidden;}
 .row-note-btn{
   padding:4px 10px;background:rgba(var(--accent-rgb),0.08);border:1px solid transparent;
   border-radius:4px;color:var(--accent);font-size:12px;cursor:pointer;
-  transition:all 0.15s;font-family:'Outfit';font-weight:600;line-height:1.4;
+  transition:var(--tr-tint),var(--tr-press);font-family:'Outfit';font-weight:600;line-height:1.4;
 }
 .row-note-btn:hover{background:rgba(var(--accent-rgb),0.15);border-color:rgba(var(--accent-rgb),0.3);}
 .row-note-btn.row-note-add{background:transparent;border-color:var(--border);color:var(--text-3);}
@@ -1009,7 +1028,7 @@ a.btn-outline{text-decoration:none;}  /* Report a bug（リンクをボタン見
 .modal-overlay.show{display:flex;}
 .modal{
   background:var(--bg-card);border:1px solid var(--border);border-radius:18px;
-  width:100%;max-width:520px;animation:slideUp 0.3s cubic-bezier(0.22,1,0.36,1);
+  width:100%;max-width:520px;animation:slideUp 0.3s var(--ease-out);
   /* Cap height and let the body scroll, so action buttons never fall off-screen
      when import previews have many rows (esp. on mobile). */
   max-height:90vh;display:flex;flex-direction:column;
@@ -1050,7 +1069,7 @@ input[type="date"].form-input{
   position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);
   background:var(--bg-elevated);border:1px solid var(--green);border-radius:12px;
   padding:12px 24px;color:var(--green);font-size:13px;font-weight:600;
-  opacity:0;transition:all 0.4s cubic-bezier(0.22,1,0.36,1);z-index:300;
+  opacity:0;transition:opacity 300ms var(--ease-out),transform 300ms var(--ease-out);z-index:300;
   display:flex;align-items:center;gap:8px;box-shadow:0 16px 48px rgba(0,0,0,0.5);
 }
 .toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
@@ -1297,7 +1316,7 @@ input[type="date"].form-input{
   padding:4px 10px;border-radius:6px;cursor:pointer;
   background:var(--surface-elev2);border:1px solid var(--border);
   color:var(--text-3);font-family:'Outfit';font-size:11px;font-weight:600;
-  transition:all 0.2s;
+  transition:var(--tr-tint),var(--tr-press);
 }
 .bulk-clear-btn:hover{color:var(--red);border-color:rgba(var(--red-rgb),0.4);background:rgba(var(--red-rgb),0.08);}
 .bulk-hint{font-size:11px;color:var(--text-3);margin-top:6px;line-height:1.5;}
@@ -1329,7 +1348,7 @@ input[type="date"].form-input{
   display:flex;align-items:center;gap:12px;
   padding:14px;margin-bottom:10px;
   background:var(--border-soft);border:1px solid var(--border);
-  border-radius:10px;cursor:pointer;transition:all 0.2s;
+  border-radius:10px;cursor:pointer;transition:var(--tr-tint),var(--tr-press),opacity var(--t-ui) var(--ease-out);
 }
 .export-option:hover{border-color:var(--border-hover);background:rgba(255,255,255,0.05);}
 .export-option:has(input:checked){border-color:rgba(var(--accent-rgb),0.4);background:rgba(var(--accent-rgb),0.05);}
@@ -1361,7 +1380,7 @@ input[type="date"].form-input{
 .modal-tab{
   flex:1;padding:8px 12px;border:none;background:transparent;color:var(--text-3);
   font-family:'Outfit';font-size:12px;font-weight:600;cursor:pointer;
-  border-radius:6px;transition:all 0.2s;text-align:center;
+  border-radius:6px;transition:var(--tr-tint),var(--tr-press);text-align:center;
 }
 .modal-tab.active{background:rgba(var(--accent-rgb),0.12);color:var(--accent);}
 .modal-tab:hover:not(.active){color:var(--text-2);}
@@ -1425,7 +1444,7 @@ input[type="date"].form-input{
 .file-upload-btn{
   padding:10px 18px;background:var(--accent);border:1px solid var(--accent);
   border-radius:var(--radius-sm);color:#fff;font-family:'Outfit';font-size:13px;
-  font-weight:600;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:8px;
+  font-weight:600;cursor:pointer;transition:var(--tr-tint),var(--tr-press),var(--tr-shadow);display:flex;align-items:center;gap:8px;
   box-shadow:0 4px 14px rgba(var(--accent-rgb),0.25);
 }
 .file-upload-btn:hover{
@@ -1442,7 +1461,7 @@ input[type="date"].form-input{
 .btn-sample{
   padding:7px 14px;background:var(--bg-card-alt);border:1px solid var(--border);
   border-radius:var(--radius-sm);color:var(--text-2);font-family:'Outfit';font-size:12px;
-  font-weight:600;cursor:pointer;transition:all 0.2s;
+  font-weight:600;cursor:pointer;transition:var(--tr-tint),var(--tr-press);
 }
 .btn-sample:hover{background:var(--bg-elevated);border-color:var(--accent);color:var(--accent);}
 /* 「OR PASTE ↓」「OR DOWNLOAD SAMPLE CSV ↓」— OR はグレーの非クリック前置き、
@@ -1484,7 +1503,7 @@ input[type="date"].form-input{
   backdrop-filter:blur(8px);
   border-bottom:1px solid rgba(var(--green-rgb),0.4);
   font-size:12px;color:var(--green);font-weight:600;
-  animation:slideDown 0.3s cubic-bezier(0.22,1,0.36,1);
+  animation:slideDown 0.3s var(--ease-out);
 }
 .notify-banner.show{display:flex;}
 .notify-banner.notify-error{
@@ -1518,7 +1537,7 @@ input[type="date"].form-input{
   display:flex;align-items:center;justify-content:center;
   background:var(--surface-elev2);border:1px solid var(--border);
   border-radius:var(--radius-sm);color:var(--text);
-  font-size:18px;cursor:pointer;transition:all 0.2s;
+  font-size:18px;cursor:pointer;transition:var(--tr-tint),var(--tr-press);
   font-family:'Outfit';line-height:1;
 }
 .header-icon-btn:hover{background:var(--surface-elev3);border-color:var(--border-hover);}
@@ -1739,7 +1758,7 @@ body:not(.is-empty) #emptyState { display:none; }
   border:1px solid rgba(255,176,32,0.5);
   border-radius:14px;color:var(--amber);font-family:'Outfit';
   font-size:11px;text-transform:uppercase;letter-spacing:1.5px;font-weight:700;
-  cursor:pointer;transition:all 0.2s;
+  cursor:pointer;transition:var(--tr-tint),var(--tr-press),var(--tr-shadow);
 }
 .filter-toggle-btn:hover{
   background:rgba(255,176,32,0.20);border-color:var(--amber);
@@ -1763,7 +1782,7 @@ body:not(.is-empty) #emptyState { display:none; }
   position:relative;display:inline-flex;align-items:center;
   padding:6px 12px;background:var(--bg-card);border:1px solid var(--border);
   border-radius:20px;font-family:'Outfit';font-size:12px;
-  color:var(--text-2);cursor:pointer;transition:all 0.2s;gap:6px;
+  color:var(--text-2);cursor:pointer;transition:var(--tr-tint);gap:6px;
 }
 .filter-chip:hover{border-color:var(--border-hover);color:var(--text);}
 .filter-chip.active{
@@ -1852,7 +1871,7 @@ body:not(.is-empty) #emptyState { display:none; }
   /* <button> なのでネイティブの背景・枠をリセット（旧版は <span> だった＝グレーの枠が出ない）。 */
   background:none;border:none;font-family:'Outfit';
   font-size:11px;color:var(--text-3);cursor:pointer;padding:4px 10px;
-  border-radius:6px;transition:all 0.2s;
+  border-radius:6px;transition:var(--tr-tint),var(--tr-press);
 }
 .filter-clear:hover{color:var(--red);background:rgba(var(--red-rgb),0.08);}
 
@@ -1871,7 +1890,7 @@ body:not(.is-empty) #emptyState { display:none; }
   appearance:none;padding:6px 12px;
   background:var(--bg-card);border:1px solid var(--border);border-radius:20px;
   font-family:'Outfit';font-size:12px;font-weight:500;color:var(--text-2);
-  cursor:pointer;transition:all 0.2s;
+  cursor:pointer;transition:var(--tr-tint);
 }
 .adv-filter-btn:hover{border-color:var(--border-hover);color:var(--text);}
 .adv-filter-btn.active{
@@ -1906,7 +1925,7 @@ body:not(.is-empty) #emptyState { display:none; }
   appearance:none;padding:6px 12px;
   background:var(--bg-card);border:1px solid var(--border);border-radius:20px;
   font-family:'Outfit';font-size:12px;font-weight:500;color:var(--text-2);
-  cursor:pointer;transition:all 0.2s;
+  cursor:pointer;transition:var(--tr-tint),var(--tr-press);
 }
 .adv-preset:hover{border-color:var(--border-hover);color:var(--text);}
 .adv-preset.active{
@@ -1920,7 +1939,7 @@ body:not(.is-empty) #emptyState { display:none; }
 .adv-saved-edit{
   appearance:none;background:transparent;border:1px solid var(--border);border-radius:6px;
   color:var(--text-3);font-family:'Outfit';font-size:11px;font-weight:500;
-  cursor:pointer;padding:2px 8px;line-height:1.5;transition:all .2s;
+  cursor:pointer;padding:2px 8px;line-height:1.5;transition:var(--tr-tint),var(--tr-press);
 }
 .adv-saved-edit:hover{border-color:var(--border-hover);color:var(--text);}
 .adv-saved-edit.is-editing{background:rgba(var(--accent-rgb),0.12);border-color:rgba(var(--accent-rgb),0.4);color:var(--accent);}
@@ -1959,7 +1978,7 @@ body:not(.is-empty) #emptyState { display:none; }
 .adv-date-clear{
   width:28px;height:28px;border-radius:7px;border:1px solid var(--border);
   background:transparent;color:var(--text-3);font-size:11px;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;transition:var(--tr-tint),var(--tr-press);flex-shrink:0;
 }
 .adv-date-clear:hover{border-color:var(--red);color:var(--red);background:rgba(var(--red-rgb),0.1);}
 /* カテゴリ再構成で縦に長くなったため、パネル body は既定どおりスクロール（.modal-body の overflow-y:auto）。
@@ -1985,7 +2004,7 @@ body:not(.is-empty) #emptyState { display:none; }
   appearance:none;padding:6px 12px;
   background:var(--bg-card);border:1px solid var(--border);border-radius:20px;
   font-family:'Outfit';font-size:12px;font-weight:500;color:var(--text-2);
-  cursor:pointer;transition:all 0.2s;user-select:none;
+  cursor:pointer;transition:var(--tr-tint),var(--tr-press);user-select:none;
 }
 .barcust-chip:hover{border-color:var(--border-hover);color:var(--text);}
 .barcust-chip.is-on{background:rgba(var(--accent-rgb),0.12);border-color:rgba(var(--accent-rgb),0.4);color:var(--accent);}
@@ -2088,6 +2107,52 @@ body:not(.is-empty) #emptyState { display:none; }
   color:var(--text-3);
 }
 
+
+/* ===================== PRESS FEEDBACK ===================== */
+/* 押した瞬間にわずかに沈む＝「操作を受け取った」という即時の返事（2026-08-18 追加）。
+   それまでは :hover しか無く、押してから結果が出るまで無反応だった。
+
+   :hover ではなく :active に置くのは、指を離す前＝いちばん注視している瞬間に返すため。
+   タッチ端末でも :active は発火するので @media(hover:hover) では囲まない
+   （囲うのは「浮き上がる」系の hover 演出だけ＝下の TOUCH DEVICES 節が担当）。
+
+   scale はどれも 0.94〜0.97 の範囲。小さい要素ほど強く縮めるのは、
+   見た目の移動量（px）を揃えて同じ手応えにするため。
+
+   ⚠️ ドロップダウンを内包する .filter-chip / .adv-filter-btn は意図的に除外している。
+      親を縮めると、開いているメニューごと一緒に縮んでしまうため。 */
+.btn-primary:active,
+.btn-outline:active,
+.btn-danger:active,
+.btn-danger-solid:active,
+.btn-cancel:active,
+.btn-sample:active,
+.file-upload-btn:active,
+.toggle-btn:active,
+.modal-tab:active,
+.bulk-clear-btn:active,
+.row-delete-btn:active,
+.row-note-btn:active,
+.map-globe-btn:active,
+.map-expand-btn:active,
+.filter-toggle-btn:active,
+.filter-clear:active,
+.adv-preset:active,
+.adv-saved-edit:active,
+.barcust-chip:active,
+.export-option:active{
+  transform:scale(0.97);
+}
+/* 正方形のアイコンボタン（28〜42px）は小さいので、同じ体感になるよう少し強めに縮める */
+.card-expand-btn:active,
+.btn-close:active,
+.map-reset-btn:active,
+.globe-rotate-btn:active,
+.header-icon-btn:active,
+.adv-date-clear:active{
+  transform:scale(0.94);
+}
+
 /* ===================== TOUCH DEVICES: suppress :hover ===================== */
 /* タッチデバイスでは tap で :hover が発火し、次の tap までスタイルが残り続ける。
    hover: none の環境では各 :hover ルールを「base 状態に戻す」値で上書きして
@@ -2155,3 +2220,62 @@ body:not(.is-empty) #emptyState { display:none; }
   .yoy-yr-select:hover { background-color:rgba(var(--accent-rgb),0.08); border-color:rgba(var(--accent-rgb),0.25); }
 }
 
+/* ===================== REDUCED MOTION ===================== */
+/* OS の「動きを減らす」設定に追従（2026-08-18 追加）。
+   macOS/iOS＝「視差効果を減らす」、Windows＝「アニメーションを表示する」OFF。
+   前庭障害などで動きに酔う人のための設定で、それまでは一切見ていなかった。
+
+   方針は「全部止める」ではなく【動きだけ止めて、色と不透明度の変化は残す】。
+   状態が変わったこと自体は伝わり続ける必要があるため（WCAG 2.3.3 の趣旨）。
+
+   ⚠️ ここで * に一括指定はしない。Leaflet（地図）の内部 transform トランジションを
+      巻き込むと、ズーム完了イベントが飛ばず地図が固まる恐れがあるため、
+      自前で足した動きだけを名指しで無効化する。 */
+@media (prefers-reduced-motion: reduce){
+  /* 押下の沈み込み・ホバーの浮き上がりは「動き」なので無効化。
+     背景色や枠色の変化は残るので、反応が消えるわけではない。 */
+  .btn-primary:active,
+  .btn-outline:active,
+  .btn-danger:active,
+  .btn-danger-solid:active,
+  .btn-cancel:active,
+  .btn-sample:active,
+  .file-upload-btn:active,
+  .toggle-btn:active,
+  .modal-tab:active,
+  .bulk-clear-btn:active,
+  .row-delete-btn:active,
+  .row-note-btn:active,
+  .map-globe-btn:active,
+  .map-expand-btn:active,
+  .filter-toggle-btn:active,
+  .filter-clear:active,
+  .adv-preset:active,
+  .adv-saved-edit:active,
+  .barcust-chip:active,
+  .export-option:active,
+  .card-expand-btn:active,
+  .btn-close:active,
+  .map-reset-btn:active,
+  .globe-rotate-btn:active,
+  .header-icon-btn:active,
+  .adv-date-clear:active,
+  .btn-primary:hover,
+  .btn-danger-solid:hover,
+  .file-upload-btn:hover,
+  .stat-box.is-clickable:hover,
+  .stat-box.is-clickable:active{
+    transform:none !important;
+  }
+
+  /* 登場アニメーションは keyframes 自体を差し替える。
+     これで slideUp/slideDown を使う 11 箇所の宣言に手を入れずに、
+     「せり上がり」「スライドイン」だけを淡い表示へ落とせる。
+     読み込み中の回転（globe-spin）は、止めると「固まった」に見えるのであえて残す。 */
+  @keyframes slideUp{from{opacity:0}to{opacity:1}}
+  @keyframes slideDown{from{opacity:0}to{opacity:1}}
+
+  /* データバーが伸びる演出（幅・高さの変化）も動きなので即座に確定させる。 */
+  .bar-fill,.flight-row-fill{transition:width 0.01ms linear !important;}
+  .expanded-bar-col{transition:height 0.01ms linear !important;}
+}
