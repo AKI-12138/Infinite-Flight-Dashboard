@@ -52,6 +52,14 @@ export function MainDashboard({ flights, themePref }: { flights: StoredFlight[];
 
   return (
     <div className="main">
+      {/* セクション見出し（フェーズK-2・2026-08-18）。
+          カードを増やさず、余白とプレーンな見出しだけで「内訳」と「推移」を切り分ける。
+          id は上部フィルターバーの「Jump」導線（K-3）が飛び先として使う。
+          ⚠️ Flight Log には見出しを足していない。カード自身が「Flight Log」という
+             見出しを持っており、上にもう一枚置くと同じ語が二重になるため
+             （飛び先の id は FlightLog 側の .table-section に付けてある）。 */}
+      <h2 className="section-head" id="sec-breakdowns">Breakdowns</h2>
+
       {/* Aircraft & Airlines（総飛行時間を併記） */}
       <div className="grid-2">
         <BarCard title="✈️ Top Aircraft" colorKey="aircraft" data={s.ac} minsMap={s.acMin} onAll={() => setBarExpand({ type: 'aircraft', data: s.ac, minsMap: s.acMin })} />
@@ -73,6 +81,8 @@ export function MainDashboard({ flights, themePref }: { flights: StoredFlight[];
         <BarCard title="🏞️ Top Countries/Regions" colorKey="countries" data={s.co} onAll={() => setBarExpand({ type: 'countries', data: s.co })} />
         <BarCard title="🏙️ Top Cities" colorKey="cities" data={s.ci} onAll={() => setBarExpand({ type: 'cities', data: s.ci })} />
       </div>
+
+      <h2 className="section-head" id="sec-trends">Trends</h2>
 
       {/* Year & Month */}
       <div className="grid-2">

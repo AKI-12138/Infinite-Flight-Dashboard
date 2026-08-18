@@ -9,7 +9,8 @@
 /* ===================== 3D GLOBE OVERLAY ===================== */
 .map-globe-btn{
   padding:5px 12px;background:rgba(var(--accent-rgb),0.12);border:1px solid rgba(var(--accent-rgb),0.3);
-  border-radius:6px;color:var(--accent);font-family:'Outfit';font-size:11px;font-weight:600;
+  /* フェーズK-2（2026-08-18）：操作ラベルは 12px 以上（11px → 12px） */
+  border-radius:6px;color:var(--accent);font-family:'Outfit';font-size:12px;font-weight:600;
   cursor:pointer;transition:var(--tr-tint),var(--tr-press);
 }
 .map-globe-btn:hover{background:rgba(var(--accent-rgb),0.2);border-color:var(--accent);}
@@ -61,7 +62,8 @@
    インラインの 2D 地図をそのまま大画面で見るための拡大表示。 */
 .map-expand-btn{
   padding:5px 12px;background:var(--surface-elev3);border:1px solid var(--border);
-  border-radius:6px;color:var(--text-2);font-family:'Outfit';font-size:11px;font-weight:600;
+  /* フェーズK-2（2026-08-18）：操作ラベルは 12px 以上（11px → 12px） */
+  border-radius:6px;color:var(--text-2);font-family:'Outfit';font-size:12px;font-weight:600;
   cursor:pointer;transition:var(--tr-tint),var(--tr-press);
 }
 .map-expand-btn:hover{background:rgba(255,255,255,0.12);border-color:var(--text-2);color:var(--text-1);}

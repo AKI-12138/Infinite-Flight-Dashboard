@@ -34,6 +34,7 @@
 .map-globe-btn:active,
 .map-expand-btn:active,
 .filter-toggle-btn:active,
+.jump-btn:active,
 .filter-clear:active,
 .adv-preset:active,
 .adv-saved-edit:active,
@@ -49,6 +50,85 @@
 .header-icon-btn:active,
 .adv-date-clear:active{
   transform:scale(0.94);
+}
+
+/* ===================== TAP TARGETS（フェーズK-3・2026-08-18） =====================
+   指で押す的を広げる。見た目のサイズは 1px も変えず、透明な ::after を要素の外へ
+   はみ出させて「押せる範囲」だけを広げる（padding と違いレイアウトが動かない＝
+   カードの高さも行の高さも変わらない）。
+
+   ⚠️ やみくもに 44px にはできない。隣の的と重なると「押したつもりと違うものが動く」
+      という、狭いより悪い不具合になる。だから各所で【隣との隙間の半分】を上限にした：
+
+      要素                      実測    広げ方          実測の的  上限の理由
+      .toggle-btn (Top 5/All)  25px    上下 10px       65x45px   左右は隣接（gap 3px）→ 縦だけ
+      .card-expand-btn (⛶ ↺)   30px    上下左右 7px    44x44px   カードヘッダ内に余白あり
+      .map-globe-btn / expand   32px    上下 8px        94x48px   地図ヘッダ内（キャンバス上ではない）
+      .filter-toggle-btn        29px    上下 8px       104x45px   バーの padding 14px 内
+      .jump-btn                 29px    上下 8px        68x45px   同上
+      .back-to-top              30px    上下左右 7px    44x44px   同上
+      .filter-chip              31px    上下 4px         全幅x39   モバイルは縦 1 列・gap 8px
+                                                                 → 4px 超で隣のチップと食い合う
+      .row-note-btn / delete     27px   上下 7px         〜41px    表の行間がこれ以上ない
+      ※ モバイルの Flight Log の ⛶／↺ は例外扱い（下の @media 参照）＝実測 47px／38px。
+
+   ⚠️ 地図（Leaflet）自身のズームボタンには手を出さない。キャンバスの上に透明な的を広げると
+      地図のドラッグ・タップを飲み込むため。
+   ⚠️ .card は overflow:hidden なので、カードの端をまたぐ ::after は切られる。上表の値は
+      いずれもカード内側に収まる範囲。 */
+.toggle-btn,
+.card-expand-btn,
+.map-globe-btn,
+.map-expand-btn,
+.filter-toggle-btn,
+.back-to-top,
+.jump-btn,
+.filter-chip,
+.row-note-btn,
+.row-delete-btn{
+  position:relative;
+}
+.toggle-btn::after,
+.card-expand-btn::after,
+.map-globe-btn::after,
+.map-expand-btn::after,
+.filter-toggle-btn::after,
+.back-to-top::after,
+.jump-btn::after,
+.filter-chip::after,
+.row-note-btn::after,
+.row-delete-btn::after{
+  content:'';position:absolute;z-index:0;
+  /* 既定は「上下だけ 7px」。左右も広げる要素だけ下で個別に上書きする。 */
+  left:0;right:0;top:-7px;bottom:-7px;
+}
+/* 左右に兄弟がいない（＝横にも広げてよい）もの */
+.card-expand-btn::after,
+.back-to-top::after{left:-7px;right:-7px;}
+/* 縦だけ広げるもの */
+.toggle-btn::after{top:-10px;bottom:-10px;}
+.map-globe-btn::after,
+.map-expand-btn::after,
+.filter-toggle-btn::after,
+.jump-btn::after{top:-8px;bottom:-8px;}
+/* モバイルのチップは縦 1 列・gap 8px。4px を超えると上下のチップと食い合う。 */
+.filter-chip::after{top:-4px;bottom:-4px;}
+
+/* モバイルの Flight Log だけ例外：⛶ と ↺ がヘッダ右上に絶対配置で 8px しか離れていない。
+   共通の 7px を当てると互いのタップを奪い合うので、⛶ は上へ・↺ は下へ広げ、
+   間は 4px ずつ（＝ちょうど接するだけ）に抑える。
+   ↺ の下側も 4px 止まり（それ以上下げると表の 1 行目に透明な的がかぶる）。 */
+@media(max-width:560px){
+  .table-section .table-tools > .card-expand-btn::after{top:-13px;bottom:-4px;}
+  .table-section .table-tools > .sort-reset-btn::after{top:-4px;bottom:-4px;}
+}
+/* ボタンの中身（文字・アイコン）は透明の的より前に置く。 */
+.toggle-btn > *,
+.filter-toggle-btn > *,
+.jump-btn > *,
+.map-globe-btn > *,
+.map-expand-btn > *{
+  position:relative;z-index:1;
 }
 
 /* ===================== TOUCH DEVICES: suppress :hover ===================== */
@@ -68,7 +148,7 @@
   .modal-tab:hover:not(.active) { color:var(--text-3); }
   .stat-box:hover { background:var(--surface-elev1); border-color:var(--surface-elev2); }
   .stat-box.is-clickable:hover { background:var(--surface-elev1); border-color:var(--surface-elev2); transform:none; box-shadow:none; }
-  .card:hover { border-color:var(--border); box-shadow:var(--shadow-card); transform:none; }
+  .card:hover { border-color:var(--border); box-shadow:var(--shadow-card); }
   .expanded-bar-col:hover { filter:none; }
   .ftable thead th:hover { color:var(--text-3); }
   .ftable tbody tr:hover { background:transparent; }
@@ -111,6 +191,8 @@
   .notify-close:hover { opacity:0.7; }
   .dc-add-btn:hover { background:rgba(var(--accent-rgb),0.12); border-color:rgba(var(--accent-rgb),0.35); }
   .filter-toggle-btn:hover { background:rgba(255,176,32,0.10); border-color:rgba(255,176,32,0.5); box-shadow:none; }
+  .jump-btn:hover { background:var(--bg-card); border-color:var(--border); color:var(--text-2); }
+  .jump-item:hover { background:transparent; color:var(--text-2); }
   .adv-filter-btn:hover { border-color:var(--border); color:var(--text-2); }
   .adv-preset:hover { border-color:var(--border); color:var(--text-2); }
   .adv-saved-edit:hover { border-color:var(--border); color:var(--text-3); }
@@ -147,6 +229,7 @@
   .map-globe-btn:active,
   .map-expand-btn:active,
   .filter-toggle-btn:active,
+  .jump-btn:active,
   .filter-clear:active,
   .adv-preset:active,
   .adv-saved-edit:active,
@@ -162,8 +245,7 @@
   .btn-danger-solid:hover,
   .file-upload-btn:hover,
   .stat-box.is-clickable:hover,
-  .stat-box.is-clickable:active,
-  .card:hover{
+  .stat-box.is-clickable:active{
     transform:none !important;
   }
 

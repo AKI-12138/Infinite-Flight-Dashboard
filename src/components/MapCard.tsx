@@ -57,7 +57,7 @@ export function MapCard({ flights, themePref, onGlobe, onExpand }: {
   };
 
   return (
-    <div className="map-section">
+    <div className="map-section" id="sec-map">
       <div className="map-card">
         <div className="map-header">
           <h3>🗺️ Route Map</h3>

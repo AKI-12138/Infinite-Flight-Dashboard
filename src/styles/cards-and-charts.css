@@ -8,6 +8,30 @@
 /* ===================== MAIN CONTENT ===================== */
 .main{max-width:1360px;margin:0 auto;padding:0 32px 60px;}
 
+/* セクション見出し（フェーズK-2・2026-08-18）。
+   分析カードが同じ面・同じ影で延々と続き、「内訳」と「推移」の切れ目が読み取れなかった。
+   ⚠️ 囲みカードは足さない。余白（上 32px / 下 14px）とプレーンな文字だけで区切る＝
+      面を増やすと情報より装飾が増えるため。カードのタイトル（15px/600）より
+      小さく・淡くして、見出しがカードを食わないようにする。 */
+.section-head{
+  margin:32px 2px 14px;
+  font-size:13px;font-weight:600;
+  color:var(--text-2);
+  text-transform:uppercase;letter-spacing:1.6px;
+}
+.section-head:first-child{margin-top:4px;}
+
+/* 「Jump」導線（K-3）の飛び先。貼り付いているフィルターバーの裏に潜り込まないよう、
+   バーの実測高（--sticky-top）＋余白 14px だけ手前で止める。
+   ⚠️ scroll-margin-top はレイアウトに影響しない（スクロール位置の計算にだけ効く）ので、
+      見た目は 1px も変わらない。 */
+#statsGrid,
+#sec-map,
+.section-head,
+#sec-log{
+  scroll-margin-top:calc(var(--sticky-top) + 14px);
+}
+
 /* Card
    フェーズJ-2（2026-08-18）：平らな枠線だけの面 → 影・上辺の光・ごく薄い傾斜で立体に。
    色（--card-sheen / --shadow-card）はテーマごとに foundation.css で定義。
@@ -19,13 +43,17 @@
   border:1px solid var(--border);border-radius:var(--radius);
   overflow:hidden;box-shadow:var(--shadow-card);
   transition:border-color var(--t-ui) var(--ease-out),
-             box-shadow var(--t-ui) var(--ease-out),
-             transform var(--t-ui) var(--ease-out);
+             box-shadow var(--t-ui) var(--ease-out);
 }
+/* フェーズK-1（2026-08-18）：hover から「浮き上がり（translateY）」を外した。
+   この UI では【浮く＝押せる】という語彙が既に成立している
+   （.stat-box.is-clickable / .btn-primary は浮き、実際に押せる）。
+   一方この .card は面そのものが操作対象ではなく、押せるのは中のトグルや ⛶ だけ。
+   面全体が動くと「カードを押せる」という嘘の合図になるので、動きは持たせない。
+   枠色と影の変化だけ残す＝「今ここにポインタがある」は伝わるが、押せる合図にはならない。 */
 .card:hover{
   border-color:var(--border-hover);
   box-shadow:var(--shadow-card-hover);
-  transform:translateY(-2px);
 }
 .card-header{
   padding:16px 20px;display:flex;align-items:center;justify-content:space-between;
@@ -54,7 +82,8 @@
 .toggle{display:flex;gap:3px;background:var(--border-soft);padding:3px;border-radius:var(--radius-sm);}
 .toggle-btn{
   padding:5px 14px;border:none;background:transparent;color:var(--text-3);
-  font-family:'Outfit';font-size:11px;font-weight:600;cursor:pointer;
+  /* フェーズK-2（2026-08-18）：操作ラベルは 11px → 12px。押す前に読む文字なので最優先で確保する。 */
+  font-family:'Outfit';font-size:12px;font-weight:600;cursor:pointer;
   border-radius:6px;transition:var(--tr-tint),var(--tr-press);text-transform:uppercase;letter-spacing:0.8px;
   white-space:nowrap;
 }

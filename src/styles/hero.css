@@ -113,7 +113,8 @@
 }
 .map-header h3{font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px;}
 /* 凡例は右寄せ（margin-left:auto）。アクション（.map-actions）はその直後に並ぶ。 */
-.map-legend{display:flex;gap:16px;font-size:11px;color:var(--text-2);margin-left:auto;}
+/* フェーズK-2（2026-08-18）：地図の凡例は読む文字なので 11px → 12px（モバイルは responsive.css で 10px → 12px）。 */
+.map-legend{display:flex;gap:16px;font-size:12px;color:var(--text-2);margin-left:auto;}
 .map-legend span{display:flex;align-items:center;gap:5px;}
 .map-legend .dot{width:8px;height:8px;border-radius:50%;}
 /* 3D Globe ボタンと拡大ボタンをまとめる。.card-actions と同じ gap:8px。 */

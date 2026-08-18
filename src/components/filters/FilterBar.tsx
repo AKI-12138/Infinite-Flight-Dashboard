@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { FilterState } from '../../lib/compute';
 import { FILTER_DEFS, _ADV_FILTER_KEYS, type FilterDef } from '../../lib/filters-config';
 import { filterStore } from '../../lib/filter-store';
@@ -6,6 +6,8 @@ import { useFilterVersion } from '../../hooks/useFilterState';
 import type { FilterOptionsMap } from '../../lib/filter-options';
 import { FilterChip } from './FilterChip';
 import { CHIP_META } from './chip-meta';
+import { SectionJump } from './SectionJump';
+import { scrollToTop, setStickyTop } from '../../lib/scroll';
 
 const _DEF_BY_KEY: Record<string, FilterDef> = Object.fromEntries(FILTER_DEFS.map((d) => [d.key, d]));
 
@@ -35,22 +37,34 @@ export function FilterBar({ options, onOpenAdvanced }: { options: FilterOptionsM
   const barKeys = filterStore.getBarChips();
 
   // sticky で上端に貼り付いたら影（.stuck）／スクロールで back-to-top（.show）。旧 _initFilterStickyShadow。
+  // フェーズK-3（2026-08-18）追加：同じ実測でバーの高さを --sticky-top へ書き出す。
+  // セクションへ飛ぶとき、この高さの分だけ手前で止めないと見出しがバーの裏に隠れるため
+  // （スクロール監視は増やさず、既にある rAF の中で 1 行測るだけ）。
+  const measure = useCallback(() => {
+    const bar = barRef.current;
+    if (!bar) return;
+    const r = bar.getBoundingClientRect();
+    const stuck = r.height > 0 && r.top <= 0;
+    bar.classList.toggle('stuck', stuck);
+    // 「上に戻る」：フィルターバーが上端に貼り付いて“ヘッダー化”したら出す
+    // （旧 scrollY>400 は route map まで下げないと出なかった）。
+    if (backTopRef.current) backTopRef.current.classList.toggle('show', stuck);
+    // 下へ飛べば必ず貼り付くので、いま貼り付いているかに関係なく実測値を入れる。
+    setStickyTop(r.height);
+  }, []);
+
   useEffect(() => {
     let ticking = false;
-    const apply = () => {
-      ticking = false;
-      const bar = barRef.current;
-      let stuck = false;
-      if (bar) { const r = bar.getBoundingClientRect(); stuck = r.height > 0 && r.top <= 0; bar.classList.toggle('stuck', stuck); }
-      // 「上に戻る」：フィルターバーが上端に貼り付いて“ヘッダー化”したら出す
-      // （旧 scrollY>400 は route map まで下げないと出なかった）。
-      if (backTopRef.current) backTopRef.current.classList.toggle('show', stuck);
-    };
-    const onScroll = () => { if (!ticking) { ticking = true; requestAnimationFrame(apply); } };
+    const onFrame = () => { ticking = false; measure(); };
+    const onScroll = () => { if (!ticking) { ticking = true; requestAnimationFrame(onFrame); } };
     window.addEventListener('scroll', onScroll, { passive: true });
-    apply();
+    measure();
     return () => window.removeEventListener('scroll', onScroll);
-  }, []);
+  }, [measure]);
+
+  // 折り畳み／展開でバーの高さが変わる（モバイルはチップが縦 1 列に並ぶので特に大きく変わる）。
+  // 描画確定後すぐ測り直して --sticky-top を合わせる。
+  useLayoutEffect(() => { measure(); }, [collapsed, measure]);
 
   return (
     <div ref={barRef} className={'filter-bar' + (collapsed ? ' collapsed' : '')} id="filterBar">
@@ -79,7 +93,9 @@ export function FilterBar({ options, onOpenAdvanced }: { options: FilterOptionsM
         </button>
         <button type="button" className="filter-clear" onClick={() => filterStore.clearAll()} title="Clear all filters" style={{ display: anyActive ? '' : 'none' }}>✕ Clear all</button>
       </div>
-      <button ref={backTopRef} type="button" className="back-to-top" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} aria-label="Back to top" title="Back to top">↑</button>
+      <button ref={backTopRef} type="button" className="back-to-top" onClick={scrollToTop} aria-label="Back to top" title="Back to top">↑</button>
+      {/* セクションへ飛ぶ導線（K-3）。表示はモバイルのみ（CSS で 860px 以下だけ表示）。 */}
+      <SectionJump onBeforeJump={() => setCollapsed(true)} />
     </div>
   );
 }

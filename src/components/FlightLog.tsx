@@ -150,7 +150,9 @@ export function FlightLog({ flights }: { flights: StoredFlight[] }) {
       {/* フルスクリーン時の背景（クリックで閉じる） */}
       <div className={'fullscreen-backdrop' + (fullscreen ? ' show' : '')} onClick={toggleFullscreen} />
 
-      <div className={'card table-section' + (fullscreen ? ' card-fullscreen' : '')}>
+      {/* id は上部フィルターバーの「Jump」導線（K-3）の飛び先。カード自身が
+          「Flight Log」という見出しを持つので、上に別の見出しは置かない。 */}
+      <div id="sec-log" className={'card table-section' + (fullscreen ? ' card-fullscreen' : '')}>
         <div className="card-header">
           <div className="card-title">📋 Flight Log</div>
           <div className="table-tools">

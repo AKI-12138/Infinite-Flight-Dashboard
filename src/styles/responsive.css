@@ -24,7 +24,9 @@
   .search-input{width:100%;}
   .table-tools{flex-direction:column;align-items:stretch;}
   .bar-label{width:90px;min-width:90px;font-size:11px;}
-  .bar-time{font-size:9px;width:54px;min-width:54px;}
+  /* フェーズK-2（2026-08-18）：9px → 11px（幅も +4px して桁落ちを防ぐ）。
+     ⚠️ このファイルの古い「K-7 / P-2」等は旧・静的版の採番で、今回の K とは別系統。 */
+  .bar-time{font-size:11px;width:58px;min-width:58px;}
   .card-header{flex-wrap:wrap;gap:10px;}
   .card-title{font-size:14px;}
   .select-bar{flex-wrap:wrap;gap:8px;}
@@ -73,8 +75,10 @@
   .bars-compact{padding:12px 14px;}
   .bar-row{gap:8px;}
   .bar-fill{font-size:10px;padding:0 8px;}
-  .bar-pct{font-size:9px;width:30px;min-width:30px;}
-  .bar-time{font-size:8px;width:44px;min-width:44px;}
+  /* フェーズK-2（2026-08-18）：実際に読む数値は 11px 以上へ。字だけ上げると同じルールの px 固定幅から
+     はみ出すので、幅もセットで広げる（bar-fill は min-width:fit-content なのでバーは潰れない）。 */
+  .bar-pct{font-size:11px;width:34px;min-width:34px;}
+  .bar-time{font-size:11px;width:56px;min-width:56px;}
   /* バー内時間は 32px 幅でも収まるよう 2 行へ折り返す */
   .expanded-bar-time-in{font-size:8px;white-space:normal;line-height:1.1;text-align:center;}
   .bar-track{height:26px;}
@@ -85,13 +89,14 @@
      - .map-legend は HTML 2 番目だが order:99 で row2 に落とす + width:100% + 中央揃え。 */
   .map-header{flex-wrap:wrap;gap:10px;row-gap:10px;}
   .map-legend{
-    font-size:10px;gap:10px;
+    font-size:12px;gap:10px; /* フェーズK-2（2026-08-18）：10px → 12px */
     order:99;width:100%;margin-left:0;justify-content:center;
   }
   .map-actions{margin-left:auto;}
   .ftable{min-width:580px;}
-  .ftable td{padding:8px 10px;font-size:11px;}
-  .ftable thead th{padding:10px;font-size:9px;}
+  /* フェーズK-2（2026-08-18）：表は横スクロールする領域なので、字を上げても行が壊れず読みやすさだけ上がる。 */
+  .ftable td{padding:8px 10px;font-size:12px;}
+  .ftable thead th{padding:10px;font-size:11px;}
   .expanded-bar-item{min-width:52px;padding:0 3px;}
   .expanded-bar-col{width:32px;}
   .expanded-bar-val{font-size:10px;}
@@ -144,6 +149,12 @@
   .filter-chips-group{
     gap:8px;flex-basis:100%;width:100%;
     flex-direction:column;align-items:stretch;
+    /* フェーズK-3（2026-08-18）：チップ群を最後尾に回す。
+       これが 1 行目に居ると、右端の「↑ 上に戻る」と「Jump ▾」が 2 行目へ押し出され、
+       Jump が画面左端に来る → 右揃えで開くメニューが画面外へはみ出す。
+       order を最後にすると 1 行目＝[FILTERS][↑][Jump]、2 行目＝チップ群 に固定でき、
+       Jump は開閉どちらでも常に右端＝メニューが必ず画面内に収まる。 */
+    order:99;
   }
   .filter-chips-group > .filter-chip{
     width:100%;box-sizing:border-box;

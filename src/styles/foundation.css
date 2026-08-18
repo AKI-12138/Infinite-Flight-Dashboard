@@ -62,6 +62,13 @@
              color var(--t-ui) var(--ease-out);
   --tr-press: transform var(--t-press) var(--ease-out);
   --tr-shadow: box-shadow var(--t-ui) var(--ease-out);
+
+  /* ── 上に貼り付いている帯の高さ（フェーズK-3・2026-08-18）───────────
+     フィルターバーが position:sticky; top:0 なので、セクションへ飛ぶと
+     見出しがバーの裏に隠れる。飛び先に scroll-margin-top を持たせて手前で止める。
+     実測値は FilterBar が毎スクロール書き込む（src/lib/scroll.ts の setStickyTop）。
+     0px は「バーが無い＝データ未登録」時のフォールバック。 */
+  --sticky-top: 0px;
   /* 汎用サーフェストークン（薄い半透明 overlay の階段）。テーマ切替で白基調 ↔ 黒基調が反転する。 */
   --surface-elev1: rgba(255,255,255,0.025);  /* カード等の控えめな塗り */
   --surface-elev2: rgba(255,255,255,0.04);   /* ホバー前のカード塗り、薄ボーダー塗り */
@@ -226,6 +233,15 @@
   outline: 2px solid var(--accent);
   outline-offset: 2px;
   border-radius: 4px;
+}
+/* 例外（ADV-011・2026-08-18）：モーダルを開いた瞬間にプログラムが当てる「中立フォーカス」。
+   ボタンだけの窓をマウスで／自動で開いたとき、フォーカスを窓の外に置き去りにしないために
+   幕そのものへフォーカスするが、これはユーザーが Tab で辿り着いた位置ではないので枠は出さない。
+   印（data-focus-neutral）は src/lib/focus-trap.ts が付け外しする。
+   ⚠️ 枠を消してよいのはこの要素だけ。Tab で到達できる要素の枠は絶対に消さない
+      （キーボードの人が現在位置を見失うため）。 */
+[data-focus-neutral]:focus-visible {
+  outline: none;
 }
 body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;-webkit-font-smoothing:antialiased;}
 ::-webkit-scrollbar{width:5px;height:5px;}

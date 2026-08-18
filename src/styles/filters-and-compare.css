@@ -40,7 +40,8 @@
   padding:6px 14px;background:rgba(255,176,32,0.10);
   border:1px solid rgba(255,176,32,0.5);
   border-radius:14px;color:var(--amber);font-family:'Outfit';
-  font-size:11px;text-transform:uppercase;letter-spacing:1.5px;font-weight:700;
+  /* フェーズK-2（2026-08-18）：操作ラベルは 12px 以上（11px → 12px） */
+  font-size:12px;text-transform:uppercase;letter-spacing:1.5px;font-weight:700;
   cursor:pointer;transition:var(--tr-tint),var(--tr-press),var(--tr-shadow);
 }
 .filter-toggle-btn:hover{
@@ -153,7 +154,8 @@
 .filter-clear{
   /* <button> なのでネイティブの背景・枠をリセット（旧版は <span> だった＝グレーの枠が出ない）。 */
   background:none;border:none;font-family:'Outfit';
-  font-size:11px;color:var(--text-3);cursor:pointer;padding:4px 10px;
+  /* フェーズK-2（2026-08-18）：操作ラベルは 12px 以上（11px → 12px） */
+  font-size:12px;color:var(--text-3);cursor:pointer;padding:4px 10px;
   border-radius:6px;transition:var(--tr-tint),var(--tr-press);
 }
 .filter-clear:hover{color:var(--red);background:rgba(var(--red-rgb),0.08);}
@@ -392,3 +394,39 @@
   margin-left:6px;
   color:var(--text-3);
 }
+
+
+/* ===================== SECTION JUMP（フェーズK-3・2026-08-18） =====================
+   長いモバイル画面の道案内。上に貼り付くフィルターバーの右端、「↑ 上に戻る」の隣に同居させる。
+   ⚠️ 表示はモバイルだけ（861px 以上ではページが約 3 画面分に収まり、導線より邪魔が勝つ）。
+      display:none で消すのでキーボードのタブ順からも外れる。 */
+.jump-wrap{position:relative;flex-shrink:0;display:none;}
+@media(max-width:860px){
+  .jump-wrap{display:block;}
+}
+.jump-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:6px 12px;background:var(--bg-card);border:1px solid var(--border);
+  border-radius:20px;font-family:'Outfit';font-size:12px;font-weight:500;color:var(--text-2);
+  cursor:pointer;transition:var(--tr-tint),var(--tr-press);
+}
+.jump-btn:hover{border-color:var(--border-hover);color:var(--text);}
+.jump-wrap.open .jump-btn{border-color:var(--accent);color:var(--accent);}
+.jump-arrow{font-size:10px;line-height:1;}
+/* メニューは chip-menu / header-menu と同じ素材・同じ影で揃える（新しい見た目を増やさない）。 */
+.jump-menu{
+  display:none;position:absolute;top:calc(100% + 6px);right:0;z-index:60;
+  min-width:180px;
+  background:var(--bg-card);border:1px solid var(--border-hover);border-radius:10px;
+  box-shadow:0 12px 32px rgba(0,0,0,0.45);
+  padding:5px;
+}
+.jump-wrap.open .jump-menu{display:block;}
+/* 上下 13px + 行の高さ 18px ＝ 44px。指で押す的なので、ここは最初から 44px で作る。 */
+.jump-item{
+  display:flex;align-items:center;width:100%;
+  padding:13px 12px;border-radius:7px;border:none;background:transparent;
+  font-family:'Outfit';font-size:13px;line-height:18px;color:var(--text-2);
+  text-align:left;cursor:pointer;transition:var(--tr-tint);white-space:nowrap;
+}
+.jump-item:hover{background:var(--surface-elev2);color:var(--text);}
