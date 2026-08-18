@@ -36,7 +36,7 @@ import { SelfCheckModal } from './components/modals/SelfCheckModal';
 // アプリのバージョン表記（フッター下部に表示）。旧・静的版と同じ「vX.Y」を手動で維持する。
 // ⚠️ これは旧版の cache-busting `?v=YYYYMMDD` とは無関係（キャッシュ破棄は Vite のハッシュが担当）。
 //    純粋に「ユーザーに見せるバージョン札」＝リリースの区切りで手で上げる（CHANGELOG.md の最新版と一致させる）。
-const APP_VERSION = 'v2.4';
+const APP_VERSION = 'v2.5';
 
 function App() {
   const flights = useFlights();          // DataSource 変化で自動更新（＝全フライト）

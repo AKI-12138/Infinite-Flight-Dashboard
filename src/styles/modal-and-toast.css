@@ -8,13 +8,14 @@
 /* ===================== MODAL ===================== */
 .modal-overlay{
   display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:200;
-  background:rgba(6,11,20,0.88);backdrop-filter:blur(16px);
+  background:var(--backdrop);backdrop-filter:var(--backdrop-blur);
   align-items:center;justify-content:center;padding:20px;
 }
 .modal-overlay.show{display:flex;}
 .modal{
   background:var(--bg-card);border:1px solid var(--border);border-radius:18px;
-  width:100%;max-width:520px;animation:slideUp 0.3s var(--ease-out);
+  width:100%;max-width:520px;box-shadow:var(--shadow-panel);
+  animation:panel-in 0.22s var(--ease-out);
   /* Cap height and let the body scroll, so action buttons never fall off-screen
      when import previews have many rows (esp. on mobile). */
   max-height:90vh;display:flex;flex-direction:column;

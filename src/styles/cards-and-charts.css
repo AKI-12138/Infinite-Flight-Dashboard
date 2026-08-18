@@ -91,7 +91,7 @@
 /* ===================== HORIZONTAL EXPANDED VIEW ===================== */
 .expanded-overlay{
   display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:100;
-  background:rgba(6,11,20,0.85);backdrop-filter:blur(12px);
+  background:var(--backdrop);backdrop-filter:var(--backdrop-blur);
   padding:40px 20px;overflow-y:auto;
   animation:fadeIn 0.25s ease;
 }
@@ -100,9 +100,15 @@
 .expanded-panel{
   background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);
   width:100%;max-width:1200px;max-height:85vh;overflow:hidden;
-  animation:slideUp 0.3s var(--ease-out);
+  box-shadow:var(--shadow-panel);
+  animation:panel-in 0.22s var(--ease-out);
 }
-@keyframes slideUp{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:translateY(0)}}
+/* 浮いているパネルの登場（J-3）。40px せり上がる動き → 奥からすっと実体化する動きへ。
+   移動距離が短いぶん速く（0.3s → 0.22s）、それでいて丁寧に見える。
+   ⚠️ scale(0) からは始めない（現実に「無から現れる物」は無く、不自然に見えるため）。
+   ⚠️ 中央寄せを transform でしている面（.card-fullscreen）があるので translate 系は使わない。
+      scale なら中心基準で拡縮するだけなので中央寄せを壊さない。 */
+@keyframes panel-in{from{opacity:0;transform:scale(0.965)}to{opacity:1;transform:none}}
 .expanded-header{
   padding:20px 24px;display:flex;align-items:center;justify-content:space-between;
   border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg-card);z-index:2;

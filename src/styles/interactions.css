@@ -168,10 +168,10 @@
   }
 
   /* 登場アニメーションは keyframes 自体を差し替える。
-     これで slideUp/slideDown を使う 11 箇所の宣言に手を入れずに、
+     これで panel-in/slideDown を使う 11 箇所の宣言に手を入れずに、
      「せり上がり」「スライドイン」だけを淡い表示へ落とせる。
      読み込み中の回転（globe-spin）は、止めると「固まった」に見えるのであえて残す。 */
-  @keyframes slideUp{from{opacity:0}to{opacity:1}}
+  @keyframes panel-in{from{opacity:0}to{opacity:1}}
   @keyframes slideDown{from{opacity:0}to{opacity:1}}
 
   /* データバーが伸びる演出（幅・高さの変化）も動きなので即座に確定させる。 */

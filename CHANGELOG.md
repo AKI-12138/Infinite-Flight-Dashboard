@@ -4,6 +4,15 @@ User-facing highlights for each version of **Infinite Flight Dashboard**. The ve
 matches the number in the dashboard footer. This is a summary of notable changes — smaller or
 internal-only updates may be grouped.
 
+## v2.5 — 2026-08-18
+Polish pass: the interface now responds, and has depth.
+
+- **Controls react the moment you press them** — buttons, chips and tabs now give instant feedback.
+- **Cards and panels have depth** — light along the top edge, a soft shadow underneath.
+- **Expanded views and dialogs use frosted glass** — the dashboard shows through, blurred, behind them.
+- **Reduced-motion is respected** — if your system asks for less movement, motion is removed while colour cues stay.
+- Fixed: in light theme, some dialogs dimmed the page differently from others.
+
 ## v2.4 — 2026-08-06
 Your flight notes gain a weather brain — and a lot more detail.
 

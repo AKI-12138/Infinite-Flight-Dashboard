@@ -15,7 +15,7 @@
 .map-globe-btn:hover{background:rgba(var(--accent-rgb),0.2);border-color:var(--accent);}
 .globe-overlay{
   display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:200;
-  background:var(--backdrop);backdrop-filter:blur(12px);
+  background:var(--backdrop);backdrop-filter:var(--backdrop-blur);
   align-items:center;justify-content:center;padding:24px;
 }
 .globe-overlay.show{display:flex;}
@@ -23,7 +23,8 @@
   background:var(--bg-card);border:1px solid var(--border);border-radius:14px;
   width:100%;max-width:1100px;height:85vh;max-height:880px;
   display:flex;flex-direction:column;overflow:hidden;
-  animation:slideUp 0.3s var(--ease-out);
+  box-shadow:var(--shadow-panel);
+  animation:panel-in 0.22s var(--ease-out);
 }
 .globe-header{
   padding:14px 20px;display:flex;align-items:center;justify-content:space-between;
@@ -66,7 +67,7 @@
 .map-expand-btn:hover{background:rgba(255,255,255,0.12);border-color:var(--text-2);color:var(--text-1);}
 .map-overlay{
   display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:200;
-  background:var(--backdrop);backdrop-filter:blur(12px);
+  background:var(--backdrop);backdrop-filter:var(--backdrop-blur);
   align-items:center;justify-content:center;padding:24px;
 }
 .map-overlay.show{display:flex;}
@@ -74,7 +75,8 @@
   background:var(--bg-card);border:1px solid var(--border);border-radius:14px;
   width:100%;max-width:1400px;height:90vh;max-height:920px;
   display:flex;flex-direction:column;overflow:hidden;
-  animation:slideUp 0.3s var(--ease-out);
+  box-shadow:var(--shadow-panel);
+  animation:panel-in 0.22s var(--ease-out);
 }
 .map-panel-header{
   padding:14px 20px;display:flex;align-items:center;justify-content:space-between;
@@ -87,7 +89,7 @@
 /* Continents カードの ⛶ ボタンで開く。インラインのドーナツを大きく見るための拡大表示。 */
 .continents-overlay{
   display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:200;
-  background:var(--backdrop);backdrop-filter:blur(12px);
+  background:var(--backdrop);backdrop-filter:var(--backdrop-blur);
   align-items:center;justify-content:center;padding:24px;
 }
 .continents-overlay.show{display:flex;}
@@ -95,7 +97,8 @@
   background:var(--bg-card);border:1px solid var(--border);border-radius:14px;
   width:100%;max-width:900px;height:85vh;max-height:820px;
   display:flex;flex-direction:column;overflow:hidden;
-  animation:slideUp 0.3s var(--ease-out);
+  box-shadow:var(--shadow-panel);
+  animation:panel-in 0.22s var(--ease-out);
 }
 /* ヘッダ：タイトルが余白を取り、アクション（表示形式トグル）と ✕ は右端に寄る（2026-07-12） */
 .continents-panel-header{
@@ -112,7 +115,7 @@
    一つのクラスに集約（Continents は doughnut 専用で凡例の余白が違うため別クラス）。 */
 .chart-overlay{
   display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:200;
-  background:var(--backdrop);backdrop-filter:blur(12px);
+  background:var(--backdrop);backdrop-filter:var(--backdrop-blur);
   align-items:center;justify-content:center;padding:24px;
 }
 .chart-overlay.show{display:flex;}
@@ -120,7 +123,8 @@
   background:var(--bg-card);border:1px solid var(--border);border-radius:14px;
   width:100%;max-width:1100px;height:80vh;max-height:720px;
   display:flex;flex-direction:column;overflow:hidden;
-  animation:slideUp 0.3s var(--ease-out);
+  box-shadow:var(--shadow-panel);
+  animation:panel-in 0.22s var(--ease-out);
 }
 .chart-panel-header{
   padding:14px 20px;display:flex;align-items:center;gap:12px;
@@ -136,7 +140,7 @@
    横方向の list 表示。集計バーではなく flight オブジェクトを 1 行ずつ並べる。 */
 .flights-overlay{
   display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:200;
-  background:var(--backdrop);backdrop-filter:blur(12px);
+  background:var(--backdrop);backdrop-filter:var(--backdrop-blur);
   align-items:center;justify-content:center;padding:24px;
 }
 .flights-overlay.show{display:flex;}
@@ -144,7 +148,8 @@
   background:var(--bg-card);border:1px solid var(--border);border-radius:14px;
   width:100%;max-width:1100px;height:90vh;max-height:900px;
   display:flex;flex-direction:column;overflow:hidden;
-  animation:slideUp 0.3s var(--ease-out);
+  box-shadow:var(--shadow-panel);
+  animation:panel-in 0.22s var(--ease-out);
 }
 .flights-panel-header{
   padding:14px 20px;display:flex;align-items:center;justify-content:space-between;
@@ -208,19 +213,22 @@
 /* 他のカード拡大オーバーレイ（flights / continents / map / globe）と同じ
    中央配置・固定サイズパターン。backdrop の上に乗る形。 */
 .card.card-fullscreen{
-  /* inset:0 + margin:auto で中央寄せ。transform は slideUp アニメーション専用に空けておく
-     （translate(-50%,-50%) で中央寄せすると、slideUp の translateY が transform を上書きして
-       アニメ中だけ中央寄せが外れる現象が起きるため） */
+  /* inset:0 + margin:auto で中央寄せ。transform は登場アニメーション（panel-in）専用に空けておく。
+     元々は translate(-50%,-50%) で中央寄せしていたが、旧 slideUp の translateY が transform を
+     上書きしてアニメ中だけ中央寄せが外れたため、この方式にした経緯がある。
+     J-3 で panel-in（scale のみ）に変えたのでその衝突自体は解消したが、
+     transform を1つの用途に限る設計は維持する（下の hover 打ち消しがこれに依存している）。 */
   position:fixed;inset:0;margin:auto;
   width:calc(100% - 48px);max-width:1280px;
   height:90vh;max-height:900px;
   z-index:200;
   display:flex;flex-direction:column;overflow:hidden;
-  animation:slideUp 0.3s var(--ease-out);
+  box-shadow:var(--shadow-panel);
+  animation:panel-in 0.22s var(--ease-out);
 }
 /* 全画面のときは「浮いているカード」ではなく画面を占める面なので、傾斜を外して平らに戻す。
    ⚠️ hover の浮き上がり（J-2 で .card に追加）は必ず打ち消すこと。
-      transform は上のコメントどおり slideUp 専用に空けてある枠で、
+      transform は上のコメントどおり panel-in 専用に空けてある枠で、
       hover の translateY が残ると、アニメ後にパネル全体が 2px ずれる。 */
 .card.card-fullscreen{background:var(--bg-card);}
 .card.card-fullscreen:hover{transform:none;}
@@ -229,7 +237,7 @@
 }
 .fullscreen-backdrop{
   display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:199;
-  background:var(--backdrop);backdrop-filter:blur(12px);
+  background:var(--backdrop);backdrop-filter:var(--backdrop-blur);
 }
 .fullscreen-backdrop.show{display:block;}
 body.has-fullscreen-card{overflow:hidden;}
