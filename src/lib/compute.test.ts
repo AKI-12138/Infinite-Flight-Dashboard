@@ -68,11 +68,13 @@ beforeEach(() => setFilter({}));
 describe('_flightDomesticState（三値判定）', () => {
   it('同一国 → domestic',            () => expect(_flightDomesticState({dep:'RJTT', arr:'RJAA'})).toBe('domestic'));
   it('別国 → international',          () => expect(_flightDomesticState({dep:'RJTT', arr:'KSEA'})).toBe('international'));
-  it('同一管轄(DK⇄GL) → domestic',   () => expect(_flightDomesticState({dep:'EKCH', arr:'BGGH'})).toBe('domestic'));
+  it('同一管轄(DK⇄FO) → domestic',   () => expect(_flightDomesticState({dep:'EKCH', arr:'EKVG'})).toBe('domestic'));
+  it('別管轄(DK/GL) → international', () => expect(_flightDomesticState({dep:'EKCH', arr:'BGGH'})).toBe('international'));
+  it('グリーンランド内は co 一致 → domestic', () => expect(_flightDomesticState({dep:'BGGH', arr:'BGBW'})).toBe('domestic'));
   it('別管轄(CN/HK) → international', () => expect(_flightDomesticState({dep:'ZBAA', arr:'VHHH'})).toBe('international'));
   it('dep 未収録 → unknown',         () => expect(_flightDomesticState({dep:'ZZZZ', arr:'RJTT'})).toBe('unknown'));
   it('arr 未収録 → unknown',         () => expect(_flightDomesticState({dep:'RJTT', arr:'ZZZZ'})).toBe('unknown'));
-  it('forceIntl が管轄国内を上書き → international', () => expect(_flightDomesticState({dep:'EKCH', arr:'BGBW'})).toBe('international'));
+  it('forceIntl が管轄国内を上書き → international', () => expect(_flightDomesticState({dep:'KSEA', arr:'TJSJ'})).toBe('international'));
   it('co 一致は forceIntl より優先 → domestic',     () => expect(_flightDomesticState({dep:'KSEA', arr:'KFRC'})).toBe('domestic'));
 });
 
@@ -87,12 +89,12 @@ describe('getFiltered（フィルタ述語：全 5 便のフィクスチャを�
 });
 
 describe('scope フィルタ（unknown は両方から除外）', () => {
-  it('scope domestic → 2 件', () => { setFilter({scope:['domestic']}); expect(getFiltered(flights).length).toBe(2); });
+  it('scope domestic → 1 件', () => { setFilter({scope:['domestic']}); expect(getFiltered(flights).length).toBe(1); });
   it('scope domestic に unknown便(ZZZZ)を含まない', () => { setFilter({scope:['domestic']}); expect(getFiltered(flights).some(f=>f.arr==='ZZZZ')).toBe(false); });
-  it('scope international → 2 件', () => { setFilter({scope:['international']}); expect(getFiltered(flights).length).toBe(2); });
+  it('scope international → 3 件', () => { setFilter({scope:['international']}); expect(getFiltered(flights).length).toBe(3); });
   it('scope international に unknown便(ZZZZ)を含まない', () => { setFilter({scope:['international']}); expect(getFiltered(flights).some(f=>f.arr==='ZZZZ')).toBe(false); });
   it('scope 両選択 → 絞り込み無し(全 5 件)', () => { setFilter({scope:['domestic','international']}); expect(getFiltered(flights).length).toBe(5); });
-  it('複合: 2025 かつ domestic → 1 件', () => { setFilter({years:['2025'], scope:['domestic']}); expect(getFiltered(flights).length).toBe(1); });
+  it('複合: 2025 かつ international → 2 件', () => { setFilter({years:['2025'], scope:['international']}); expect(getFiltered(flights).length).toBe(2); });
 });
 
 describe('isAnyFilterActive', () => {
