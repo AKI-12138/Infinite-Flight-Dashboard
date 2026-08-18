@@ -5,6 +5,7 @@ import { useFilterVersion } from '../../hooks/useFilterState';
 import { pushEscape } from '../../lib/escape-stack';
 import { ChipMenu } from './ChipMenu';
 import { chipMenuBus } from './chip-menu-bus';
+import { closeMenuRestoringFocus } from '../../lib/menu-focus';
 
 // チップに出すラベル（旧 _chipLabel）：0件→All ラベル / 1件→その値 / 2件以上→"値 +N"。
 function chipLabel(def: FilterDef, values: string[]): string {
@@ -45,11 +46,15 @@ export function FilterChip({ def, emoji, dataOptions, title }: {
   const [open, setOpen] = useState(false);
   const chipRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const btnRef = useRef<HTMLButtonElement>(null); // 閉じたときのフォーカスの戻り先
 
   const values = (FilterState as unknown as Record<string, string[]>)[def.stateKey];
   const active = values.length > 0;
 
   const close = useCallback(() => { setOpen(false); }, []);
+  // Escape で閉じるとき用。メニューの中身は閉じると unmount されるので、
+  // 項目にフォーカスが載ったままだと body へ落ちる。理由は src/lib/menu-focus.ts に集約。
+  const closeWithFocus = useCallback(() => { closeMenuRestoringFocus(btnRef.current, close); }, [close]);
 
   // 開いている間だけ：外側クリック / ESC で閉じる。
   useLayoutEffect(() => {
@@ -62,12 +67,12 @@ export function FilterChip({ def, emoji, dataOptions, title }: {
     };
     document.addEventListener('mousedown', onDown);
     // ESC はスタック経由＝高度パネルの上でメニューが開いていれば、メニューだけ先に閉じる。
-    const releaseEsc = pushEscape(close);
+    const releaseEsc = pushEscape(closeWithFocus);
     return () => {
       document.removeEventListener('mousedown', onDown);
       releaseEsc();
     };
-  }, [open, close]);
+  }, [open, close, closeWithFocus]);
 
   return (
     <div
@@ -75,7 +80,7 @@ export function FilterChip({ def, emoji, dataOptions, title }: {
       className={'filter-chip filter-chip-multi' + (active ? ' active' : '') + (open ? ' open' : '')}
       data-chip={def.key}
     >
-      <button type="button" className="chip-btn" title={title} onClick={(e) => { e.stopPropagation(); setOpen((v) => !v); }}>
+      <button ref={btnRef} type="button" className="chip-btn" title={title} onClick={(e) => { e.stopPropagation(); setOpen((v) => !v); }}>
         <span>{emoji}</span>
         <span className="chip-label" data-label={def.key}>{chipLabel(def, values)}</span>
         <span className="chip-arrow">▾</span>

@@ -7,6 +7,7 @@ import { unrecognizedCount } from '../lib/data-check';
 import { runSelfChecks } from '../lib/self-check';
 import { StatsGrid } from './StatsGrid';
 import { SaveStatusModal, type SaveState } from './SaveStatusModal';
+import { closeMenuRestoringFocus } from '../lib/menu-focus';
 
 // ヘッダ（旧 index.html の .hero を移植）。
 // フェーズS のヘッダー再編に準拠：塗り CTA は Add Flight のみ、
@@ -40,6 +41,9 @@ export function Hero({
   const [openMenu, setOpenMenu] = useState<MenuId>(null);
   const [saveStatusOpen, setSaveStatusOpen] = useState(false);
   const actionsRef = useRef<HTMLDivElement>(null);
+  // メニューを閉じたときにフォーカスを戻す先（≡ / ⚙️ のトリガーボタン）。
+  const dataBtnRef = useRef<HTMLButtonElement>(null);
+  const settingsBtnRef = useRef<HTMLButtonElement>(null);
 
   // 保存ステータス（旧 _setSaveStatus）：ストレージ不可＝disabled／直近保存失敗＝error／通常＝ok。
   const { saveError, storageAvailable } = useDataSourceStatus();
@@ -57,24 +61,36 @@ export function Hero({
     if (openMenu === 'settings') setSelfCheckFails(runSelfChecks().filter((r) => !r.ok).length);
   }, [openMenu]);
 
+  const close = () => setOpenMenu(null);
+  // 開いているメニューのトリガーボタン（フォーカスの戻り先）。
+  const openTrigger = () =>
+    (openMenu === 'data' ? dataBtnRef.current : openMenu === 'settings' ? settingsBtnRef.current : null);
+  // Escape ／ 項目の選択で閉じるとき用。理由と注意は src/lib/menu-focus.ts に集約。
+  const closeWithFocus = () => closeMenuRestoringFocus(openTrigger(), close);
+
   // メニュー外クリック / ESC で閉じる（旧 closeHeaderMenus 相当）。
   useEffect(() => {
     if (!openMenu) return;
+    // ⚠️ 外側クリックではフォーカスを戻さない（押した先の要素から奪い返さないため）。
     const onDown = (e: MouseEvent) => {
       if (actionsRef.current && !actionsRef.current.contains(e.target as Node)) setOpenMenu(null);
     };
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpenMenu(null); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') closeWithFocus(); };
     document.addEventListener('mousedown', onDown);
     document.addEventListener('keydown', onKey);
     return () => {
       document.removeEventListener('mousedown', onDown);
       document.removeEventListener('keydown', onKey);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [openMenu]);
 
   const toggle = (id: Exclude<MenuId, null>) => setOpenMenu((cur) => (cur === id ? null : id));
-  const close = () => setOpenMenu(null);
-  const run = (fn: () => void) => { close(); fn(); };
+  // 項目を選んだとき：**先に**トリガーへフォーカスを戻してから処理を走らせる。
+  // モーダルを開く項目（Import / Export / Data check …）はこの順番が重要で、
+  // focus-trap は「開いた瞬間の activeElement」を復帰先に覚えるため、
+  // ここで body に落ちていると、モーダルを閉じたあと戻る先が無くなる。
+  const run = (fn: () => void) => { closeWithFocus(); fn(); };
 
   return (
     <div className="hero">
@@ -103,6 +119,7 @@ export function Hero({
             {/* ② 機能メニュー ≡（検索 / Data check / Import / Export / Clear all） */}
             <div className={'header-menu-wrap' + (openMenu === 'data' ? ' open' : '')} id="dataMenuWrap">
               <button
+                ref={dataBtnRef}
                 className="header-icon-btn" id="btnDataMenu"
                 onClick={() => toggle('data')}
                 title="Menu" aria-haspopup="true" aria-expanded={openMenu === 'data'} aria-controls="dataMenu"
@@ -135,6 +152,7 @@ export function Hero({
             {/* ③ 設定メニュー ⚙️（テーマ auto/light/dark） */}
             <div className={'header-menu-wrap' + (openMenu === 'settings' ? ' open' : '')} id="settingsMenuWrap">
               <button
+                ref={settingsBtnRef}
                 className="header-icon-btn" id="btnSettingsMenu"
                 onClick={() => toggle('settings')}
                 title={`Settings · Theme: ${THEME_LABELS[theme.pref]}`}

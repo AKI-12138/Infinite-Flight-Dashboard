@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { scrollToId } from '../../lib/scroll';
+import { closeMenuRestoringFocus } from '../../lib/menu-focus';
 
 // セクションへ飛ぶ小さな導線（フェーズK-3・2026-08-18）。
 //
@@ -25,14 +26,22 @@ const TARGETS: { id: string; label: string }[] = [
 export function SectionJump({ onBeforeJump }: { onBeforeJump: () => void }) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
+
+  // 閉じる＋トリガー（Jump ボタン）へフォーカスを戻す。理由と注意は menu-focus.ts に集約。
+  function closeAndRestoreFocus() {
+    closeMenuRestoringFocus(btnRef.current, () => setOpen(false));
+  }
 
   // メニュー外クリック / ESC で閉じる（ヘッダーメニューと同じ作法）。
   useEffect(() => {
     if (!open) return;
+    // ⚠️ 外側クリックではフォーカスを戻さない。押した先の要素が自然にフォーカスを受け取るので、
+    //    ここで戻すと「今クリックしたもの」からフォーカスを奪ってしまう。
     const onDown = (e: MouseEvent) => {
       if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false);
     };
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') closeAndRestoreFocus(); };
     document.addEventListener('mousedown', onDown);
     document.addEventListener('keydown', onKey);
     return () => {
@@ -42,7 +51,7 @@ export function SectionJump({ onBeforeJump }: { onBeforeJump: () => void }) {
   }, [open]);
 
   function jump(id: string) {
-    setOpen(false);
+    closeAndRestoreFocus();
     // 先にフィルターを畳む。展開中のバーは上端に貼り付いたまま画面の 1/3 を占め、
     // その高さの分だけ飛び先が下にずれてしまうため。
     onBeforeJump();
@@ -54,6 +63,7 @@ export function SectionJump({ onBeforeJump }: { onBeforeJump: () => void }) {
   return (
     <div ref={wrapRef} className={'jump-wrap' + (open ? ' open' : '')}>
       <button
+        ref={btnRef}
         type="button" className="jump-btn"
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu" aria-expanded={open}

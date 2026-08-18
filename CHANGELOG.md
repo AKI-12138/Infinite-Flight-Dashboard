@@ -5,13 +5,19 @@ matches the number in the dashboard footer. This is a summary of notable changes
 internal-only updates may be grouped.
 
 ## v2.5 — 2026-08-18
-Polish pass: the interface now responds, and has depth.
+Polish pass: the interface now responds, has depth, and is easier to use on a phone.
 
 - **Controls react the moment you press them** — buttons, chips and tabs now give instant feedback.
 - **Cards and panels have depth** — light along the top edge, a soft shadow underneath.
 - **Expanded views and dialogs use frosted glass** — the dashboard shows through, blurred, behind them.
 - **Reduced-motion is respected** — if your system asks for less movement, motion is removed while colour cues stay.
+- **Jump straight to a section on mobile** — a "Jump" menu in the filter bar takes you to Overview, Map, Breakdowns, Trends or the Flight Log.
+- **Easier to tap** — small controls now have a larger touch area, without looking any bigger.
+- **Breakdowns and Trends are now labelled** — the long list of cards is split into named sections.
+- **Small labels and figures are easier to read on a phone** — control labels, the map legend and the flight table were nudged up a size.
+- Fixed: hovering a card no longer makes it lift as if it were clickable.
 - Fixed: in light theme, some dialogs dimmed the page differently from others.
+- Fixed: the "Welcome back" dialog no longer looks like a button is already selected.
 
 ## v2.4 — 2026-08-06
 Your flight notes gain a weather brain — and a lot more detail.
