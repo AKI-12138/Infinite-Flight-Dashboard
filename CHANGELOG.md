@@ -18,6 +18,7 @@ Polish pass: the interface now responds, has depth, and is easier to use on a ph
 - Fixed: hovering a card no longer makes it lift as if it were clickable.
 - Fixed: in light theme, some dialogs dimmed the page differently from others.
 - Fixed: the "Welcome back" dialog no longer looks like a button is already selected.
+- Fixed: on phones and tablets, the notes button in the flight log needed two taps to open.
 
 ## v2.4 — 2026-08-06
 Your flight notes gain a weather brain — and a lot more detail.

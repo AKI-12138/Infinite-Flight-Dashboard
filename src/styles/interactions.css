@@ -152,6 +152,14 @@
   .expanded-bar-col:hover { filter:none; }
   .ftable thead th:hover { color:var(--text-3); }
   .ftable tbody tr:hover { background:transparent; }
+  /* ⚠️ 2026-08-19 修正：ここが「メモ 📝 ボタンが 2 回タップしないと開かない」原因だった。
+     行の ✕（削除）は既定で opacity:0 で、行の :hover で初めて現れる作りになっていた。
+     タッチ端末には hover が無いので、iOS Safari は「1 回目のタップ＝hover 適用、2 回目＝クリック」
+     という救済動作をする。**hover で見た目が変わる要素が行の中にある**かぎり、その行のどのボタンを
+     押しても 1 回目が hover に食われる（＝📝 も ✕ も 2 度押しになる）。
+     対策＝タッチ端末では ✕ を最初から出しておく。hover による変化が無くなるので 1 回で反応する。
+     （削除自体は confirm ダイアログを挟むので、常時表示でも誤操作で消えることはない） */
+  .ftable tbody tr .row-delete-btn { opacity:1; }
   .ftable tbody tr.selected:hover { background:rgba(var(--red-rgb),0.04); }
   .row-delete-btn:hover { background:rgba(var(--red-rgb),0.08); border-color:transparent; }
   .row-note-btn:hover { background:rgba(var(--accent-rgb),0.08); border-color:transparent; }
