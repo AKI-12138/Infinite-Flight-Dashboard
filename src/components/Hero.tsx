@@ -134,17 +134,19 @@ export function Hero({
                   Data check
                 </button>
                 <div className="header-menu-divider" role="separator"></div>
+                {/* Import/Export だけ矢印を持つ（記号グリフ＝全 OS 共通・向きが唯一の意味の担い手）。
+                    向きは端末から見た方向＝取り込みは ↑（ファイルを上げる）／書き出しは ↓（ダウンロード）。 */}
                 <button className="header-menu-item" id="btnHeaderImport" role="menuitem" onClick={() => run(onImport)}>
-                  Import
+                  <span className="header-menu-ico" aria-hidden="true">↑</span>Import
                 </button>
                 <button className="header-menu-item" id="btnExport" role="menuitem" onClick={() => run(onExport)}>
-                  Export
+                  <span className="header-menu-ico" aria-hidden="true">↓</span>Export
                 </button>
                 <button
                   className="header-menu-item is-danger" id="btnClearAllHeader" role="menuitem"
                   onClick={() => run(onClearAll)} title="Delete all flights"
                 >
-                  Clear all
+                  <span className="header-menu-ico" aria-hidden="true">✕</span>Clear all
                 </button>
               </div>
             </div>

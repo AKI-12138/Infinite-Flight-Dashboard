@@ -67,7 +67,7 @@
       .filter-toggle-btn        29px    上下 8px       104x45px   バーの padding 14px 内
       .jump-btn                 29px    上下 8px        68x45px   同上
       .back-to-top              30px    上下左右 7px    44x44px   同上
-      .filter-chip              31px    上下 4px         全幅x39   モバイルは縦 1 列・gap 8px
+      .chip-btn (チップ)        31px    上下 4px         全幅x39   モバイルは縦 1 列・gap 8px
                                                                  → 4px 超で隣のチップと食い合う
       .row-note-btn / delete     27px   上下 7px         〜41px    表の行間がこれ以上ない
       ※ モバイルの Flight Log の ⛶／↺ は例外扱い（下の @media 参照）＝実測 47px／38px。
@@ -83,7 +83,7 @@
 .filter-toggle-btn,
 .back-to-top,
 .jump-btn,
-.filter-chip,
+.filter-chip-multi .chip-btn,
 .row-note-btn,
 .row-delete-btn{
   position:relative;
@@ -95,7 +95,7 @@
 .filter-toggle-btn::after,
 .back-to-top::after,
 .jump-btn::after,
-.filter-chip::after,
+.filter-chip-multi .chip-btn::after,
 .row-note-btn::after,
 .row-delete-btn::after{
   content:'';position:absolute;z-index:0;
@@ -111,8 +111,13 @@
 .map-expand-btn::after,
 .filter-toggle-btn::after,
 .jump-btn::after{top:-8px;bottom:-8px;}
-/* モバイルのチップは縦 1 列・gap 8px。4px を超えると上下のチップと食い合う。 */
-.filter-chip::after{top:-4px;bottom:-4px;}
+/* モバイルのチップは縦 1 列・gap 8px。4px を超えると上下のチップと食い合う。
+   ⚠️ 的は **チップの外枠 .filter-chip ではなく、中の .chip-btn に付ける**。
+   .filter-chip は <div>（押せない外枠）で、実際の onClick は中の <button class="chip-btn"> にある。
+   外枠に ::after を付けると、透明な的が **その button の上に重なって**クリックを奪い、
+   ドロップダウンが一切開かなくなる（position 付き擬似要素は position:static の子より上に描かれるため）。
+   → 2026-08-18〜2026-08-21 の公開版で実際に発生。的は必ず「onClick を持つ要素自身」に付けること。 */
+.filter-chip-multi .chip-btn::after{top:-4px;bottom:-4px;}
 
 /* モバイルの Flight Log だけ例外：⛶ と ↺ がヘッダ右上に絶対配置で 8px しか離れていない。
    共通の 7px を当てると互いのタップを奪い合うので、⛶ は上へ・↺ は下へ広げ、

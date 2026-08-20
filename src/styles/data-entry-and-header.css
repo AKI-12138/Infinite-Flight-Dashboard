@@ -279,15 +279,20 @@
 }
 .header-menu-wrap.open .header-menu{display:block;}
 
+/* ⚠️ アイコン用の固定幅スロットは作らない（オーナー指定 2026-08-21）。
+   グリフ（Import の ↑・Status の ✓）は「ラベルの先頭の 1 文字」として扱う＝
+   **全項目が同じ左端から始まり、グリフを持つ行だけ文字がその分だけ右にずれる**。
+   固定幅スロット案（padding-left で 18px 予約）は試したが、グリフの無い項目まで
+   字下げされて見えるため不採用。 */
 .header-menu-item{
-  display:flex;align-items:center;gap:10px;width:100%;
+  display:flex;align-items:center;gap:6px;width:100%;
   padding:9px 12px;border-radius:7px;border:none;background:transparent;
   font-family:'Outfit';font-size:13px;color:var(--text-2);
   text-align:left;cursor:pointer;transition:background 0.15s,color 0.15s;
   white-space:nowrap;
 }
 .header-menu-item:hover{background:var(--surface-elev2);color:var(--text);}
-.header-menu-ico{font-size:14px;line-height:1;flex-shrink:0;width:18px;text-align:center;}
+.header-menu-ico{font-size:14px;line-height:1;flex-shrink:0;}
 .header-menu-sub{color:var(--text-3);font-size:11px;}
 .header-menu-divider{height:1px;background:var(--border);margin:5px 8px;}
 .header-menu-label{
