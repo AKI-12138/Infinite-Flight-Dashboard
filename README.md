@@ -1,6 +1,6 @@
 <div align="center">
 
-# ✈️ Infinite Flight Dashboard
+# Infinite Flight Dashboard
 
 **A beautiful flight log dashboard for [Infinite Flight](https://infiniteflight.com) pilots.**
 
@@ -33,7 +33,7 @@ Built for IF pilots who want to actually *see* their journey: which aircraft the
 - **A world map of your routes** — every flight drawn as a great-circle line, your hubs and airports marked
 - **Spin your routes on a 3D globe** — auto-rotating; drag to inspect from any angle, or pause the spin
 - **Powerful filtering** — a **customizable** quick bar (pick up to 6 chips; defaults: year, month, airline, aircraft, country, scope) plus an **⚙ Advanced filters** panel for everything else: departure / arrival airports, cities, countries and continents, within-vs-across-continent, and flight duration (buckets or a custom range) — with searchable menus, one-click **presets**, and your own **saveable presets**. Or just click any chart bar to drill in. Built-in year-over-year comparison shows how your flying has grown
-- **Flight notes for every flight** — a 📝 notes page per flight, styled like a paper logbook, for what stats can't hold: flight number & callsign (airline-aware suggestions), registration, OUT/OFF/ON/IN times — type local, **UTC is computed automatically** from each airport's timezone — taxi times (total auto-summed), V-speeds, takeoff/landing configuration, cruise altitude & Mach, distance, load & fuel, route, SID/STAR, runways, approach, alternate airport, **METARs decoded in plain English**, and free notes. Date, route, aircraft and airline fill in from your log automatically. Every field is optional; notes never affect your stats or CSV. Sort the Flight Log by which flights have notes
+- **Flight notes for every flight** — a notes page per flight, styled like a paper logbook, for what stats can't hold: flight number & callsign (airline-aware suggestions), registration, OUT/OFF/ON/IN times — type local, **UTC is computed automatically** from each airport's timezone — taxi times (total auto-summed), V-speeds, takeoff/landing configuration, cruise altitude & Mach, distance, load & fuel, route, SID/STAR, runways, approach, alternate airport, **METARs decoded in plain English**, and free notes. Date, route, aircraft and airline fill in from your log automatically. Every field is optional; notes never affect your stats or CSV. Sort the Flight Log by which flights have notes
 - **Easy import** — paste your flight log in almost any format. The dashboard figures out dates, aircraft codes, and airline names automatically
 - **Full backup in one file** — export flights, custom airports *and* notes as a single JSON; drop it into Import on any device to restore everything
 - **Built-in function-test** — ⚙ Settings → **Function-test** checks the app's health right in your browser (storage, data integrity, logic) and shows only what failed, with a bug-report link
@@ -54,7 +54,7 @@ Just open this link in any modern browser — no install, no signup:
 
 The first time you open it, you'll see an empty dashboard with two buttons — **Import CSV** (if you already have a flight log) or **Add your first flight** (start fresh). The rest of this guide explains everything you can do once you're in.
 
-> 💡 **Tip:** On mobile, you can "Add to Home Screen" from your browser's share menu to make the dashboard feel like an app.
+> **Tip:** On mobile, you can "Add to Home Screen" from your browser's share menu to make the dashboard feel like an app.
 
 ## How to use
 
@@ -68,7 +68,7 @@ The header keeps just one primary button plus two compact menus:
 
 ### Importing flights from CSV
 
-Open the **≡ menu → 📥 Import** (header) or click **📂 Import CSV** (empty state), then either select a file or paste the CSV directly.
+Open the **≡ menu → Import** (header) or click **Import CSV** (empty state), then either select a file or paste the CSV directly.
 
 **Required format (6 columns):**
 
@@ -127,10 +127,10 @@ Handy touches: type plain numbers and units (kt / nm / kg) appear automatically,
 
 The app ships with **hundreds of airports** built-in (major hubs worldwide). If you fly to a minor or military field that's not recognized, you'll see "Unknown airport" markers on the map. To fix that, add the airport manually.
 
-**The easy way (one airport):** open the **≡ menu → 🩺 Data check**, find the unrecognized airport in the list, and click **+ Add**. A small form opens with the ICAO code already filled in — enter the coordinates, city, country, and continent, then save. There's a link right in the form to look the coordinates up.
+**The easy way (one airport):** open the **≡ menu → Data check**, find the unrecognized airport in the list, and click **+ Add**. A small form opens with the ICAO code already filled in — enter the coordinates, city, country, and continent, then save. There's a link right in the form to look the coordinates up.
 
 **The bulk way (many airports, via CSV):**
-1. Open the **≡ menu → 📥 Import**, then switch to the **🛩 Airports** tab
+1. Open the **≡ menu → Import**, then switch to the **Airports** tab
 2. Paste a CSV row in this format:
 
 ```
@@ -177,7 +177,7 @@ You need **decimal degrees** (DD), not degrees-minutes-seconds (DMS). 4-6 decima
 
 ### Data check
 
-Open the **≡ menu → 🩺 Data check** to see anything in your log the app doesn't recognize:
+Open the **≡ menu → Data check** to see anything in your log the app doesn't recognize:
 
 - **Unrecognized airports** — codes with no coordinates, so they're missing from the map and left out of the Domestic / International and country counts. Each one has a **+ Add** button to add it on the spot (see [Adding a custom airport](#adding-a-custom-airport) above).
 - **Unrecognized aircraft** — type codes the app doesn't know (they still count, just without grouping).
@@ -214,9 +214,9 @@ Filtering has two layers that work together.
 
 **The quick bar** — click **FILTERS ▾** to open it. Six multi-select chips:
 
-- 🗓 **Year** · 📅 **Month** · 🏢 **Airline** · ✈️ **Aircraft** · 🏞 **Country/Region** · 🌐 **Scope** (All / Domestic / International)
+- **Year** · **Month** · **Airline** · **Aircraft** · **Country/Region** · **Scope** (All / Domestic / International)
 
-**Make the bar yours** — open **⚙ Settings → 🧰 Customize filter bar** to choose which chips live on the quick bar (up to 6, from all 20 filters including departure / arrival splits). Tick the ones you want and press **Done** — nothing changes until you do; select none to fall back to the default six.
+**Make the bar yours** — open **⚙ Settings → Customize filter bar** to choose which chips live on the quick bar (up to 6, from all 20 filters including departure / arrival splits). Tick the ones you want and press **Done** — nothing changes until you do; select none to fall back to the default six.
 
 **⚙ Advanced filters** — the **⚙ More** button (right of the bar) opens a panel with the full set, grouped by category:
 
@@ -231,7 +231,7 @@ Handy touches in the panel:
 - **Search** — long menus (airports, cities, countries…) have a search box; type a code *or an airport name* ("haneda", "tokyo") to find it fast
 - **Smart options** — pick a continent or country and the airport / city / country lists narrow to match, so you're not scrolling past irrelevant options
 - **Presets** — one-click combinations like *Inter-continental long-haul*, *Weekend international*, *Domestic short hops*
-- **Saved presets** — set up any combination and **💾 Save preset** it with a name; it appears under **Saved** and is remembered on your device (edit / delete anytime)
+- **Saved presets** — set up any combination and **Save preset** it with a name; it appears under **Saved** and is remembered on your device (edit / delete anytime)
 
 The dashboard updates live as you select. The **Comparing** card shows year-over-year deltas based on your current Year selection. The filter bar stays pinned to the top as you scroll.
 
@@ -241,11 +241,11 @@ The dashboard updates live as you select. The **Comparing** card shows year-over
 
 Open the **⚙️ settings menu** (header, top-right) and pick a theme:
 
-| Mode | Icon | Behavior |
-|---|---|---|
-| Auto | 🔄 | Follows your OS preference, live-updates when OS theme changes |
-| Light | ☀️ | Forces light |
-| Dark | 🌙 | Forces dark |
+| Mode | Behavior |
+|---|---|
+| Auto | Follows your OS preference, live-updates when OS theme changes |
+| Light | Forces light |
+| Dark | Forces dark |
 
 Your choice persists across sessions.
 
@@ -258,9 +258,9 @@ Your choice persists across sessions.
 - **Your flight data stays on your device.** Your flights are stored in your browser's `localStorage` and are **never uploaded** — there's no server and no cloud copy of your log.
 - **No account.** No sign-up, no login.
 - **Privacy-friendly analytics only.** The site uses cookieless [Vercel Web Analytics](https://vercel.com/docs/analytics) for aggregate visitor counts and page views — no cookies, no personal data, no cross-site tracking, and it never touches your flight data.
-- **Easy backup.** Open the **≡ menu → 📤 Export** anytime to download a CSV of your flights (and optionally your custom airports), or a **Full Backup (JSON)** that also includes your flight notes.
+- **Easy backup.** Open the **≡ menu → Export** anytime to download a CSV of your flights (and optionally your custom airports), or a **Full Backup (JSON)** that also includes your flight notes.
 - **Easy migration.** Drop your exported CSV — or the Full Backup JSON, which keeps your notes linked — on a new device → **Import** → done.
-- **Easy wipe.** Open the **≡ menu → 🗑 Clear all** to delete everything, with a confirmation dialog.
+- **Easy wipe.** Open the **≡ menu → Clear all** to delete everything, with a confirmation dialog.
 
 If you ever want to know "is my data really saved here?", open the **⚙️ settings menu** — the **Status** section tells you the current storage state (and flags any unrecognized data).
 
@@ -268,8 +268,8 @@ If you ever want to know "is my data really saved here?", open the **⚙️ sett
 
 Pretty much any modern browser, on desktop or mobile:
 
-- 💻 Chrome, Safari, Firefox, Edge on Windows / Mac / Linux
-- 📱 iPhone (Safari, Chrome), Android (Chrome, Samsung Internet)
+- Chrome, Safari, Firefox, Edge on Windows / Mac / Linux
+- iPhone (Safari, Chrome), Android (Chrome, Samsung Internet)
 
 If something doesn't look right, try updating your browser to the latest version.
 

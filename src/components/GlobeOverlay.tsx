@@ -104,7 +104,7 @@ export function GlobeOverlay({ flights, themePref, open, onClose }: {
     <div ref={modalRef} className={'globe-overlay' + (open ? ' show' : '')} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="globe-panel">
         <div className="globe-header">
-          <h3>🌏 3D Globe</h3>
+          <h3>3D Globe</h3>
           <div className="globe-header-actions">
             <button className="globe-rotate-btn" onClick={togglePause} title={paused ? 'Resume rotation' : 'Pause rotation'} aria-label={paused ? 'Resume rotation' : 'Pause rotation'}>
               {paused ? '▶' : '⏸'}

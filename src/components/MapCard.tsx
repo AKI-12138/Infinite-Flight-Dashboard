@@ -60,7 +60,7 @@ export function MapCard({ flights, themePref, onGlobe, onExpand }: {
     <div className="map-section" id="sec-map">
       <div className="map-card">
         <div className="map-header">
-          <h3>🗺️ Route Map</h3>
+          <h3>Route Map</h3>
           <div className="map-legend">
             <span><span className="dot" style={{ background: 'var(--amber)' }}></span> Hub</span>
             <span><span className="dot" style={{ background: 'var(--red)' }}></span> Airport</span>
@@ -69,7 +69,7 @@ export function MapCard({ flights, themePref, onGlobe, onExpand }: {
             </span>
           </div>
           <div className="map-actions">
-            <button className="map-globe-btn" onClick={onGlobe}>🌏 3D Globe</button>
+            <button className="map-globe-btn" onClick={onGlobe}>3D Globe</button>
             <button className="map-expand-btn" onClick={resetView} title="Reset view (fit all)">⌖</button>
             <button className="map-expand-btn" onClick={onExpand} title="Expand">⛶</button>
           </div>

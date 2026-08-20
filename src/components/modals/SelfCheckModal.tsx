@@ -26,7 +26,7 @@ export function SelfCheckModal({ open, onClose }: { open: boolean; onClose: () =
     <div ref={modalRef} className="modal-overlay show" id="selfCheckOverlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="modal">
         <div className="modal-head">
-          <h3>🛠️ Function-test</h3>
+          <h3>Function-test</h3>
           <button className="btn-close" onClick={onClose}>✕</button>
         </div>
         <div className="modal-body">

@@ -116,8 +116,8 @@ export function FlightLog({ flights }: { flights: StoredFlight[] }) {
       title: `Delete Flight #${f.no}?`,
       message: <>Remove <strong>{f.dep} → {f.arr}</strong> on {f.date} ({f.ac}, {f.al})?
         {hasNote && <><br />Its saved flight notes will be deleted too.</>}<br />This cannot be undone.</>,
-      confirmLabel: '🗑️ Delete',
-      onConfirm: () => { DataSource.removeByIds([f.no]); setSelectedIds(new Set()); showToast('🗑️ 1 flight deleted', 'red'); },
+      confirmLabel: 'Delete',
+      onConfirm: () => { DataSource.removeByIds([f.no]); setSelectedIds(new Set()); showToast('1 flight deleted', 'red'); },
     });
   }
 
@@ -130,8 +130,8 @@ export function FlightLog({ flights }: { flights: StoredFlight[] }) {
       title: `Delete ${cnt} Flight${cnt > 1 ? 's' : ''}?`,
       message: <>This will permanently remove <strong>{cnt} flight{cnt > 1 ? 's' : ''}</strong> from your log.
         {memoCnt > 0 && <><br />{memoCnt} saved flight note{memoCnt > 1 ? 's' : ''} will be deleted too.</>}<br />This action cannot be undone.</>,
-      confirmLabel: '🗑️ Delete',
-      onConfirm: () => { DataSource.removeByIds(ids); setSelectedIds(new Set()); showToast(`🗑️ ${cnt} flights deleted`, 'red'); },
+      confirmLabel: 'Delete',
+      onConfirm: () => { DataSource.removeByIds(ids); setSelectedIds(new Set()); showToast(` flights deleted`, 'red'); },
     });
   }
 
@@ -154,7 +154,7 @@ export function FlightLog({ flights }: { flights: StoredFlight[] }) {
           「Flight Log」という見出しを持つので、上に別の見出しは置かない。 */}
       <div id="sec-log" className={'card table-section' + (fullscreen ? ' card-fullscreen' : '')}>
         <div className="card-header">
-          <div className="card-title">📋 Flight Log</div>
+          <div className="card-title">Flight Log</div>
           <div className="table-tools">
             <div className="search-input">
               <span style={{ color: 'var(--text-3)' }}>🔍</span>
@@ -164,7 +164,7 @@ export function FlightLog({ flights }: { flights: StoredFlight[] }) {
                 value={search} onChange={(e) => setSearch(e.target.value)}
               />
             </div>
-            <button className="btn-danger" onClick={confirmDeleteAll} title="Delete all flights">🗑️ Clear All</button>
+            <button className="btn-danger" onClick={confirmDeleteAll} title="Delete all flights">Clear All</button>
             {/* ソートリセット ↺＝Clear All の右・⛶ の左（オーナー指定 2026-07-12。モバイルは絶対配置で ⛶ の真下） */}
             {!(sort && sort.col === 0 && !sort.asc) && (
               <button className="card-expand-btn sort-reset-btn" onClick={() => setSort({ col: 0, asc: false })} title="Reset sort — newest first">↺</button>
@@ -179,7 +179,7 @@ export function FlightLog({ flights }: { flights: StoredFlight[] }) {
         <div className={'select-bar' + (selectedIds.size > 0 ? ' show' : '')}>
           <span className="sel-count">{selectedIds.size} selected</span>
           <button className="btn-cancel" onClick={clearSelection}>Cancel</button>
-          <button className="btn-danger-solid" onClick={deleteSelected}>🗑️ Delete Selected</button>
+          <button className="btn-danger-solid" onClick={deleteSelected}>Delete Selected</button>
         </div>
 
         <div className="table-wrap">

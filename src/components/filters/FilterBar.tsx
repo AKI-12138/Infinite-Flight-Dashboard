@@ -83,7 +83,7 @@ export function FilterBar({ options, onOpenAdvanced }: { options: FilterOptionsM
           const def = _DEF_BY_KEY[key];
           const meta = CHIP_META[key];
           if (!def || !meta) return null;
-          return <FilterChip key={key} def={def} emoji={meta.emoji} title={meta.title} dataOptions={options[key] || []} />;
+          return <FilterChip key={key} def={def} title={meta.title} dataOptions={options[key] || []} />;
         })}
         <button type="button" className={'adv-filter-btn' + (advCount > 0 ? ' active' : '')} onClick={onOpenAdvanced} title="Presets & advanced filters">
           <span>⚙️</span>

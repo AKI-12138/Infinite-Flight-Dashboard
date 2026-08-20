@@ -19,19 +19,19 @@ export function EmptyState({ onImport, onAdd, onSample }: EmptyStateProps) {
         </div>
         <div className="empty-actions">
           <button className="btn-primary" onClick={onImport} style={{ background: 'var(--violet)' }}>
-            📂 Import CSV
+            Import CSV
           </button>
           <button className="btn-primary" onClick={onAdd}>
             <span style={{ fontSize: 16 }}>+</span> Add your first flight
           </button>
         </div>
         <div className="empty-sample">
-          <button type="button" className="btn-sample" onClick={onSample}>👀 Try it with sample data</button>
+          <button type="button" className="btn-sample" onClick={onSample}>Try it with sample data</button>
         </div>
         <div className="empty-hint">
-          📝 <strong>CSV format:</strong> <code>date,dep,arr,aircraft,airline,duration</code> (6 columns)<br />
-          🔄 <strong>Round-trip:</strong> exported files can be imported back, and edited in any text editor.<br />
-          💾 <strong>Auto-saved:</strong> entries are stored in this browser. CSV backup recommended for safety.
+          <strong>CSV format:</strong> <code>date,dep,arr,aircraft,airline,duration</code> (6 columns)<br />
+          <strong>Round-trip:</strong> exported files can be imported back, and edited in any text editor.<br />
+          <strong>Auto-saved:</strong> entries are stored in this browser. CSV backup recommended for safety.
         </div>
       </div>
     </div>

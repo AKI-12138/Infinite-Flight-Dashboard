@@ -97,7 +97,7 @@ export function AddFlightModal({ open, onClose, flights }: { open: boolean; onCl
     <div ref={modalRef} className="modal-overlay show" id="modalOverlay">
       <div className="modal">
         <div className="modal-head">
-          <h3>✈️ Add New Flight</h3>
+          <h3>Add New Flight</h3>
           <button className="btn-close" onClick={onClose}>✕</button>
         </div>
         <div className="modal-body" onKeyDown={onFormKeyDown}>

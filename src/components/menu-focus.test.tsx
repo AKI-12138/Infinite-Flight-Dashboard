@@ -66,7 +66,7 @@ const MENUS: MenuCase[] = [
   {
     name: 'フィルターチップ',
     render: () => render(
-      <FilterChip def={FILTER_DEFS[0]} emoji="📅" dataOptions={['2025', '2024']} title="Year" />,
+      <FilterChip def={FILTER_DEFS[0]} dataOptions={['2025', '2024']} title="Year" />,
     ),
     trigger: () => screen.getByRole('button', { name: /All Years/ }),
     // 複数選択式＝項目を選んでも閉じないので ① は対象外。

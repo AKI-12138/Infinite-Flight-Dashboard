@@ -40,7 +40,7 @@ export function DataCheckModal({ open, onClose, flights, onAddAirport }: {
     <div ref={modalRef} className="modal-overlay show" id="dataCheckOverlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="modal">
         <div className="modal-head">
-          <h3>🩺 Data check</h3>
+          <h3>Data check</h3>
           <button className="btn-close" onClick={onClose}>✕</button>
         </div>
         <div className="modal-body">

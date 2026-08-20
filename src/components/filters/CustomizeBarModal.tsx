@@ -41,7 +41,7 @@ export function CustomizeBarModal({ open, onClose }: { open: boolean; onClose: (
     <div ref={modalRef} className="modal-overlay show" id="customizeBarOverlay">
       <div className="modal modal-wide">
         <div className="modal-head">
-          <h3>🧰 Customize filter bar</h3>
+          <h3>Customize filter bar</h3>
           <button className="btn-close" onClick={onClose}>✕</button>
         </div>
         <div className="modal-body adv-modal-body">
@@ -73,7 +73,6 @@ export function CustomizeBarModal({ open, onClose }: { open: boolean; onClose: (
                         checked={on} disabled={disabled}
                         onChange={() => toggle(c.key)}
                       />
-                      <span className="barcust-chip-emoji" aria-hidden="true">{c.emoji}</span>
                       <span className="barcust-chip-name">{c.name}</span>
                       {on && <span className="barcust-chip-order" aria-hidden="true">{order + 1}</span>}
                     </label>

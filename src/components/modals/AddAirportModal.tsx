@@ -60,7 +60,7 @@ export function AddAirportModal({ open, initialIcao, onClose }: { open: boolean;
     <div ref={modalRef} className="modal-overlay show" id="addAirportOverlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="modal">
         <div className="modal-head">
-          <h3>📍 Add Airport</h3>
+          <h3>Add Airport</h3>
           <button className="btn-close" onClick={onClose}>✕</button>
         </div>
         <div className="modal-body" onKeyDown={onFormKeyDown}>
@@ -106,7 +106,7 @@ export function AddAirportModal({ open, initialIcao, onClose }: { open: boolean;
             </div>
           </div>
           <p className="aa-hint">
-            Need the coordinates? <a href={coordHref} target="_blank" rel="noopener" tabIndex={-1}>🔎 Look them up on OpenStreetMap</a> — copy the decimal latitude / longitude.
+            Need the coordinates? <a href={coordHref} target="_blank" rel="noopener" tabIndex={-1}>Look them up on OpenStreetMap</a> — copy the decimal latitude / longitude.
           </p>
           <div className="modal-actions">
             <button className="btn-outline" onClick={onClose}>Cancel</button>

@@ -33,7 +33,7 @@ export function SavePresetModal({ open, onClose }: { open: boolean; onClose: () 
     <div ref={modalRef} className="modal-overlay show" id="savePresetOverlay">
       <div className="modal">
         <div className="modal-head">
-          <h3>💾 Save preset</h3>
+          <h3>Save preset</h3>
           <button className="btn-close" onClick={onClose}>✕</button>
         </div>
         <div className="modal-body">

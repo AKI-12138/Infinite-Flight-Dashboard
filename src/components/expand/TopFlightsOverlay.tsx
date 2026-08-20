@@ -31,7 +31,7 @@ export function TopFlightsOverlay({ open, flights, onClose }: { open: boolean; f
     <div ref={modalRef} className="flights-overlay show" id="flightsOverlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="flights-panel">
         <div className="flights-panel-header">
-          <h3>⏱️ Top Flights by Time</h3>
+          <h3>Top Flights by Time</h3>
           <div className="expanded-sort">
             <label className="expanded-sort-label">Sort</label>
             <select className="expanded-sort-select" value={sort} onChange={(e) => { setSort(e.target.value as SortKey); e.currentTarget.blur(); }}>

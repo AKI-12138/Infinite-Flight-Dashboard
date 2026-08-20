@@ -62,34 +62,34 @@ export function MainDashboard({ flights, themePref }: { flights: StoredFlight[];
 
       {/* Aircraft & Airlines（総飛行時間を併記） */}
       <div className="grid-2">
-        <BarCard title="✈️ Top Aircraft" colorKey="aircraft" data={s.ac} minsMap={s.acMin} onAll={() => setBarExpand({ type: 'aircraft', data: s.ac, minsMap: s.acMin })} />
-        <BarCard title="🏢 Top Airlines" colorKey="airlines" data={s.al} minsMap={s.alMin} onAll={() => setBarExpand({ type: 'airlines', data: s.al, minsMap: s.alMin })} />
+        <BarCard title="Top Aircraft" colorKey="aircraft" data={s.ac} minsMap={s.acMin} onAll={() => setBarExpand({ type: 'aircraft', data: s.ac, minsMap: s.acMin })} />
+        <BarCard title="Top Airlines" colorKey="airlines" data={s.al} minsMap={s.alMin} onAll={() => setBarExpand({ type: 'airlines', data: s.al, minsMap: s.alMin })} />
       </div>
 
       {/* Routes & Airports */}
       <div className="grid-2">
-        <BarCard title="🛣️ Top Routes" colorKey="routes" data={s.rt} onAll={() => setBarExpand({ type: 'routes', data: s.rt })} />
-        <BarCard title="🛬 Top Airports" colorKey="airports" data={s.ap} onAll={() => setBarExpand({ type: 'airports', data: s.ap })} />
+        <BarCard title="Top Routes" colorKey="routes" data={s.rt} onAll={() => setBarExpand({ type: 'routes', data: s.rt })} />
+        <BarCard title="Top Airports" colorKey="airports" data={s.ap} onAll={() => setBarExpand({ type: 'airports', data: s.ap })} />
       </div>
 
       {/* Geography：Continents（ドーナツ）＋ Countries ＋ Cities */}
       <div className="grid-3">
-        <ChartCard title="🌍 Continents" onExpand={() => setChartExpand('continents')}
+        <ChartCard title="Continents" onExpand={() => setChartExpand('continents')}
           actions={<ChartTypeToggle mode={ctMode} onChange={setCtMode} defaultLabel="Pie" />}>
           <ContinentChart ct={s.ct} themePref={themePref} mode={ctMode} />
         </ChartCard>
-        <BarCard title="🏞️ Top Countries/Regions" colorKey="countries" data={s.co} onAll={() => setBarExpand({ type: 'countries', data: s.co })} />
-        <BarCard title="🏙️ Top Cities" colorKey="cities" data={s.ci} onAll={() => setBarExpand({ type: 'cities', data: s.ci })} />
+        <BarCard title="Top Countries/Regions" colorKey="countries" data={s.co} onAll={() => setBarExpand({ type: 'countries', data: s.co })} />
+        <BarCard title="Top Cities" colorKey="cities" data={s.ci} onAll={() => setBarExpand({ type: 'cities', data: s.ci })} />
       </div>
 
       <h2 className="section-head" id="sec-trends">Trends</h2>
 
       {/* Year & Month */}
       <div className="grid-2">
-        <ChartCard title="🗓️ Flights per Year" onExpand={() => setChartExpand('year')}>
+        <ChartCard title="Flights per Year" onExpand={() => setChartExpand('year')}>
           <YearChart yr={s.yr} themePref={themePref} />
         </ChartCard>
-        <ChartCard title="📅 Flights per Month" onExpand={() => setChartExpand('month')}
+        <ChartCard title="Flights per Month" onExpand={() => setChartExpand('month')}
           actions={<ChartTypeToggle mode={moMode} onChange={setMoMode} defaultLabel="Line" />}>
           <MonthChart mo={s.mo} themePref={themePref} mode={moMode} />
         </ChartCard>
@@ -97,7 +97,7 @@ export function MainDashboard({ flights, themePref }: { flights: StoredFlight[];
 
       {/* Weekday & Top Flights by Time */}
       <div className="grid-2">
-        <ChartCard title="📆 Flights per Weekday" onExpand={() => setChartExpand('weekday')}
+        <ChartCard title="Flights per Weekday" onExpand={() => setChartExpand('weekday')}
           actions={<ChartTypeToggle mode={wdMode} onChange={setWdMode} defaultLabel="Line" />}>
           <WeekdayChart wd={s.wd} themePref={themePref} mode={wdMode} />
         </ChartCard>
@@ -109,20 +109,20 @@ export function MainDashboard({ flights, themePref }: { flights: StoredFlight[];
 
       {/* 拡大オーバーレイ群（5-7） */}
       <ExpandedBarsOverlay open={!!barExpand} type={barExpand?.type ?? 'aircraft'} data={barExpand?.data ?? []} minsMap={barExpand?.minsMap} onClose={() => setBarExpand(null)} />
-      <ChartExpandOverlay open={chartExpand === 'continents'} overlayClass="continents-overlay" panelClass="continents-panel" title="🌍 Continents" onClose={() => setChartExpand(null)}
+      <ChartExpandOverlay open={chartExpand === 'continents'} overlayClass="continents-overlay" panelClass="continents-panel" title="Continents" onClose={() => setChartExpand(null)}
         actions={<ChartTypeToggle mode={ctMode} onChange={setCtMode} defaultLabel="Pie" />}>
         <ContinentChart ct={s.ct} themePref={themePref} large mode={ctMode} />
       </ChartExpandOverlay>
-      <ChartExpandOverlay open={chartExpand === 'year'} overlayClass="chart-overlay" panelClass="chart-panel" title="🗓️ Flights per Year" onClose={() => setChartExpand(null)}>
+      <ChartExpandOverlay open={chartExpand === 'year'} overlayClass="chart-overlay" panelClass="chart-panel" title="Flights per Year" onClose={() => setChartExpand(null)}>
         <YearChart yr={s.yr} themePref={themePref} large flights={filtered}
           onDrill={(v) => { setChartExpand(null); filterStore.drilldown('years', v); }} />
       </ChartExpandOverlay>
-      <ChartExpandOverlay open={chartExpand === 'month'} overlayClass="chart-overlay" panelClass="chart-panel" title="📅 Flights per Month" onClose={() => setChartExpand(null)}
+      <ChartExpandOverlay open={chartExpand === 'month'} overlayClass="chart-overlay" panelClass="chart-panel" title="Flights per Month" onClose={() => setChartExpand(null)}
         actions={<ChartTypeToggle mode={moMode} onChange={setMoMode} defaultLabel="Line" />}>
         <MonthChart mo={s.mo} themePref={themePref} large flights={filtered} mode={moMode}
           onDrill={(v) => { setChartExpand(null); filterStore.drilldown('months', v); }} />
       </ChartExpandOverlay>
-      <ChartExpandOverlay open={chartExpand === 'weekday'} overlayClass="chart-overlay" panelClass="chart-panel" title="📆 Flights per Weekday" onClose={() => setChartExpand(null)}
+      <ChartExpandOverlay open={chartExpand === 'weekday'} overlayClass="chart-overlay" panelClass="chart-panel" title="Flights per Weekday" onClose={() => setChartExpand(null)}
         actions={<ChartTypeToggle mode={wdMode} onChange={setWdMode} defaultLabel="Line" />}>
         <WeekdayChart wd={s.wd} themePref={themePref} large flights={filtered} mode={wdMode}
           onDrill={(v) => { setChartExpand(null); filterStore.drilldown('weekdays', v); }} />

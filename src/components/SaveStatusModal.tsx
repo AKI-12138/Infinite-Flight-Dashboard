@@ -36,7 +36,7 @@ export function SaveStatusModal({ open, status, onClose, onBackup }: {
         <div className="restore-desc">{desc}</div>
         <div className="restore-note">{note}</div>
         <div className="restore-actions">
-          <button className="btn-primary" onClick={() => { onBackup(); onClose(); }}>📤 Back up as CSV</button>
+          <button className="btn-primary" onClick={() => { onBackup(); onClose(); }}>Back up as CSV</button>
           <button className="btn-outline" onClick={onClose}>Close</button>
         </div>
       </div>

@@ -37,7 +37,7 @@ export function BulkImportModal({ open, onClose, initialSample }: { open: boolea
     setTab('flights'); setFlightsText(initialSample ? SAMPLE_FLIGHT_CSV : ''); setAirportsText('');
     setFFileName(''); setAFileName('');
     // 空状態の「Try it with sample data」導線は旧版と同じく「レビューして Import」を促す（旧 loadSampleFlights）。
-    if (initialSample) showToast('👀 Sample data loaded — review it, then click Import');
+    if (initialSample) showToast('Sample data loaded — review it, then click Import');
     // 中立の本体へフォーカス（textarea でも ✕ でもない）→ 素の Enter で Import できる。
     requestAnimationFrame(() => bodyRef.current?.focus());
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -69,7 +69,7 @@ export function BulkImportModal({ open, onClose, initialSample }: { open: boolea
       const text = await navigator.clipboard.readText();
       if (text && text.trim()) {
         if (mode === 'airports') setAirportsText(text); else setFlightsText(text);
-        showToast('📋 Pasted from clipboard');
+        showToast('Pasted from clipboard');
       } else {
         showToast('Clipboard is empty — paste manually with Ctrl/Cmd+V');
       }
@@ -109,7 +109,7 @@ export function BulkImportModal({ open, onClose, initialSample }: { open: boolea
       const unknownAPs = new Set<string>();
       valid.forEach((r) => { if (r.valid) [r.dep, r.arr].forEach((c) => { if (!AP[c]) unknownAPs.add(c); }); });
       if (unknownAPs.size > 0) {
-        const proceed = confirm(`⚠️ Unknown airports (not in DB): ${[...unknownAPs].join(', ')}\n\nThese won't appear on the map. You can add them later via Import > Airports tab.\n\nImport anyway?`);
+        const proceed = confirm(`Unknown airports (not in DB): ${[...unknownAPs].join(', ')}\n\nThese won't appear on the map. You can add them later via Import > Airports tab.\n\nImport anyway?`);
         if (!proceed) return;
       }
       const incoming = valid.flatMap((r) => (r.valid ? [{ date: r.date, dep: r.dep, arr: r.arr, ac: r.ac, al: r.al, t: r.t }] : []));
@@ -148,13 +148,13 @@ export function BulkImportModal({ open, onClose, initialSample }: { open: boolea
     <div ref={modalRef} className="modal-overlay show" id="bulkOverlay">
       <div className="modal modal-wide">
         <div className="modal-head">
-          <h3>📥 Bulk Import</h3>
+          <h3>Bulk Import</h3>
           <button className="btn-close" onClick={onClose}>✕</button>
         </div>
         <div className="modal-body" ref={bodyRef} tabIndex={-1} onKeyDown={onModalKeyDown}>
           <div className="modal-tabs">
-            <button className={'modal-tab' + (!isAir ? ' active' : '')} onClick={() => setTab('flights')}>✈️ Flights</button>
-            <button className={'modal-tab' + (isAir ? ' active' : '')} onClick={() => setTab('airports')}>🛬 Airports</button>
+            <button className={'modal-tab' + (!isAir ? ' active' : '')} onClick={() => setTab('flights')}>Flights</button>
+            <button className={'modal-tab' + (isAir ? ' active' : '')} onClick={() => setTab('airports')}>Airports</button>
           </div>
 
           {!isAir ? (
@@ -162,10 +162,10 @@ export function BulkImportModal({ open, onClose, initialSample }: { open: boolea
               text={flightsText} setText={setFlightsText} fileName={fFileName}
               fileRef={fFileRef} onFile={(f) => loadFile(f, 'flights')}
               onPaste={() => paste('flights')}
-              onSample={() => { setFlightsText(SAMPLE_FLIGHT_CSV); showToast('👀 Sample data loaded — review it, then click Import'); }}
-              onDownloadSample={() => { downloadTextFile('IF_Flight_Log_sample.csv', SAMPLE_FLIGHT_CSV); showToast('⬇️ Sample CSV downloaded'); }}
+              onSample={() => { setFlightsText(SAMPLE_FLIGHT_CSV); showToast('Sample data loaded — review it, then click Import'); }}
+              onDownloadSample={() => { downloadTextFile('IF_Flight_Log_sample.csv', SAMPLE_FLIGHT_CSV); showToast('Sample CSV downloaded'); }}
               accept=".csv,.tsv,.txt,.json"
-              fileButtonLabel="📂 Select CSV / Backup file"
+              fileButtonLabel="Select CSV / Backup file"
               placeholder={FLIGHTS_PLACEHOLDER}
               textRef={fTextRef}
               hint={<FlightsHint />}
@@ -177,8 +177,8 @@ export function BulkImportModal({ open, onClose, initialSample }: { open: boolea
               text={airportsText} setText={setAirportsText} fileName={aFileName}
               fileRef={aFileRef} onFile={(f) => loadFile(f, 'airports')}
               onPaste={() => paste('airports')}
-              onSample={() => { setAirportsText(SAMPLE_AIRPORT_CSV); showToast('👀 Sample airports loaded — review it, then click Import'); }}
-              onDownloadSample={() => { downloadTextFile('IF_Airports_sample.csv', SAMPLE_AIRPORT_CSV); showToast('⬇️ Sample airports CSV downloaded'); }}
+              onSample={() => { setAirportsText(SAMPLE_AIRPORT_CSV); showToast('Sample airports loaded — review it, then click Import'); }}
+              onDownloadSample={() => { downloadTextFile('IF_Airports_sample.csv', SAMPLE_AIRPORT_CSV); showToast('Sample airports CSV downloaded'); }}
               accept=".csv,.tsv,.txt"
               placeholder={AIRPORTS_PLACEHOLDER}
               hint={<AirportsHint />}
@@ -201,7 +201,7 @@ export function BulkImportModal({ open, onClose, initialSample }: { open: boolea
 
 // 1タブ分の共通レイアウト（ファイル/Paste/サンプル/textarea/hint/count/preview）。
 // fileButtonLabel：Flights タブはバックアップ JSON も受けるのでボタン文言を差し替えられるようにする。
-function BulkTab({ text, setText, fileName, fileRef, onFile, onPaste, onSample, onDownloadSample, accept, fileButtonLabel = '📂 Select CSV file', placeholder, textRef, hint, count, preview }: {
+function BulkTab({ text, setText, fileName, fileRef, onFile, onPaste, onSample, onDownloadSample, accept, fileButtonLabel = 'Select CSV file', placeholder, textRef, hint, count, preview }: {
   text: string; setText: (v: string) => void; fileName: string;
   fileRef: React.RefObject<HTMLInputElement | null>; onFile: (f: File | undefined) => void;
   onPaste: () => void; onSample: () => void; onDownloadSample: () => void;
@@ -220,7 +220,7 @@ function BulkTab({ text, setText, fileName, fileRef, onFile, onPaste, onSample, 
         </span>
       </div>
       <div className="sample-row">
-        <button type="button" className="btn-sample" onClick={onSample}>👀 Load sample data</button>
+        <button type="button" className="btn-sample" onClick={onSample}>Load sample data</button>
         <span className="sample-or-group">
           <span className="sample-or-prefix">or</span><button type="button" className="sample-or-btn" onClick={onDownloadSample}>Download sample CSV ↓</button>
         </span>
@@ -249,10 +249,10 @@ function BackupSummary({ backup }: { backup: ReturnType<typeof parseFullBackup> 
   const apCnt = Object.keys(backup.customAirports).length;
   return (
     <div className="bulk-count" style={{ display: 'flex' }}>
-      <span className="valid">💾 Full backup detected</span>
-      <span>✈️ {backup.flights.length} flight{backup.flights.length === 1 ? '' : 's'}</span>
-      <span>📝 {noteCnt} note{noteCnt === 1 ? '' : 's'}</span>
-      <span>🛬 {apCnt} custom airport{apCnt === 1 ? '' : 's'}</span>
+      <span className="valid">Full backup detected</span>
+      <span>{backup.flights.length} flight{backup.flights.length === 1 ? '' : 's'}</span>
+      <span>{noteCnt} note{noteCnt === 1 ? '' : 's'}</span>
+      <span>{apCnt} custom airport{apCnt === 1 ? '' : 's'}</span>
       {backup.exportedAt && <span style={{ color: 'var(--text-3)' }}>saved {backup.exportedAt.slice(0, 10)}</span>}
     </div>
   );
@@ -266,9 +266,9 @@ function FlightsHint() {
       Separators: <code>,</code> / <code>、</code> / TAB — all OK<br />
       Date: <code>2025-06-01</code> <code>2025/6/1</code> <code>25-06-01</code> <code>20250601</code> — all OK<br />
       Time: <code>1h30m</code> <code>1:30</code> <code>90m</code> <code>1h30</code> <code>1.5h</code> — all OK<br />
-      📋 Paste an exported CSV directly (comment lines <code>#</code> and header are auto-skipped)<br />
-      🔁 Duplicate flights (same date, route, aircraft, airline, time) are removed automatically<br />
-      💾 <strong>Full Backup (JSON)</strong> from Export works here too — auto-detected, restores flights <em>and</em> their notes
+      Paste an exported CSV directly (comment lines <code>#</code> and header are auto-skipped)<br />
+      Duplicate flights (same date, route, aircraft, airline, time) are removed automatically<br />
+      <strong>Full Backup (JSON)</strong> from Export works here too — auto-detected, restores flights <em>and</em> their notes
     </div>
   );
 }
@@ -279,7 +279,7 @@ function FlightsCount({ parsed }: { parsed: ReturnType<typeof parseBulkFlights> 
   return (
     <div className="bulk-count" style={{ display: 'flex' }}>
       <span className="valid">✓ {validCount} valid</span>
-      {fixedCount > 0 && <span style={{ color: 'var(--cyan)' }}>🔧 {fixedCount} auto-fixed</span>}
+      {fixedCount > 0 && <span style={{ color: 'var(--cyan)' }}>{fixedCount} auto-fixed</span>}
       {invalidCount > 0 && <span className="invalid">✕ {invalidCount} errors</span>}
     </div>
   );
@@ -319,7 +319,7 @@ function AirportsHint() {
       <strong>Quick mode:</strong> enter ICAO codes only → auto-resolved from built-in DB (hundreds of airports)<br />
       <strong>Manual mode (6 columns):</strong> <code>icao,lat,lng,city,country,continent</code> — for airports not in the DB<br />
       Separators: <code>,</code> / <code>、</code> / TAB — all OK<br />
-      📋 Lines starting with <code>#</code> are comments (ignored)
+      Lines starting with <code>#</code> are comments (ignored)
     </div>
   );
 }
@@ -331,7 +331,7 @@ function AirportsCount({ parsed }: { parsed: ReturnType<typeof parseBulkAirports
   return (
     <div className="bulk-count" style={{ display: 'flex' }}>
       <span className="valid">✓ {validCount} valid</span>
-      {autoCount > 0 && <span style={{ color: 'var(--cyan)' }}>⚡ {autoCount} auto</span>}
+      {autoCount > 0 && <span style={{ color: 'var(--cyan)' }}>{autoCount} auto</span>}
       {existCount > 0 && <span style={{ color: 'var(--amber)' }}>● {existCount} existing</span>}
       {invalidCount > 0 && <span className="invalid">✕ {invalidCount} errors</span>}
     </div>
@@ -339,7 +339,7 @@ function AirportsCount({ parsed }: { parsed: ReturnType<typeof parseBulkAirports
 }
 function AirportsPreview({ parsed }: { parsed: ReturnType<typeof parseBulkAirports> }) {
   if (parsed.length === 0) return null;
-  const labels = { auto: '⚡ DB Auto', existing: '● Already loaded', manual: '✎ Manual' };
+  const labels = { auto: 'DB Auto', existing: '● Already loaded', manual: '✎ Manual' };
   const colors = { auto: 'var(--cyan)', existing: 'var(--amber)', manual: 'var(--green)' };
   return (
     <div className="bulk-preview" style={{ display: '' }}>

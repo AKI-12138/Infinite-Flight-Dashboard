@@ -186,8 +186,8 @@ export function FlightMemoModal({ flight, onClose, draftMode = false, onCommit }
     requestConfirm({
       title: 'Delete these notes?',
       message: <>Remove all notes for <strong>{flight.dep} → {flight.arr}</strong> on {flight.date}?<br />The flight itself stays in your log. This cannot be undone.</>,
-      confirmLabel: '🗑️ Delete',
-      onConfirm: () => { memoStore.delete(flight.id); onClose(); showToast('🗑️ Flight notes deleted', 'red'); },
+      confirmLabel: 'Delete',
+      onConfirm: () => { memoStore.delete(flight.id); onClose(); showToast('Flight notes deleted', 'red'); },
     });
   };
 
@@ -197,7 +197,7 @@ export function FlightMemoModal({ flight, onClose, draftMode = false, onCommit }
     <div ref={modalRef} className="modal-overlay show" id="flightMemoOverlay">
       <div className="modal modal-wide memo-modal">
         <div className="modal-head">
-          <h3>📝 Flight Notes</h3>
+          <h3>Flight Notes</h3>
           <button className="btn-close" onClick={closeAttempt}>✕</button>
         </div>
         <div className="modal-body adv-modal-body">

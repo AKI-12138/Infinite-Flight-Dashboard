@@ -37,7 +37,7 @@ export function AdvancedFilterPanel({ open, onClose, options }: { open: boolean;
       <div ref={modalRef} className="modal-overlay show" id="advFilterOverlay">
         <div className="modal modal-wide">
           <div className="modal-head">
-            <h3>⚙️ Advanced filters</h3>
+            <h3>Advanced filters</h3>
             <button className="btn-close" onClick={onClose}>✕</button>
           </div>
           <div className="modal-body adv-modal-body">
@@ -50,7 +50,6 @@ export function AdvancedFilterPanel({ open, onClose, options }: { open: boolean;
                   className={'adv-preset' + (filterStore.isPresetActive(p) ? ' active' : '')}
                   onClick={() => filterStore.applyPreset(p.id)}
                 >
-                  <span className="adv-preset-emoji">{p.emoji}</span>
                   <span>{p.label}</span>
                 </button>
               ))}
@@ -65,7 +64,7 @@ export function AdvancedFilterPanel({ open, onClose, options }: { open: boolean;
                   type="button"
                   className={'adv-saved-edit' + (editMode ? ' is-editing' : '')}
                   onClick={() => setEditMode((v) => !v)} title="Edit saved presets"
-                >✏️ Edit</button>
+                >Edit</button>
               )}
             </div>
             <div className={'adv-presets' + (editMode ? ' is-editing' : '')}>
@@ -79,7 +78,6 @@ export function AdvancedFilterPanel({ open, onClose, options }: { open: boolean;
                   className={'adv-preset' + (filterStore.isSavedActive(p) ? ' active' : '')}
                   onClick={() => { if (!editMode) filterStore.applySavedPreset(p.id); }}
                 >
-                  <span className="adv-preset-emoji">💾</span>
                   <span>{p.name}</span>
                   {editMode && (
                     <span
@@ -106,7 +104,7 @@ export function AdvancedFilterPanel({ open, onClose, options }: { open: boolean;
                 {sec.label === 'Date' && <DateRangeRow />}
                 <div className="adv-chips">
                   {sec.chips.map((c) => (
-                    <FilterChip key={c.key} def={_DEF_BY_KEY[c.key]} emoji={c.emoji} title={c.title} dataOptions={options[c.key] || []} />
+                    <FilterChip key={c.key} def={_DEF_BY_KEY[c.key]} title={c.title} dataOptions={options[c.key] || []} />
                   ))}
                 </div>
                 {i < _SECTIONS.length - 1 && <hr className="adv-divider" />}
@@ -115,7 +113,7 @@ export function AdvancedFilterPanel({ open, onClose, options }: { open: boolean;
 
             <div className="modal-actions adv-actions">
               <button className="btn-outline" onClick={() => filterStore.clearAll()}>✕ Clear all</button>
-              <button className="btn-outline btn-save-preset" onClick={openSave}>💾 Save preset</button>
+              <button className="btn-outline btn-save-preset" onClick={openSave}>Save preset</button>
               <button className="btn-primary" onClick={onClose}>Done</button>
             </div>
           </div>
@@ -135,7 +133,7 @@ function DateRangeRow() {
   const to = dr[1] || '';
   return (
     <div className="adv-date-range">
-      <span className="adv-date-range-label">🗓️ Period</span>
+      <span className="adv-date-range-label">Period</span>
       <input
         type="date" className="form-input adv-date-input" aria-label="From date"
         value={from} max={to || undefined}

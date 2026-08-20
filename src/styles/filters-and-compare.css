@@ -82,15 +82,6 @@
   display:inline-flex;align-items:center;gap:6px;
   padding:6px 12px;cursor:pointer;border-radius:20px;
 }
-/* 先頭アイコン（絵文字）を固定サイズのスロットに収める。
-   絵文字はグリフごとに advance 幅・描画メトリクスが微妙に違い（特に macOS の Apple Color Emoji・
-   一部は異体字セレクタ ️ 付き）、そのままだと各フィルターチップの横幅・高さがわずかにばらつく。
-   18px 角の inline-flex スロットに中央寄せして、チップ差を「ラベル文字数ぶん」だけに揃える。 */
-.filter-chip-multi .chip-btn > span:first-child{
-  flex-shrink:0;
-  display:inline-flex;align-items:center;justify-content:center;
-  width:18px;height:18px;line-height:1;
-}
 .filter-chip-multi .chip-label{font-weight:500;}
 .filter-chip-multi .chip-arrow{
   color:var(--text-3);font-size:9px;transition:transform 0.15s;margin-left:2px;
@@ -216,6 +207,7 @@
 .adv-preset.active{
   background:rgba(var(--accent-rgb),0.12);border-color:rgba(var(--accent-rgb),0.4);color:var(--accent);
 }
+/* 先頭スロット。フェーズG（装飾絵文字の引き算）以降は「Save current filters」の ＋ だけが入る。 */
 .adv-preset-emoji{flex-shrink:0;}
 
 /* Saved（カスタムプリセット・Y-2 増分3） */
@@ -298,7 +290,6 @@
 .barcust-chip.is-disabled:hover{border-color:var(--border);color:var(--text-2);}
 .barcust-chip .cb{width:16px;height:16px;}
 .barcust-chip.is-disabled .cb{cursor:not-allowed;}
-.barcust-chip-emoji{flex-shrink:0;}
 /* バーでの並び順を示す番号（チェックした順）。 */
 .barcust-chip-order{
   display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;

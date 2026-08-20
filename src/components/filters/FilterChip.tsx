@@ -39,8 +39,8 @@ function positionMenu(chip: HTMLElement, menu: HTMLElement) {
 }
 
 // 1 つのフィルタチップ（旧 index.html の .filter-chip-multi）。バー／高度パネル両方で使う。
-export function FilterChip({ def, emoji, dataOptions, title }: {
-  def: FilterDef; emoji: string; dataOptions: string[]; title?: string;
+export function FilterChip({ def, dataOptions, title }: {
+  def: FilterDef; dataOptions: string[]; title?: string;
 }) {
   useFilterVersion(); // ラベル／active を最新の FilterState に追従
   const [open, setOpen] = useState(false);
@@ -81,7 +81,6 @@ export function FilterChip({ def, emoji, dataOptions, title }: {
       data-chip={def.key}
     >
       <button ref={btnRef} type="button" className="chip-btn" title={title} onClick={(e) => { e.stopPropagation(); setOpen((v) => !v); }}>
-        <span>{emoji}</span>
         <span className="chip-label" data-label={def.key}>{chipLabel(def, values)}</span>
         <span className="chip-arrow">▾</span>
       </button>

@@ -61,7 +61,7 @@ export function MapExpandedOverlay({ flights, themePref, open, onClose }: {
     <div ref={modalRef} className={'map-overlay' + (open ? ' show' : '')} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="map-panel">
         <div className="map-panel-header">
-          <h3>🗺️ Route Map</h3>
+          <h3>Route Map</h3>
           <div className="map-panel-actions">
             <button className="map-reset-btn" onClick={resetView} title="Reset view (fit all)">⌖</button>
             <button className="btn-close" onClick={onClose}>✕</button>

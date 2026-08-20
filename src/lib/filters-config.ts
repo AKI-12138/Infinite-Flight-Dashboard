@@ -27,7 +27,7 @@ export interface FilterDef {
 }
 
 // プリセット（複数軸の掛け合わせ）。
-export interface FilterPreset { id: string; emoji: string; label: string; set: Record<string, string[]>; }
+export interface FilterPreset { id: string; label: string; set: Record<string, string[]>; }
 
 // 各フィルタの定義。HTML 側の id とは chip-<key> / filter<Cap>Menu / filter<Cap>Label の規約で対応する。
 const _MONTH_LABELS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -101,8 +101,8 @@ export const FILTER_DEFS: FilterDef[] = [
     groupBy:_countryContinentGroup, groupOrder:_CONTINENT_ORDER },
   { key:'scope',    stateKey:'scope',     all:'All Flights',           order:'asc',
     fixedOptions:[
-      { value:'domestic',      label:'🏠 Domestic' },
-      { value:'international', label:'🌎 International' },
+      { value:'domestic',      label:'Domestic' },
+      { value:'international', label:'International' },
     ]
   },
   // ── フェーズY-2：高度フィルターパネルの軸。各カテゴリを All（either）/ Dep / Arr で揃える。
@@ -131,8 +131,8 @@ export const FILTER_DEFS: FilterDef[] = [
   { key:'arrContinent', stateKey:'arrContinents', all:'All Arr Continents', order:'asc', fixedOptions:_CONTINENT_OPTS },
   { key:'contScope',    stateKey:'contScope',     all:'All Cont. Scope',    order:'asc',
     fixedOptions:[
-      { value:'intra', label:'🗺️ Intra-continental' },
-      { value:'inter', label:'🌐 Inter-continental' },
+      { value:'intra', label:'Intra-continental' },
+      { value:'inter', label:'Inter-continental' },
     ]
   },
   { key:'duration',     stateKey:'durations',     all:'All Durations',      order:'asc',
@@ -145,10 +145,10 @@ export const _ADV_FILTER_KEYS = ['weekdays','airports','cities','continents','de
 // ============================ PRESETS（宣言的モデル） ============================
 // プリセットは「複数軸の掛け合わせ」。適用・描画（applyPreset / _renderPresets）は UI 層（手順5）へ。
 export const FILTER_PRESETS: FilterPreset[] = [
-  { id:'interLong',     emoji:'🌐', label:'Inter-continental long-haul', set:{ contScope:['inter'], durations:['ultra'] } },
-  { id:'weekendIntl',   emoji:'🏝️', label:'Weekend international',        set:{ weekdays:['5','6'], scope:['international'] } },
-  { id:'intraLong',     emoji:'🚀', label:'Intra-continental long-haul', set:{ contScope:['intra'], durations:['long','xlong','ultra'] } },
-  { id:'domesticShort', emoji:'🛫', label:'Domestic short hops',          set:{ scope:['domestic'], durations:['short'] } },
+  { id:'interLong',     label:'Inter-continental long-haul', set:{ contScope:['inter'], durations:['ultra'] } },
+  { id:'weekendIntl',   label:'Weekend international',        set:{ weekdays:['5','6'], scope:['international'] } },
+  { id:'intraLong',     label:'Intra-continental long-haul', set:{ contScope:['intra'], durations:['long','xlong','ultra'] } },
+  { id:'domesticShort', label:'Domestic short hops',          set:{ scope:['domestic'], durations:['short'] } },
 ];
 
 // 集合の一致（順不同）。プリセットの再クリック解除トグル判定に使う。

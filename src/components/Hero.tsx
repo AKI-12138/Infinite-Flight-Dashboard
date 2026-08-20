@@ -28,11 +28,11 @@ export interface HeroProps {
 
 type MenuId = 'data' | 'settings' | null;
 
-// テーマ 3 択の表示メタ（アイコン・ラベル・サブ）。
-const THEME_OPT_META: Record<ThemePref, { ico: string; label: string; sub?: string }> = {
-  auto: { ico: '🔄', label: 'Auto', sub: '(follow OS)' },
-  light: { ico: '☀️', label: 'Light' },
-  dark: { ico: '🌙', label: 'Dark' },
+// テーマ 3 択の表示メタ（ラベル・サブ）。
+const THEME_OPT_META: Record<ThemePref, { label: string; sub?: string }> = {
+  auto: { label: 'Auto', sub: '(follow OS)' },
+  light: { label: 'Light' },
+  dark: { label: 'Dark' },
 };
 
 export function Hero({
@@ -128,23 +128,23 @@ export function Hero({
               </button>
               <div className="header-menu" id="dataMenu" role="menu" aria-labelledby="btnDataMenu">
                 <button className="header-menu-item" role="menuitem" onClick={() => run(onSearch)}>
-                  <span className="header-menu-ico" aria-hidden="true">🔍</span> Search flights
+                  Search flights
                 </button>
                 <button className="header-menu-item" role="menuitem" onClick={() => run(onDataCheck)}>
-                  <span className="header-menu-ico" aria-hidden="true">🩺</span> Data check
+                  Data check
                 </button>
                 <div className="header-menu-divider" role="separator"></div>
                 <button className="header-menu-item" id="btnHeaderImport" role="menuitem" onClick={() => run(onImport)}>
-                  <span className="header-menu-ico" aria-hidden="true">📥</span> Import
+                  Import
                 </button>
                 <button className="header-menu-item" id="btnExport" role="menuitem" onClick={() => run(onExport)}>
-                  <span className="header-menu-ico" aria-hidden="true">📤</span> Export
+                  Export
                 </button>
                 <button
                   className="header-menu-item is-danger" id="btnClearAllHeader" role="menuitem"
                   onClick={() => run(onClearAll)} title="Delete all flights"
                 >
-                  <span className="header-menu-ico" aria-hidden="true">🗑</span> Clear all
+                  Clear all
                 </button>
               </div>
             </div>
@@ -172,7 +172,7 @@ export function Hero({
                       data-theme-opt={opt} role="menuitemradio" aria-checked={on}
                       onClick={() => run(() => theme.setTheme(opt))}
                     >
-                      <span className="header-menu-ico" aria-hidden="true">{meta.ico}</span> {meta.label}
+                      {meta.label}
                       {meta.sub && <span className="header-menu-sub"> {meta.sub}</span>}
                       <span className="header-menu-check" aria-hidden="true">✓</span>
                     </button>
@@ -186,7 +186,7 @@ export function Hero({
                     <div className="header-menu-label">Filter bar</div>
                     {/* バーに常時出すフィルタチップの選択（フェーズA）。 */}
                     <button className="header-menu-item" role="menuitem" onClick={() => run(onCustomizeBar)}>
-                      <span className="header-menu-ico" aria-hidden="true">🧰</span> Customize filter bar
+                      Customize filter bar
                     </button>
 
                     <div className="header-menu-divider" role="separator"></div>

@@ -22,7 +22,7 @@ export function TopFlightsCard({ flights, onExpand }: { flights: Flight[]; onExp
   return (
     <div className="card">
       <div className="card-header">
-        <div className="card-title">⏱️ Top Flights by Time</div>
+        <div className="card-title">Top Flights by Time</div>
         <div className="card-actions">
           <div className="toggle">
             <button
