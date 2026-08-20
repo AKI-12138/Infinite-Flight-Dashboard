@@ -248,3 +248,11 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);over
 ::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:var(--text-3);border-radius:10px;}
 ::-webkit-scrollbar-thumb:hover{background:var(--text-2);}
+
+/* ===================== APP ICONS（フェーズN・2026-08-21） =====================
+   自作モノクロ SVG アイコン（src/components/icons/AppIcon.tsx）の共通の土台。
+   色は currentColor＝置いた場所の文字色に従うので、ここでは色を指定しない。
+   ⚠️ アイコン用の固定幅スロットは作らない（メニューの規約と同じ。data-entry-and-header.css 参照）。 */
+.app-icon{display:block;flex-shrink:0;}
+/* 文中に混ぜるとき（例：Customize filter bar の説明文の「⚙️ More」）だけベースラインに合わせる。 */
+.app-icon-inline{display:inline-block;vertical-align:-0.15em;}

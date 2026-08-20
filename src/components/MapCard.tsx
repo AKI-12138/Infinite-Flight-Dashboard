@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import type { StoredFlight } from '../lib/datasource';
 import { currentTileUrl, TILE_OPTS, drawMapLayers, addGeoLines } from '../lib/map-helpers';
+import { AppIcon } from './icons/AppIcon';
 
 // インライン 2D ルートマップ（旧 index.html の .map-section + render-map.js の initMap/renderMap）。
 // 命令型 Leaflet を useRef/useEffect でラップ（CLAUDE.md 方針）。
@@ -69,7 +70,7 @@ export function MapCard({ flights, themePref, onGlobe, onExpand }: {
             </span>
           </div>
           <div className="map-actions">
-            <button className="map-globe-btn" onClick={onGlobe}>3D Globe</button>
+            <button className="map-globe-btn" onClick={onGlobe}><AppIcon name="globe" size={14} />3D Globe</button>
             <button className="map-expand-btn" onClick={resetView} title="Reset view (fit all)">⌖</button>
             <button className="map-expand-btn" onClick={onExpand} title="Expand">⛶</button>
           </div>

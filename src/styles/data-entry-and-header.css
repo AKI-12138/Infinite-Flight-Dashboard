@@ -292,6 +292,8 @@
   white-space:nowrap;
 }
 .header-menu-item:hover{background:var(--surface-elev2);color:var(--text);}
+/* 項目の先頭グリフ。記号（Import の ↑ / Export の ↓）と SVG アイコン（フェーズN）の共通クラス。
+   幅は指定しない＝固定スロットを作らないルール（上の ⚠️ 参照）。 */
 .header-menu-ico{font-size:14px;line-height:1;flex-shrink:0;}
 .header-menu-sub{color:var(--text-3);font-size:11px;}
 .header-menu-divider{height:1px;background:var(--border);margin:5px 8px;}
@@ -416,8 +418,12 @@ body:not(.is-empty) #emptyState { display:none; }
   border:1px solid var(--border);border-radius:18px;
   padding:48px 40px;text-align:center;box-shadow:var(--shadow-card);
 }
-.empty-icon{ font-size:56px;margin-bottom:18px;display:inline-block;
+/* 空状態の大きいスポットアイコン（フェーズN で ✈️ の絵文字から線画 SVG へ置換）。
+   ⚠️ 実寸は font-size ではなく .app-icon の width/height で決める（下の狭幅指定とセット）。
+   色は accent＝周りの青い光（drop-shadow）と揃えるため。 */
+.empty-icon{ margin-bottom:18px;display:inline-block;line-height:0;color:var(--accent);
   filter:drop-shadow(0 0 24px rgba(var(--accent-rgb),0.3)); }
+.empty-icon .app-icon{width:56px;height:56px;}
 .empty-title{font-size:24px;font-weight:700;margin-bottom:8px;letter-spacing:-0.5px;}
 .empty-sub{font-size:14px;color:var(--text-2);margin-bottom:32px;line-height:1.6;}
 .empty-actions{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:28px;}
@@ -435,7 +441,7 @@ body:not(.is-empty) #emptyState { display:none; }
 @media(max-width:560px){
   #emptyState{margin:24px auto;padding:0 16px;}
   .empty-card{padding:32px 20px;}
-  .empty-icon{font-size:44px;}
+  .empty-icon .app-icon{width:44px;height:44px;}
   .empty-title{font-size:20px;}
   .empty-actions{flex-direction:column;}
   .empty-actions button{width:100%;}

@@ -8,6 +8,8 @@
 
 /* ===================== 3D GLOBE OVERLAY ===================== */
 .map-globe-btn{
+  /* フェーズN：先頭に地球のアイコンを置くので inline-flex（文字だけの頃は素の button だった） */
+  display:inline-flex;align-items:center;gap:6px;
   padding:5px 12px;background:rgba(var(--accent-rgb),0.12);border:1px solid rgba(var(--accent-rgb),0.3);
   /* フェーズK-2（2026-08-18）：操作ラベルは 12px 以上（11px → 12px） */
   border-radius:6px;color:var(--accent);font-family:'Outfit';font-size:12px;font-weight:600;

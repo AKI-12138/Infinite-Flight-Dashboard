@@ -10,6 +10,7 @@ import { showToast } from '../../lib/toast';
 import { useModalKeyboard } from '../../hooks/useModalKeyboard';
 import { AutocompleteInput } from './AutocompleteInput';
 import { airlineCodeSuggestions, type CodeItem } from '../../lib/airline-codes';
+import { AppIcon } from '../icons/AppIcon';
 import { getACData } from '../../lib/ac-data';
 import { decodeMetar } from '../../lib/metar';
 
@@ -197,7 +198,7 @@ export function FlightMemoModal({ flight, onClose, draftMode = false, onCommit }
     <div ref={modalRef} className="modal-overlay show" id="flightMemoOverlay">
       <div className="modal modal-wide memo-modal">
         <div className="modal-head">
-          <h3>Flight Notes</h3>
+          <h3><AppIcon name="notes" size={20} className="modal-title-ico" />Flight Notes</h3>
           <button className="btn-close" onClick={closeAttempt}>✕</button>
         </div>
         <div className="modal-body adv-modal-body">

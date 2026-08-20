@@ -12,6 +12,7 @@ import { _setFocusSearchListener } from '../lib/flight-log-events';
 import { onStatExpand } from '../lib/dashboard-events';
 import { activatable } from '../lib/a11y';
 import { pushEscape } from '../lib/escape-stack';
+import { AppIcon } from './icons/AppIcon';
 
 // フライトログテーブル（旧 render-table.js + index.html の .card.table-section）。
 // 描画・ソート・選択・検索・削除（確認つき）・フルスクリーン拡大。
@@ -27,7 +28,7 @@ export function FlightLog({ flights }: { flights: StoredFlight[] }) {
   const [fullscreen, setFullscreen] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
   const savedScroll = useRef(0);
-  // メモの追加/削除で行の 📝 表示と Notes 列ソートを更新するための購読。
+  // メモの追加/削除で行のノートアイコン表示と Notes 列ソートを更新するための購読。
   const memoVersion = useSyncExternalStore(memoStore.subscribe, memoStore.getVersion, memoStore.getVersion);
 
   // ヘッダ ≡「Search flights」→ 拡大して検索欄にフォーカス。
@@ -157,14 +158,16 @@ export function FlightLog({ flights }: { flights: StoredFlight[] }) {
           <div className="card-title">Flight Log</div>
           <div className="table-tools">
             <div className="search-input">
-              <span style={{ color: 'var(--text-3)' }}>🔍</span>
+              <AppIcon name="search" size={15} style={{ color: 'var(--text-3)' }} />
               <input
                 ref={searchRef} id="logSearch"
                 placeholder="RJTT→RJOO  /  ANA  /  2025  /  -RJOO …"
                 value={search} onChange={(e) => setSearch(e.target.value)}
               />
             </div>
-            <button className="btn-danger" onClick={confirmDeleteAll} title="Delete all flights">Clear All</button>
+            <button className="btn-danger" onClick={confirmDeleteAll} title="Delete all flights">
+              <AppIcon name="trash" size={15} />Clear All
+            </button>
             {/* ソートリセット ↺＝Clear All の右・⛶ の左（オーナー指定 2026-07-12。モバイルは絶対配置で ⛶ の真下） */}
             {!(sort && sort.col === 0 && !sort.asc) && (
               <button className="card-expand-btn sort-reset-btn" onClick={() => setSort({ col: 0, asc: false })} title="Reset sort — newest first">↺</button>
@@ -220,9 +223,12 @@ export function FlightLog({ flights }: { flights: StoredFlight[] }) {
                     <td className="airline-tag">{f.al}</td>
                     <td className="time-tag">{f.t}</td>
                     <td className="note-cell">
-                      {/* Notes 専用列：記入あり＝📝（入り口）／なし＝＋（追加）。常時表示。 */}
+                      {/* Notes 専用列：記入あり＝ノートのアイコン（入り口）／なし＝＋（追加）。常時表示。
+                          「なし」を文字の + のままにするのはオーナー指定（2026-08-21・フェーズN）。 */}
                       <button className={'row-note-btn' + (hasNote ? ' has-note' : ' row-note-add')} onClick={() => openFlightMemo(f)}
-                        title={hasNote ? 'View flight notes' : 'Add flight notes'}>{hasNote ? '📝' : '+'}</button>
+                        title={hasNote ? 'View flight notes' : 'Add flight notes'}>
+                        {hasNote ? <AppIcon name="notes" size={14} /> : '+'}
+                      </button>
                     </td>
                     <td><button className="row-delete-btn" onClick={() => deleteOne(f)} title="Delete">✕</button></td>
                   </tr>

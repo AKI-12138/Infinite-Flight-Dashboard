@@ -46,7 +46,7 @@ export function CustomizeBarModal({ open, onClose }: { open: boolean; onClose: (
         </div>
         <div className="modal-body adv-modal-body">
           <p className="barcust-intro">
-            Choose up to {MAX_BAR_CHIPS} filters to always show on the bar — the rest stay in ⚙️&nbsp;More.
+            Choose up to {MAX_BAR_CHIPS} filters to always show on the bar — the rest stay in More.
             Chips appear in the order you tick them. Nothing changes until you press <strong>Done</strong>;
             with none selected the bar shows the default set.
           </p>

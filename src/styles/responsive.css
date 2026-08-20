@@ -167,15 +167,16 @@
   .filter-chip-multi .chip-label{
     flex:1 1 auto;min-width:0;white-space:nowrap;
   }
-  /* ⚙ More ボタンも他フィルターと同じ全幅ピルに揃える（1 列化に追従）。
+  /* More ボタンも他フィルターと同じ全幅ピルに揃える（1 列化に追従）。
      base の .filter-chips-group{align-items:center}（ソース後方＝後勝ち）が
      モバイルの align-items:stretch を打ち消すため、チップ同様に width:100% を明示。
      内側の flex 設定も chip-btn / chip-label に合わせて構造的に一致させる。 */
   .filter-chips-group > .adv-filter-btn{
     width:100%;box-sizing:border-box;justify-content:flex-start;
   }
-  /* "More" ラベルを表示（640px の .adv-filter-btn-label{display:none} を上書き）。
-     チップの chip-label と同じく flex:1 で残り幅を埋め、末尾の件数バッジは右端に残る。 */
+  /* "More" ラベルはチップの chip-label と同じく flex:1 で残り幅を埋め、末尾の件数バッジは右端に残る。
+     （かつてここは 640px の .adv-filter-btn-label{display:none} を上書きする役目も持っていたが、
+      その隠す規則は 2026-08-21 に削除済み＝アイコンが無い今は名前の無いボタンになってしまうため。） */
   .filter-chips-group > .adv-filter-btn .adv-filter-btn-label{
     display:inline;flex:1 1 auto;min-width:0;white-space:nowrap;
   }

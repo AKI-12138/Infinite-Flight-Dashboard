@@ -1,3 +1,5 @@
+import { AppIcon } from './icons/AppIcon';
+
 // 空状態カード（旧 index.html の #emptyState を移植）。
 // 表示制御は CSS（body.is-empty / body:not(.is-empty) #emptyState）に委ねる＝App が body クラスを切替。
 // Import / Add はモーダル（後の手順）を開く。サンプル読込はこの手順で実動作させる。
@@ -11,7 +13,8 @@ export function EmptyState({ onImport, onAdd, onSample }: EmptyStateProps) {
   return (
     <div id="emptyState">
       <div className="empty-card">
-        <div className="empty-icon">✈️</div>
+        {/* 大きいスポットアイコン。実寸は CSS（.empty-icon .app-icon）で決める＝狭幅で 44px に落とすため。 */}
+        <div className="empty-icon"><AppIcon name="flight-route" size={56} /></div>
         <div className="empty-title">Load your flight log</div>
         <div className="empty-sub">
           Your flights stay on this device — never uploaded.<br />
@@ -19,7 +22,7 @@ export function EmptyState({ onImport, onAdd, onSample }: EmptyStateProps) {
         </div>
         <div className="empty-actions">
           <button className="btn-primary" onClick={onImport} style={{ background: 'var(--violet)' }}>
-            Import CSV
+            <AppIcon name="import" size={16} />Import CSV
           </button>
           <button className="btn-primary" onClick={onAdd}>
             <span style={{ fontSize: 16 }}>+</span> Add your first flight

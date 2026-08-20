@@ -8,6 +8,7 @@ import { runSelfChecks } from '../lib/self-check';
 import { StatsGrid } from './StatsGrid';
 import { SaveStatusModal, type SaveState } from './SaveStatusModal';
 import { closeMenuRestoringFocus } from '../lib/menu-focus';
+import { AppIcon, type IconName } from './icons/AppIcon';
 
 // ヘッダ（旧 index.html の .hero を移植）。
 // フェーズS のヘッダー再編に準拠：塗り CTA は Add Flight のみ、
@@ -29,10 +30,10 @@ export interface HeroProps {
 type MenuId = 'data' | 'settings' | null;
 
 // テーマ 3 択の表示メタ（ラベル・サブ）。
-const THEME_OPT_META: Record<ThemePref, { label: string; sub?: string }> = {
-  auto: { label: 'Auto', sub: '(follow OS)' },
-  light: { label: 'Light' },
-  dark: { label: 'Dark' },
+const THEME_OPT_META: Record<ThemePref, { label: string; sub?: string; icon: IconName }> = {
+  auto: { label: 'Auto', sub: '(follow OS)', icon: 'theme-auto' },
+  light: { label: 'Light', icon: 'theme-light' },
+  dark: { label: 'Dark', icon: 'theme-dark' },
 };
 
 export function Hero({
@@ -128,25 +129,25 @@ export function Hero({
               </button>
               <div className="header-menu" id="dataMenu" role="menu" aria-labelledby="btnDataMenu">
                 <button className="header-menu-item" role="menuitem" onClick={() => run(onSearch)}>
-                  Search flights
+                  <AppIcon name="search" className="header-menu-ico" />Search flights
                 </button>
                 <button className="header-menu-item" role="menuitem" onClick={() => run(onDataCheck)}>
-                  Data check
+                  <AppIcon name="data-check" className="header-menu-ico" />Data check
                 </button>
                 <div className="header-menu-divider" role="separator"></div>
-                {/* Import/Export だけ矢印を持つ（記号グリフ＝全 OS 共通・向きが唯一の意味の担い手）。
-                    向きは端末から見た方向＝取り込みは ↑（ファイルを上げる）／書き出しは ↓（ダウンロード）。 */}
+                {/* Import/Export は「トレイ＋矢印」の対（フェーズN 後続採用・文字の ↑ / ↓ から置換）。
+                    向きは端末から見た方向＝取り込みは上（ファイルを上げる）／書き出しは下（ダウンロード）。 */}
                 <button className="header-menu-item" id="btnHeaderImport" role="menuitem" onClick={() => run(onImport)}>
-                  <span className="header-menu-ico" aria-hidden="true">↑</span>Import
+                  <AppIcon name="import" className="header-menu-ico" />Import
                 </button>
                 <button className="header-menu-item" id="btnExport" role="menuitem" onClick={() => run(onExport)}>
-                  <span className="header-menu-ico" aria-hidden="true">↓</span>Export
+                  <AppIcon name="export" className="header-menu-ico" />Export
                 </button>
                 <button
                   className="header-menu-item is-danger" id="btnClearAllHeader" role="menuitem"
                   onClick={() => run(onClearAll)} title="Delete all flights"
                 >
-                  <span className="header-menu-ico" aria-hidden="true">✕</span>Clear all
+                  <AppIcon name="trash" className="header-menu-ico" />Clear all
                 </button>
               </div>
             </div>
@@ -160,7 +161,7 @@ export function Hero({
                 title={`Settings · Theme: ${THEME_LABELS[theme.pref]}`}
                 aria-haspopup="true" aria-expanded={openMenu === 'settings'} aria-controls="settingsMenu"
               >
-                <span className="header-icon-glyph" aria-hidden="true">⚙️</span>
+                <AppIcon name="settings" size={20} className="header-icon-glyph" />
               </button>
               <div className="header-menu" id="settingsMenu" role="menu" aria-labelledby="btnSettingsMenu">
                 <div className="header-menu-label">Theme</div>
@@ -174,7 +175,7 @@ export function Hero({
                       data-theme-opt={opt} role="menuitemradio" aria-checked={on}
                       onClick={() => run(() => theme.setTheme(opt))}
                     >
-                      {meta.label}
+                      <AppIcon name={meta.icon} className="header-menu-ico" />{meta.label}
                       {meta.sub && <span className="header-menu-sub"> {meta.sub}</span>}
                       <span className="header-menu-check" aria-hidden="true">✓</span>
                     </button>
@@ -188,7 +189,7 @@ export function Hero({
                     <div className="header-menu-label">Filter bar</div>
                     {/* バーに常時出すフィルタチップの選択（フェーズA）。 */}
                     <button className="header-menu-item" role="menuitem" onClick={() => run(onCustomizeBar)}>
-                      Customize filter bar
+                      <AppIcon name="customize-filter-bar" className="header-menu-ico" />Customize filter bar
                     </button>
 
                     <div className="header-menu-divider" role="separator"></div>

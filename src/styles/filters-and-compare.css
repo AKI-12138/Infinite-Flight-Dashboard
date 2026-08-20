@@ -160,7 +160,12 @@
 .filter-bar:not(.collapsed) .filter-clear-collapsed{display:none !important;}
 
 /* ===================== ADVANCED FILTER PANEL（フェーズY-2） ===================== */
-/* ⚙ ボタン（Scope チップの右隣）。.filter-chip と同じ丸チップ見た目＋適用中バッジ。 */
+/* More ボタン（Scope チップの右隣）。.filter-chip と同じ丸チップ見た目＋適用中バッジ。
+   ⚠️ 先頭のアイコンは持たない（2026-08-21・オーナー判断で ⚙️ を撤去）＝
+   隣に「More」という文字があり、同じ列の他チップも全てアイコン無しのため。
+   ⚠️ かつてここにあった `> span:first-child{width:18px;height:18px}`（絵文字用の固定枠）は
+   **削除済み**。残したままアイコンを消すと、次の要素＝「More」の文字がその 18px の枠に潰される
+   （フィルターチップで実際に起きた事故と同じ型。CLAUDE.md のグリフ規約を参照）。 */
 .adv-filter-btn{
   position:relative;display:inline-flex;align-items:center;gap:6px;
   appearance:none;padding:6px 12px;
@@ -171,10 +176,6 @@
 .adv-filter-btn:hover{border-color:var(--border-hover);color:var(--text);}
 .adv-filter-btn.active{
   background:rgba(var(--accent-rgb),0.12);border-color:rgba(var(--accent-rgb),0.4);color:var(--accent);
-}
-.adv-filter-btn > span:first-child{
-  flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;
-  width:18px;height:18px;line-height:1;
 }
 /* More ボタンの小さい「＋」（＝もっと絞り込む。他チップの ▾ に相当する余白付きアイコン）。 */
 .adv-filter-btn .adv-filter-plus{color:var(--text-3);font-size:13px;font-weight:600;line-height:1;margin-left:1px;}
@@ -263,10 +264,6 @@
    → .adv-modal-body は上書き不要（空ルールは lint 警告になるため削除・既定挙動のまま）。 */
 /* セクション見出しは 2 個目以降は少し上に余白（区切り線とセットで塊が分かれて見えるように）。 */
 .adv-section-label{margin-top:2px;}
-
-@media(max-width:640px){
-  .adv-filter-btn-label{display:none;}  /* 狭幅では ⚙ のみ */
-}
 
 /* ===================== CUSTOMIZE FILTER BAR モーダル（フェーズA） ===================== */
 /* 高度パネルのデザイン言語を流用。各軸は「チェックボックス付きピル」で on/off するだけ

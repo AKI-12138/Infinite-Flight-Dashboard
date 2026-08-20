@@ -172,6 +172,9 @@
 /* Notes 専用列：記入あり＝📝（アクセント色）／なし＝＋（薄色）。常時表示・Notes 列見出しで並び替え可。 */
 .note-cell{text-align:center;}
 .row-note-btn{
+  /* フェーズN：記入あり＝SVG／なし＝文字の「+」が同じ列に並ぶので、
+     箱の高さを揃える（inline-flex + min-height）。揃えないと行ごとに 2px 上下する。 */
+  display:inline-flex;align-items:center;justify-content:center;min-height:25px;
   padding:4px 10px;background:rgba(var(--accent-rgb),0.08);border:1px solid transparent;
   border-radius:4px;color:var(--accent);font-size:12px;cursor:pointer;
   transition:var(--tr-tint),var(--tr-press);font-family:'Outfit';font-weight:600;line-height:1.4;

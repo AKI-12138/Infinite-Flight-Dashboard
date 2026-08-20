@@ -86,7 +86,6 @@ export function FilterBar({ options, onOpenAdvanced }: { options: FilterOptionsM
           return <FilterChip key={key} def={def} title={meta.title} dataOptions={options[key] || []} />;
         })}
         <button type="button" className={'adv-filter-btn' + (advCount > 0 ? ' active' : '')} onClick={onOpenAdvanced} title="Presets & advanced filters">
-          <span>⚙️</span>
           <span className="adv-filter-btn-label">More</span>
           <span className="adv-filter-plus" aria-hidden="true">＋</span>
           {advCount > 0 && <span className="adv-filter-badge">{advCount}</span>}
