@@ -1,174 +1,105 @@
 # Changelog
 
 User-facing highlights for each version of **Infinite Flight Dashboard**. The version here
-matches the number in the dashboard footer. This is a summary of notable changes — smaller or
-internal-only updates may be grouped.
+matches the number in the dashboard footer. Bug fixes and small refinements are grouped into a
+single line; smaller or internal-only updates aren't listed.
 
 ## v2.5 — 2026-08-18
-Polish pass: the interface now responds, has depth, and is easier to use on a phone.
+Polish pass: the interface responds, has depth, and is easier to use on a phone.
 
-- **Controls react the moment you press them** — buttons, chips and tabs now give instant feedback.
-- **Cards and panels have depth** — light along the top edge, a soft shadow underneath.
-- **Expanded views and dialogs use frosted glass** — the dashboard shows through, blurred, behind them.
-- **Reduced-motion is respected** — if your system asks for less movement, motion is removed while colour cues stay.
-- **Jump straight to a section on mobile** — a "Jump" menu in the filter bar takes you to Overview, Map, Breakdowns, Trends or the Flight Log.
-- **Easier to tap** — small controls now have a larger touch area, without looking any bigger.
-- **Breakdowns and Trends are now labelled** — the long list of cards is split into named sections.
-- **Small labels and figures are easier to read on a phone** — control labels, the map legend and the flight table were nudged up a size.
-- Fixed: hovering a card no longer makes it lift as if it were clickable.
-- Fixed: in light theme, some dialogs dimmed the page differently from others.
-- Fixed: the "Welcome back" dialog no longer looks like a button is already selected.
-- Fixed: on phones and tablets, the notes button in the flight log needed two taps to open.
+- Controls react the moment you press them.
+- Cards and panels have depth; expanded views and dialogs use frosted glass.
+- Reduced-motion settings are respected — motion is removed, colour cues stay.
+- Mobile: a **Jump** menu in the filter bar takes you straight to any section.
+- Bigger touch areas, named **Breakdowns** / **Trends** sections, and larger small text on phones.
+- Plus various bug fixes.
 
 ## v2.4 — 2026-08-06
 Your flight notes gain a weather brain — and a lot more detail.
 
-- **Paste a METAR, read it in plain English.** Drop a raw METAR into a note and a decoded
-  briefing appears right below it — wind (with gusts and variable direction), visibility,
-  clouds, temperature / dew point, and pressure in **hPa or inHg** (whichever the report uses),
-  plus weather like rain, snow and thunderstorms. It's decoded on your device — nothing is sent
-  anywhere — and the observation's month and year are filled in from your flight's date.
-- **More to record about each flight.** New note fields: departure / arrival **terminal and
-  gate**, **taxi routes** (out and in), **approach**, **centerline offset (C/L)**, **RVR**,
-  **takeoff / landing configuration** (one free-text line each, e.g. "Flaps 5 / FLEX 50"),
-  **cost index**, **reverser credit** (Yes / No), and an **alternate airport** that suggests
-  ICAO codes as you type.
-- **Callsign wake suffix is now a picker.** Choose Heavy / Super from a dropdown beside the
-  callsign; the saved note shows them together (e.g. "KLM 777 Heavy").
-- **Aircraft shown in full.** Notes now display the model name (e.g. A330-200) instead of the
-  ICAO code (A332).
-- **VREF and VAPP are separate fields** — they aren't always the same speed.
+- **Paste a METAR, read it in plain English** — wind, visibility, clouds, temperature and pressure
+  (hPa or inHg). Decoded on your device; nothing is sent anywhere.
+- **More to record**: terminal and gate, taxi routes, approach, centerline offset, RVR, takeoff /
+  landing configuration, cost index, reverser credit, and an alternate airport.
+- Callsign wake suffix (Heavy / Super) is now a picker.
+- Aircraft shown by model name (A330-200) instead of ICAO code (A332).
+- VREF and VAPP are separate fields.
 
 ## v2.3 — 2026-07-11
 The post-flight ritual: your notes become a real paper logbook page.
 
-- **Notes now read like a paper logbook.** The viewing mode recreates the ritual of writing
-  up a flight after landing: every entry sits on a dotted ruled line, free text (route,
-  METARs, notes) is written on notebook rules, and in light theme the page is cream paper.
-- **The flight fills itself in.** Date, From / To (with city names), Aircraft, Airline, and
-  air time now appear automatically from your log — and **Taxi total** sums taxi out + in for
-  you. Auto fields always match the flight, no re-typing.
-- **UTC works itself out.** Enter local times only; UTC times *and* dates are computed from
-  each airport's real timezone — daylight saving and date-line crossings included. Airports
-  the app doesn't know fall back to manual input.
-- **Smarter callsign & flight-number input.** Both fields suggest airline codes as you type,
-  with *your flight's airline first* — IATA prefixes for flight numbers (NH…), radio callsigns
-  and ICAO codes for callsigns (JAPANAIR / JAL). Free typing still works for anything else.
-- **Write notes first, then add the flight.** **Add Notes** in the Add-Flight window now opens
-  the notes page *before* saving; the flight is added when you press **Add Flight** there.
-- **Filter by period.** Advanced filters gain a **from – to date range** (either side can be
-  left open). It combines with all other filters and stays in the URL for sharing.
-- **Charts, your way.** The **Continents** card gets a **Pie / Bar** toggle, and **Flights per
-  Month / Weekday** get **Line / Bar** — same colors, same click-to-filter, and your choice is
-  remembered.
-
-Plus assorted small fixes and refinements throughout.
+- **Notes read like a paper logbook** — ruled lines, notebook rules for free text, cream paper in
+  light theme.
+- Date, route, aircraft, airline and air time fill in from your log; taxi total sums itself.
+- **Enter local times only** — UTC times *and* dates are computed from each airport's real timezone.
+- Callsign and flight-number fields suggest airline codes as you type, your flight's airline first.
+- **Add Notes** now opens the notes page before saving the flight.
+- Advanced filters gain a from–to date range.
+- Continents gets a Pie / Bar toggle; Flights per Month / Weekday get Line / Bar.
+- Plus various bug fixes.
 
 ## v2.2 — 2026-07-08
 Write the story of each flight.
 
-- **Flight Notes.** Every flight now has its own notes page: open it from the new **Notes column**
-  in the Flight Log (**📝** = has notes, **+** = add), or add a flight with **📝 Add + Notes** to
-  write them right away. Record what stats can't hold — flight number, callsign, registration,
-  pilot, OUT/OFF/ON/IN times (local **and** UTC, with dates), taxi out/in, V-speeds, distance,
-  touchdown rate and landing G, passengers, cargo, fuel, route, SID/STAR, runways, METARs, and
-  free-form notes.
-- **Fill in only what you want.** Every field is optional. Type plain numbers and units (kt / nm /
-  kg) are added automatically on display; times snap to a clean HH:MM. Previously used values are
-  suggested as you type. Notes never affect your stats or CSV.
-- **Sort by notes.** Click the **Notes** column header to bring flights with notes to the top.
-- **Full Backup (JSON).** **Export → Full Backup** saves flights, custom airports *and* notes in
-  one file; drop it into **Import** (auto-detected) to restore everything — notes stay linked to
-  their flights. CSV export/import keeps working exactly as before.
-- **Function-test.** **⚙ Settings → Status → Function-test** runs a quick health check of the app
-  in your browser (storage, data integrity, notes linkage, logic, round-trips, airport database)
-  and shows only what failed — with a one-tap **Report a bug** link.
-- **Bigger airport database.** Built-in airports roughly doubled, with much better coverage of
-  Africa, South America, Oceania, Eastern Europe, and famous smaller fields (Innsbruck, Lukla,
-  Sint Maarten, Aspen …).
-- **Year chart stays readable as the years add up.** The *Flights per Year* card now shows your
-  most recent 10 years; expand it (⛶) to scroll through your full history.
+- **Flight Notes** — every flight gets its own page, opened from the new **Notes** column in the
+  Flight Log. Record flight number, callsign, registration, OUT/OFF/ON/IN times (local and UTC),
+  taxi, V-speeds, distance, touchdown rate, fuel, route, SID/STAR, runways, METARs and more.
+- Every field is optional; units are added automatically and previous values are suggested. Notes
+  never affect your stats or CSV.
+- Sort the Flight Log by which flights have notes.
+- **Full Backup (JSON)** — Export saves flights, custom airports *and* notes in one file; Import
+  detects it and restores everything.
+- **Function-test** — a quick health check of the app in your browser that shows only what failed,
+  with a one-tap bug-report link.
+- Built-in airport database roughly doubled (Africa, South America, Oceania, Eastern Europe, and
+  famous smaller fields).
+- The *Flights per Year* card shows your most recent 10 years; expand it for your full history.
 
 ## v2.1 — 2026-07-05
 Make the filter bar your own.
 
-- **Customize the filter bar.** Open **⚙ Settings → 🧰 Customize filter bar** and choose which
-  filters sit on the bar for one-tap access — up to **6**, from the full set of 20 (including
-  departure / arrival splits). Everything else stays in **⚙ More**.
-- **Your order, remembered.** Chips appear in the order you tick them, and your choice is saved on
-  your device — it's still there next time you open the dashboard.
-- **Nothing changes until you're done.** Tick the filters you want and press **Done** to update the
-  bar; close without saving to leave it exactly as it was. Select none (or **↺ Clear selection**) to
-  fall back to the default six.
+- **Customize the filter bar** — choose which filters sit on the bar for one-tap access, up to 6
+  from the full set of 20. Everything else stays in **More**.
+- Chips appear in the order you tick them, and your choice is saved on your device.
+- Nothing changes until you press **Done**; select none (or **↺ Clear selection**) for the default six.
 
 ## v2.0 — 2026-07-02
 A big upgrade to filtering.
 
-- **Advanced filters panel.** A new **⚙ More** button next to the filter bar opens a panel with a
-  full set of filters, grouped by category (Date · Airport · Cities · Countries/Regions ·
-  Continents · Aircraft/Airline · Time). The 6 quick chips stay on the bar; everything else lives
-  in the panel, and the two stay in sync.
-- **Many more ways to filter.** Filter by **departure / arrival** separately for airports, cities,
-  countries, and continents; by **within-a-continent vs across-continents**; and by **flight
-  duration** — pick from buckets (under 1h, 1–3h, 3–6h, 6–10h, 10h+) or type a **custom hour
-  range**.
-- **Presets.** One-click combinations like *Inter-continental long-haul*, *Weekend international*,
-  *Intra-continental long-haul*, *Domestic short hops*.
-- **Save your own presets.** Set up any combination of filters and **💾 Save preset** it with a
-  name; it appears under **Saved** and is remembered on your device. Edit / delete them anytime.
-- **Search inside long menus.** Airport / city / country / airline / aircraft dropdowns now have a
-  search box — type part of a code or an airport name (e.g. "haneda", "tokyo") to find it fast.
-- **Smart, geography-aware options.** Pick a continent or country and the airport / city / country
-  lists narrow to match, so you're not scrolling past irrelevant options.
-- **Click any chart to filter — now including routes, airports, and cities.** Click a bar in an
-  expanded *Top Routes / Airports / Cities* card to filter the whole dashboard to it.
-- **Polish.** Dropdowns flip upward when there's no room below; Cancel / Clear / Close buttons glow
-  red on hover consistently; the filter and Add-Flight windows no longer close on an accidental
-  background click.
+- **Advanced filters panel** — a **More** button opens the full set, grouped by category. The 6
+  quick chips stay on the bar, and the two stay in sync.
+- Filter **departure / arrival** separately for airports, cities, countries and continents; by
+  within-a-continent vs across-continents; and by **flight duration** (buckets or a custom range).
+- **Presets** — one-click combinations like *Inter-continental long-haul* or *Domestic short hops*.
+- **Save your own presets** with a name; remembered on your device, editable and deletable anytime.
+- Long dropdowns gain a search box, and options narrow by geography as you pick.
+- Click a bar in an expanded *Top Routes / Airports / Cities* card to filter the dashboard to it.
+- Plus various bug fixes.
 
 ## v1.9 — 2026-07-01
-- **Add missing airports right from Data check.** Each unrecognized airport now has a **+ Add**
-  button that opens a small form (ICAO pre-filled) to add its coordinates — no CSV editing needed.
-  A link to look up the coordinates is built in. Unrecognized codes are also highlighted so they
-  stand out.
-- **Back to top.** A small **↑** button appears at the right edge of the filter bar as you scroll,
-  to jump back to the header in one tap.
-- **Mobile polish.** On phones, the first (empty) screen has a cleaner, shorter header, and the
-  browser's status-bar area now matches the dashboard header color instead of showing plain white.
-- **Fix:** on wide screens, the pinned filter bar now covers the full width as you scroll, instead
-  of leaving the edges showing content behind it. It also no longer shows a stray "pinned" shadow
-  on first load before you've scrolled.
+- **Add missing airports right from Data check** — each unrecognized airport gets a **+ Add** button
+  that opens a small form with the ICAO pre-filled, plus a built-in link to look up its coordinates.
+- **Back to top** — a small **↑** button appears in the filter bar as you scroll.
+- Cleaner, shorter header on the first (empty) screen on phones.
+- Plus various bug fixes.
 
 ## v1.8 — 2026-07-01
-- **Tidier header.** The header is now just **+ Add Flight** plus two compact menus: a **≡ menu**
-  (Search flights, Data check, Import, Export, Clear all) and a **⚙️ settings menu** (theme and
-  status). Less clutter, one clear primary button.
-- **Data check.** A new window (in the **≡ menu**) lists any airports or aircraft in your log that
-  aren't in the dataset — these silently drop off the map and out of the country counts — and lets
-  you look up whether a given airport is recognized. The **⚙️ settings menu** shows a quick
-  "all recognized / ⚠️ N unrecognized" status that opens it.
-- **Clearer theme picker.** Theme is now an explicit **Auto / Light / Dark** choice in the
-  ⚙️ settings menu (instead of a one-button cycle).
-- **Clear filters while collapsed.** When the filter bar is collapsed, a **Clear all** button now
-  appears next to it whenever filters are active.
-- **One-click clear in Import.** The paste box in Bulk Import has a **✕ Clear** button to empty it
-  and start over.
-- **Calmer save notifications.** "Auto-saved" now shows as a brief toast after the action message,
-  instead of a banner that lingered. Save *errors* still stay until you dismiss them.
+- **Tidier header** — just **+ Add Flight** plus two compact menus: **≡** (Search, Data check,
+  Import, Export, Clear all) and **⚙️** (theme and status).
+- **Data check** — lists any airports or aircraft in your log that aren't in the dataset, and lets
+  you look up whether a given airport is recognized.
+- Theme is now an explicit **Auto / Light / Dark** choice.
+- A **Clear all** button appears next to the collapsed filter bar whenever filters are active.
+- Plus various small improvements.
 
 ## v1.7 — 2026-06-30
-- **Click to filter (drill-down).** Click a bar or point in any expanded card — *Flights per
-  Year / Month / Weekday*, or *Top Aircraft / Airlines / Countries* — to filter the whole
-  dashboard to it. Click the same one again to clear.
-- **Richer chart tooltips.** Expanded Year / Month / Weekday charts now show a breakdown on
-  hover: number of flights, total time, and your top airlines for that point.
-- **Sticky filter bar.** The filter bar stays pinned to the top as you scroll, so you can adjust
-  filters while looking at any chart.
-- **Sharper 3D globe.** Higher-resolution Earth texture and finer country borders (with a
-  graceful fallback if the high-res texture isn't available).
-- **Globe rotation control.** The globe pauses while you drag to inspect and resumes a few
-  seconds later; a new ⏸ / ▶ button lets you pause it for as long as you like.
-- **Fix:** country borders on the globe are now clearly visible in light mode.
+- **Click to filter** — click a bar or point in any expanded chart card to filter the whole
+  dashboard to it; click it again to clear.
+- Expanded Year / Month / Weekday charts show flights, total time and your top airlines on hover.
+- **Sticky filter bar** — the bar stays pinned to the top as you scroll.
+- **Sharper 3D globe** — higher-resolution Earth texture and finer country borders, plus a
+  **⏸ / ▶** button to pause rotation.
+- Plus various bug fixes.
 
 ## v1.6 — 2026-06-30
 - **Try it with sample data.** Load a built-in sample flight log in one click (or download it as
