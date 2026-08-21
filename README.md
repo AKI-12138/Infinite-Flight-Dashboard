@@ -218,7 +218,7 @@ Filtering has two layers that work together.
 
 **Make the bar yours** — open **⚙ Settings → Customize filter bar** to choose which chips live on the quick bar (up to 6, from all 20 filters including departure / arrival splits). Tick the ones you want and press **Done** — nothing changes until you do; select none to fall back to the default six.
 
-**⚙ Advanced filters** — the **⚙ More** button (right of the bar) opens a panel with the full set, grouped by category:
+**Advanced filters** — the **More** button (right of the bar) opens a panel with the full set, grouped by category:
 
 - **Airport / City / Country / Continent** — each filterable by **departure**, **arrival**, or **either**
 - **Continental scope** — within a single continent vs across continents
