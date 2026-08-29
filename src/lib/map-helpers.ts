@@ -13,12 +13,27 @@ export function mapLng(lng: number): number {
   return lng < -25 ? lng + 360 : lng;
 }
 
-// 現テーマの Carto タイル URL（dark_all / light_all）。CSS 変数 --map-tile-style から決定。
+// ---------------------------- 背景地図（basemap）の唯一の窓口 ----------------------------
+// タイルの URL と帰属表示を画面側に書かない。差し替えるときはここだけを直す
+// （CLAUDE.md「共通の境界モジュールを迂回しない」と同じ作法）。
+const BASEMAP_KEY = import.meta.env.VITE_CARTO_BASEMAP_KEY ?? '';
+
+// 現テーマのタイル URL（dark_all / light_all）。CSS 変数 --map-tile-style から決定。
 export function currentTileUrl(): string {
   const style = cssVar('--map-tile-style') === 'light' ? 'light_all' : 'dark_all';
-  return `https://{s}.basemaps.cartocdn.com/${style}/{z}/{x}/{y}{r}.png`;
+  const base = `https://{s}.basemaps.cartocdn.com/${style}/{z}/{x}/{y}{r}.png`;
+  return BASEMAP_KEY ? `${base}?key=${encodeURIComponent(BASEMAP_KEY)}` : base;
 }
-export const TILE_OPTS: L.TileLayerOptions = { subdomains: 'abcd', maxZoom: 18, noWrap: false };
+
+// 帰属表示（attribution）。**提供元の利用条件で表示が必須**＝消さない。
+// 背景地図を差し替えるときは、この文字列も必ず一緒に替える。
+export const TILE_ATTRIBUTION =
+  '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors ' +
+  '&copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>';
+
+export const TILE_OPTS: L.TileLayerOptions = {
+  subdomains: 'abcd', maxZoom: 18, noWrap: false, attribution: TILE_ATTRIBUTION,
+};
 
 // ルート＋空港マーカーを描き直す。layers（呼び出し側の配列）を clear→再投入する。
 // fitMaxZoom: fitBounds 上限（インライン=3）。

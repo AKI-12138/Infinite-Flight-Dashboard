@@ -28,3 +28,8 @@ CLAUDE.md
 AGENTS.md
 docs/
 .claude/
+
+# Env files（.env.local は *.local で既に除外されるが、明示しておく）
+.env
+.env.*
+!.env.example

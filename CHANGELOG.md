@@ -4,6 +4,10 @@ User-facing highlights for each version of **Infinite Flight Dashboard**. The ve
 matches the number in the dashboard footer. Bug fixes and small refinements are grouped into a
 single line; smaller or internal-only updates aren't listed.
 
+## v2.6 — 2026-08-30
+- **Edit a flight you already logged** — change its date, route, aircraft, airline or duration without deleting it. Any notes you wrote stay attached.
+- Plus various bug fixes and small refinements.
+
 ## v2.5 — 2026-08-18
 Polish pass: the interface responds, has depth, and is easier to use on a phone.
 

@@ -134,6 +134,7 @@
   --map-route-line: var(--accent);
   --map-idl: var(--amber);         /* 国際日付変更線（アンバー点線） */
   --map-equator: var(--violet);    /* 赤道（紫の点々） */
+  --map-attrib-bg-rgb: 10,14,23;   /* 帰属表示の下敷き（暗い地図に薄く重ねる） */
   /* 通知バナーのベース色（テーマ追従）。
      ダークは濃紺、ライトは白に近い色。alpha は .notify-banner 側で付与する。 */
   --notify-bg-rgb: 15,29,53;
@@ -219,6 +220,7 @@
   --map-route-line: var(--accent);
   --map-idl: var(--amber);
   --map-equator: var(--violet);
+  --map-attrib-bg-rgb: 255,255,255;  /* 明るい地図では白の下敷き */
   /* 通知バナーはライトモードでは白基調にして浮かないようにする */
   --notify-bg-rgb: 255,255,255;
   /* OS/ブラウザに「今ライトテーマ」と伝える。

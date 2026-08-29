@@ -199,7 +199,16 @@
 /* Leaflet overrides */
 .leaflet-container{background:var(--map-bg) !important;}
 .leaflet-control-zoom a{background:var(--bg-card) !important;color:var(--text) !important;border-color:var(--border) !important;}
-.leaflet-control-attribution{display:none !important;}
+/* 帰属表示（attribution）。**規約上の義務なので消さない**（2026-08-29・以前は display:none だった）。
+   ただし主役はルートなので、地図の隅で最小限に。色はテーマ変数に追従させる。 */
+.leaflet-control-attribution{
+  background:rgba(var(--map-attrib-bg-rgb),0.55) !important;
+  color:var(--text-3) !important;
+  font-size:9px !important;line-height:1.5;padding:1px 5px !important;
+  backdrop-filter:blur(2px);
+}
+.leaflet-control-attribution a{color:var(--text-2) !important;text-decoration:none;}
+.leaflet-control-attribution a:hover{color:var(--accent) !important;text-decoration:underline;}
 
 /* ===================== NOTIFY BANNER (auto-save events) ===================== */
 /* イベントベースの通知バナー。常設ではなく、保存成功時は 10 秒で自動消滅、

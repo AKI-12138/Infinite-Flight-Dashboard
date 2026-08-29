@@ -23,7 +23,7 @@ export function MapCard({ flights, themePref, onGlobe, onExpand }: {
     const el = containerRef.current;
     if (!el) return;
     const m = L.map(el, {
-      center: [20, 100], zoom: 2, zoomControl: true, attributionControl: false,
+      center: [20, 100], zoom: 2, zoomControl: true, attributionControl: true,
       worldCopyJump: false, minZoom: 1, maxBounds: [[-85, -30], [85, 340]], maxBoundsViscosity: 1.0,
     });
     tileRef.current = L.tileLayer(currentTileUrl(), TILE_OPTS).addTo(m);
