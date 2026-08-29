@@ -165,12 +165,34 @@
 }
 .ftable tbody tr:hover .row-delete-btn{opacity:1;}
 .row-delete-btn:hover{background:rgba(var(--red-rgb),0.15);border-color:rgba(var(--red-rgb),0.3);}
+
+/* 行の操作セル＝編集（鉛筆）＋削除（✕）。どちらも「操作」なので既定では隠し、行ホバーで出す。
+   Notes 列を常時表示にしているのは、あちらが「操作」ではなく「ノートがあるか」という**情報**だから。
+   ⚠️ タッチ端末での常時表示は interactions.css の @media (hover:none) 側。外すと 2 度押しバグが再発する。 */
+.row-actions-cell{white-space:nowrap;}
+.row-edit-btn{
+  opacity:0;
+  /* ✕（文字）と鉛筆（SVG）が同じセルに並ぶので、note ボタンと同じ作りで箱の高さを固定する。 */
+  display:inline-flex;align-items:center;justify-content:center;min-height:25px;
+  padding:4px 8px;margin-right:6px;background:var(--surface-elev2);border:1px solid transparent;
+  border-radius:4px;color:var(--text-3);cursor:pointer;vertical-align:middle;
+  transition:var(--tr-tint),var(--tr-press),opacity var(--t-ui) var(--ease-out);
+}
+.row-edit-btn:hover{background:rgba(var(--accent-rgb),0.15);border-color:rgba(var(--accent-rgb),0.3);color:var(--accent);}
+.ftable tbody tr:hover .row-edit-btn{opacity:1;}
+.row-delete-btn{vertical-align:middle;}
 .ftable tbody tr.selected{background:rgba(var(--red-rgb),0.04);}
 .ftable tbody tr.selected td{color:var(--text);}
 
 /* ===================== FLIGHT NOTES (MEMO) ===================== */
 /* Notes 専用列：記入あり＝📝（アクセント色）／なし＝＋（薄色）。常時表示・Notes 列見出しで並び替え可。 */
-.note-cell{text-align:center;}
+/* 位置は左揃え＝**見出し「NOTES」の N に箱の左端を合わせる**（オーナー指定 2026-08-29）。
+   他の列は全て見出しの頭文字に中身の左端が揃っており、中央揃えだとこの列だけ
+   見出しの並び替え矢印「▾」の下に来て浮いていた。
+   th・td とも横 padding は 14px で共通なので、text-align:left だけで正確に揃う。
+   ボタン内側の padding（10px）でグリフ自体は少し右に入るが、これは .aircraft-tag の
+   ピル（padding:2px 8px）と同じ扱い＝「箱の左端を揃える」がこの表の既定。 */
+.note-cell{text-align:left;}
 .row-note-btn{
   /* フェーズN：記入あり＝SVG／なし＝文字の「+」が同じ列に並ぶので、
      箱の高さを揃える（inline-flex + min-height）。揃えないと行ごとに 2px 上下する。 */

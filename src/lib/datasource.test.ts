@@ -51,6 +51,49 @@ describe('CRUD と採番', () => {
     expect(ds.count).toBe(2);
   });
 
+  // --- updateOne（Edit Flight・フェーズO）---
+  // この API の存在理由は「消して追加し直す」を不要にすること＝**id が変わらない**のが本体の契約。
+  // id が変わるとメモ（memo-store は id キー）との紐づけが切れる。
+  it('updateOne：中身を書き換えても id と、その便を指す紐づけが変わらない', () => {
+    const stored = ds.addOne(F({ date:'2025-01-01', t:'1h00m' }));
+    const id = stored.id;
+    const r = ds.updateOne(id, F({ date:'2025-01-01', t:'2h30m' }));
+    expect(r).not.toBeNull();
+    expect(ds.count).toBe(1);           // 追加ではなく上書き
+    expect(ds.flights[0].id).toBe(id);  // ← 契約の本体
+    expect(ds.flights[0].t).toBe('2h30m');
+  });
+
+  it('updateOne：日付を変えると並び順と no が振り直される', () => {
+    const a = ds.addOne(F({ date:'2025-01-01', dep:'RJTT' }));
+    ds.addOne(F({ date:'2025-02-01', dep:'RJOO' }));
+    ds.addOne(F({ date:'2025-03-01', dep:'RJCC' }));
+    expect(a.no).toBe(1);
+    // 1件目を最後の日付へ動かす → 3番目になる（no も 3）。
+    ds.updateOne(a.id, F({ date:'2025-04-01', dep:'RJTT' }));
+    expect(ds.flights.map(f => f.date)).toEqual(['2025-02-01','2025-03-01','2025-04-01']);
+    expect(ds.flights.map(f => f.no)).toEqual([1,2,3]);
+    const moved = ds.flights.find(f => f.id === a.id)!;
+    expect(moved.no).toBe(3);
+  });
+
+  it('updateOne：存在しない id は null を返し、何も変えない', () => {
+    ds.addOne(F());
+    expect(ds.updateOne('no-such-id', F({ t:'9h00m' }))).toBeNull();
+    expect(ds.count).toBe(1);
+    expect(ds.flights[0].t).toBe('1h00m');
+  });
+
+  it('updateOne：no ではなく id で対象を選ぶ（no は日付編集で別便を指しうる）', () => {
+    const a = ds.addOne(F({ date:'2025-03-01', dep:'AAAA' }));
+    ds.addOne(F({ date:'2025-01-01', dep:'BBBB' }));
+    // 日付順の再採番で a は no=2 に落ちている。id で引けば正しく a が更新される。
+    expect(a.no).toBe(2);
+    ds.updateOne(a.id, F({ date:'2025-03-01', dep:'CCCC' }));
+    expect(ds.flights.find(f => f.id === a.id)!.dep).toBe('CCCC');
+    expect(ds.flights.find(f => f.dep === 'BBBB')).toBeTruthy(); // 巻き添えなし
+  });
+
   it('addFlights({skipDuplicates:false})：重複も追加', () => {
     const a = F();
     const r = ds.addFlights([a, a], { skipDuplicates: false });

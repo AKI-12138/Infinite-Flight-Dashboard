@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, type KeyboardEvent } from 'react';
-import { DataSource } from '../../lib/datasource';
+import { DataSource, type StoredFlight } from '../../lib/datasource';
 import type { Flight } from '../../lib/compute';
 import { normalizeAirport, normalizeAircraft, normalizeAirline, normalizeTime } from '../../lib/normalize';
 import { memoStore } from '../../lib/memo-store';
@@ -14,9 +14,20 @@ function todayStr(): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-// ✈️ Add New Flight（旧 #modalOverlay + addFlight）。外側クリックでは閉じない（入力中の誤クリック防止）。
-// 閉じるのは ✕ / ESC のみ。値は境界（normalize*）で正準化してから DataSource.addOne。
-export function AddFlightModal({ open, onClose, flights }: { open: boolean; onClose: () => void; flights: Flight[] }) {
+// 保存済みの '8h45m' を編集フォームの h / m 欄へ戻す（編集モードの初期値用）。
+// 保存時は必ず normalizeTime を通した正準形なので、この 1 パターンだけ見ればよい。
+function splitTime(t: string): { h: string; m: string } {
+  const mt = /(\d+)h(\d+)m/.exec(t || '');
+  return mt ? { h: mt[1], m: mt[2] } : { h: '', m: '' };
+}
+
+// ✈️ Add New Flight／Edit Flight（旧 #modalOverlay + addFlight）。
+// 外側クリックでは閉じない（入力中の誤クリック防止）。閉じるのは ✕ / ESC のみ。
+// 値は境界（normalize*）で正準化してから DataSource へ渡す。
+// `editing` が渡されたときだけ**編集モード**＝同じフォームを使い回し、保存先を addOne → updateOne に切り替える
+// （フライトへの書き込み口をこの 1 コンポーネントに集約したまま、正規化も 1 経路で済ませるため）。
+export function AddFlightModal({ open, onClose, flights, editing = null }:
+  { open: boolean; onClose: () => void; flights: Flight[]; editing?: StoredFlight | null }) {
   const [date, setDate] = useState('');
   const [timeH, setTimeH] = useState('');
   const [timeM, setTimeM] = useState('');
@@ -29,14 +40,21 @@ export function AddFlightModal({ open, onClose, flights }: { open: boolean; onCl
 
   const modalRef = useModalKeyboard(open, onClose);
 
-  // 未確定のまま閉じた入力を持ち越さない：開くたびにフォームをまっさらにする。
+  // 未確定のまま閉じた入力を持ち越さない：開くたびにフォームを作り直す。
   // （✕/Cancel/ESC で閉じても reset は走らず、`return null` でもアンマウントされない＝useState が残るため）
-  // Date だけは「今日」を初期値に（記録するのは大抵その日のフライト＝選ぶ手間を省く）。
+  //  ・追加モード：まっさら。Date だけ「今日」（記録するのは大抵その日のフライト＝選ぶ手間を省く）。
+  //  ・編集モード：そのフライトの現在値を流し込む（= 直したい所だけ触れば済む）。
   useEffect(() => {
     if (!open) return;
-    setDate(todayStr()); setTimeH(''); setTimeM(''); setDep(''); setArr(''); setAircraft(''); setAirline('');
+    if (editing) {
+      const { h, m } = splitTime(editing.t);
+      setDate(editing.date); setTimeH(h); setTimeM(m);
+      setDep(editing.dep); setArr(editing.arr); setAircraft(editing.ac); setAirline(editing.al);
+    } else {
+      setDate(todayStr()); setTimeH(''); setTimeM(''); setDep(''); setArr(''); setAircraft(''); setAirline('');
+    }
     setDraftFlight(null);
-  }, [open]);
+  }, [open, editing]);
 
   // FlightMemoModal（draft モード）へ渡す形。id/no は確定時に採番されるためダミー
   // （draftMode では参照されない）。毎レンダー新オブジェクトを作ると memo 側の初期化 effect が
@@ -73,6 +91,15 @@ export function AddFlightModal({ open, onClose, flights }: { open: boolean; onCl
     const combined = `${h}h${String(m).padStart(2, '0')}m`;
     const t = normalizeTime(combined) || combined;
     const data: Flight = { date, dep: depN, arr: arrN, ac: acN, al: alN, t };
+    // 編集モード：安定 id で上書き（ノートは id 紐づけなのでそのまま残る）。
+    // 「Add Notes」導線は編集モードには無い＝ここへは来ない。
+    if (editing) {
+      DataSource.updateOne(editing.id, data);
+      reset();
+      onClose();
+      showToast('✓ Flight updated');
+      return;
+    }
     if (withNotes) { setDraftFlight(data); return; }
     DataSource.addOne(data);
     reset();
@@ -97,7 +124,7 @@ export function AddFlightModal({ open, onClose, flights }: { open: boolean; onCl
     <div ref={modalRef} className="modal-overlay show" id="modalOverlay">
       <div className="modal">
         <div className="modal-head">
-          <h3>Add New Flight</h3>
+          <h3>{editing ? 'Edit Flight' : 'Add New Flight'}</h3>
           <button className="btn-close" onClick={onClose}>✕</button>
         </div>
         <div className="modal-body" onKeyDown={onFormKeyDown}>
@@ -133,9 +160,12 @@ export function AddFlightModal({ open, onClose, flights }: { open: boolean; onCl
           </div>
           <div className="modal-actions">
             <button className="btn-outline" onClick={onClose}>Cancel</button>
-            {/* 詳細メモ（v-speed・時刻・燃料など）を書いてからフライトを追加する導線 */}
-            <button className="btn-outline" onClick={() => submit(true)} title="Write detailed notes for this flight, then add it">Add Notes</button>
-            <button className="btn-primary" onClick={() => submit()}>Add Flight</button>
+            {/* 詳細メモ（v-speed・時刻・燃料など）を書いてからフライトを追加する導線。
+                編集モードでは出さない＝そのフライトは既に存在し、ノートは行の Notes ボタンから開くため。 */}
+            {!editing && (
+              <button className="btn-outline" onClick={() => submit(true)} title="Write detailed notes for this flight, then add it">Add Notes</button>
+            )}
+            <button className="btn-primary" onClick={() => submit()}>{editing ? 'Save Changes' : 'Add Flight'}</button>
           </div>
         </div>
       </div>

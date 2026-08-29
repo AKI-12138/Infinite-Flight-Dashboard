@@ -31,6 +31,7 @@
 .bulk-clear-btn:active,
 .row-delete-btn:active,
 .row-note-btn:active,
+.row-edit-btn:active,
 .map-globe-btn:active,
 .map-expand-btn:active,
 .filter-toggle-btn:active,
@@ -85,7 +86,8 @@
 .jump-btn,
 .filter-chip-multi .chip-btn,
 .row-note-btn,
-.row-delete-btn{
+.row-delete-btn,
+.row-edit-btn{
   position:relative;
 }
 .toggle-btn::after,
@@ -97,7 +99,8 @@
 .jump-btn::after,
 .filter-chip-multi .chip-btn::after,
 .row-note-btn::after,
-.row-delete-btn::after{
+.row-delete-btn::after,
+.row-edit-btn::after{
   content:'';position:absolute;z-index:0;
   /* 既定は「上下だけ 7px」。左右も広げる要素だけ下で個別に上書きする。 */
   left:0;right:0;top:-7px;bottom:-7px;
@@ -165,9 +168,13 @@
      対策＝タッチ端末では ✕ を最初から出しておく。hover による変化が無くなるので 1 回で反応する。
      （削除自体は confirm ダイアログを挟むので、常時表示でも誤操作で消えることはない） */
   .ftable tbody tr .row-delete-btn { opacity:1; }
+  /* 編集（鉛筆）も同じ理由で常時表示。片方でも hover で現れる要素が行に残ると、
+     その行のどのボタンも 1 回目のタップが hover に食われて 2 度押しになる。 */
+  .ftable tbody tr .row-edit-btn { opacity:1; }
   .ftable tbody tr.selected:hover { background:rgba(var(--red-rgb),0.04); }
   .row-delete-btn:hover { background:rgba(var(--red-rgb),0.08); border-color:transparent; }
   .row-note-btn:hover { background:rgba(var(--accent-rgb),0.08); border-color:transparent; }
+  .row-edit-btn:hover { background:var(--surface-elev2); border-color:transparent; color:var(--text-3); }
   .cb:hover:not(:checked) { border-color:var(--text-3); }
   .ac-item:hover { background:transparent; }
   .file-upload-btn:hover { border-color:var(--border); color:var(--text-2); background:var(--surface-elev2); }
@@ -239,6 +246,7 @@
   .bulk-clear-btn:active,
   .row-delete-btn:active,
   .row-note-btn:active,
+  .row-edit-btn:active,
   .map-globe-btn:active,
   .map-expand-btn:active,
   .filter-toggle-btn:active,

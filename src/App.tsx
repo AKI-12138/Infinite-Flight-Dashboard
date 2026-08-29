@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { Analytics } from '@vercel/analytics/react';
 import { DataSource, type StoredFlight } from './lib/datasource';
 import { _setMemoOpenListener } from './lib/memo-events';
+import { _setFlightEditListener } from './lib/flight-edit-events';
 import { useFlights } from './hooks/useDataSource';
 import { useTheme } from './hooks/useTheme';
 import { useFilterVersion } from './hooks/useFilterState';
@@ -55,6 +56,10 @@ function App() {
   // フライトメモ：FlightLog の行 📝／Add Flight の「Add + Notes」→ memo-events 経由でここが開く。
   const [memoFlight, setMemoFlight] = useState<StoredFlight | null>(null);
   useEffect(() => _setMemoOpenListener(setMemoFlight), []);
+  // フライト編集：FlightLog の行の鉛筆 → flight-edit-events 経由で AddFlightModal を編集モードで開く。
+  // 追加と同じモーダルを使い回す＝フライトへの書き込み口（と正規化）を 1 経路に保つ。
+  const [editFlight, setEditFlight] = useState<StoredFlight | null>(null);
+  useEffect(() => _setFlightEditListener(setEditFlight), []);
 
   // 復元判定に従う。silent＝module 初期化時に同期ロード済み（restore.ts でちらつき防止）／
   // modal＝ユーザー選択待ち／none＝空状態。ここでは URL 由来のフィルタだけ初期化する。
@@ -145,7 +150,12 @@ function App() {
       <footer className="page-footer">© 2026 Infinite Flight Dashboard <span className="app-version">{APP_VERSION}</span></footer>
       <AdvancedFilterPanel open={advOpen} onClose={() => setAdvOpen(false)} options={options} />
       <CustomizeBarModal open={customizeBarOpen} onClose={() => setCustomizeBarOpen(false)} />
-      <AddFlightModal open={modal === 'add'} onClose={() => setModal(null)} flights={flights} />
+      <AddFlightModal
+        open={modal === 'add' || editFlight !== null}
+        editing={editFlight}
+        onClose={() => { setEditFlight(null); setModal(null); }}
+        flights={flights}
+      />
       <BulkImportModal open={modal === 'import'} onClose={() => setModal(null)} initialSample={importSample} />
       <ExportModal open={modal === 'export'} onClose={() => setModal(null)} />
       <DataCheckModal open={modal === 'datacheck'} onClose={() => setModal(null)} flights={flights}

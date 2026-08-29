@@ -228,6 +228,24 @@ export const DataSource = {
     return stored;
   },
 
+  // 既存の 1 件を上書き（Edit Flight・フェーズO）。戻り値 = 更新後の StoredFlight（対象なしなら null）。
+  // ⚠️ 目印に使うのは **安定 id** であって no ではない。no は日付順の通し番号で、
+  //    日付を編集すると _renumber が別のフライトへ振り直す＝目印として使えない。
+  // id を保つので、この便に紐づくフライトノート（memo-store は id キー）はそのまま残る
+  //    ＝「消して追加し直す」とノートが道連れになる問題を、そもそも起こさないための API。
+  // 重複チェックはしない（addOne も同様＝単発の手入力は本人の意図を尊重する）。
+  updateOne(id: string, f: Flight): StoredFlight | null {
+    const target = _flights.find(x => x.id === id);
+    if(!target) return null;
+    // in-place で書き換える（_flights の配列参照は保つ＝購読側は _version で再計算する）。
+    Object.assign(target, f);
+    _renumber();   // 日付が変わっていれば並び順と no を振り直す
+    _dirty = true;
+    _persistAfterChange();
+    _notify();
+    return target;
+  },
+
   removeByIds(ids: number[]): number {
     const set = new Set(ids);
     const before = _flights.length;

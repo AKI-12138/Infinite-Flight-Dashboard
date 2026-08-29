@@ -1,4 +1,4 @@
-// 自作モノクロ SVG アイコンの **唯一の実装窓口**（フェーズN・2026-08-21 採用の13種）。
+// 自作モノクロ SVG アイコンの **唯一の実装窓口**（採用済み14種）。
 //
 // ⚠️ 画面側に SVG のパスを複製しない。使うときは <AppIcon name="search" /> だけ。
 //    追加・修正はこのファイルだけで済む（試作の正本＝ docs/prototypes/icons/。
@@ -13,6 +13,7 @@ export type IconName =
   | 'settings'
   | 'search'
   | 'notes'
+  | 'edit'
   | 'globe'
   | 'import'
   | 'export'
@@ -42,6 +43,12 @@ const PATHS: Record<IconName, ReactNode> = {
     <>
       <path d="M7 3.25h7.25L18 7v13.75H7z" />
       <path d="M14.25 3.25V7H18M9.5 11.25h6M9.5 14.5h6M9.5 17.75h3.75" />
+    </>
+  ),
+  edit: (
+    <>
+      <path d="m4 20 1.05-4.2L16.8 4.05a2.15 2.15 0 0 1 3.05 3.05L8.1 18.85 4 20Z" />
+      <path d="m14.9 5.95 3.05 3.05M5.05 15.8l3.05 3.05" />
     </>
   ),
   globe: (

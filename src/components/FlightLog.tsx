@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'reac
 import { DataSource, type StoredFlight } from '../lib/datasource';
 import { memoStore } from '../lib/memo-store';
 import { openFlightMemo } from '../lib/memo-events';
+import { openFlightEdit } from '../lib/flight-edit-events';
 import { parseMin } from '../lib/compute';
 import { fmtHM } from '../lib/format';
 import { filterFlightsByQuery } from '../lib/flight-search';
@@ -204,7 +205,7 @@ export function FlightLog({ flights }: { flights: StoredFlight[] }) {
                     {h} {sort && sort.col === i ? (sort.asc ? '▴' : '▾') : '▾'}
                   </th>
                 ))}
-                <th style={{ width: 50 }}></th>
+                <th style={{ width: 86 }}></th>
               </tr>
             </thead>
             <tbody>
@@ -230,7 +231,15 @@ export function FlightLog({ flights }: { flights: StoredFlight[] }) {
                         {hasNote ? <AppIcon name="notes" size={14} /> : '+'}
                       </button>
                     </td>
-                    <td><button className="row-delete-btn" onClick={() => deleteOne(f)} title="Delete">✕</button></td>
+                    {/* 操作セル：ホバー時だけ出る（Notes は「情報」なので常時／編集・削除は「操作」なので隠す）。
+                        ⚠️ タッチ端末では interactions.css の @media (hover:none) で常時表示にしてある。
+                           外すと「1 回目のタップがホバーに食われて 2 度押しになる」（2026-08-19 の既知バグ）。 */}
+                    <td className="row-actions-cell">
+                      <button className="row-edit-btn" onClick={() => openFlightEdit(f)} title="Edit flight">
+                        <AppIcon name="edit" size={14} />
+                      </button>
+                      <button className="row-delete-btn" onClick={() => deleteOne(f)} title="Delete">✕</button>
+                    </td>
                   </tr>
                 );
               })}
