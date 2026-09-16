@@ -78,26 +78,43 @@ export function BulkImportModal({ open, onClose, initialSample }: { open: boolea
     }
   }
 
-  // フルバックアップの復元：現在のフライト・メモを丸ごと置き換える（破壊的＝必ず確認を出す）。
+  // フルバックアップの復元：現在のフライト・メモを丸ごと置き換える。
   // フライトは id 付きで復元されるのでメモとの紐づけが保たれる。カスタム空港は追加マージ（既存は残す）。
+  //
+  // ⚠️ 確認モーダルは「失うものがあるときだけ」出す（オーナー判断 2026-09-16）。
+  //    ConfirmDialog は ⚠️＋赤ボタン＝破壊的操作の見た目が決め打ちなので、空の状態で出すと
+  //    「your current 0 flights を置き換える／cannot be undone」という嘘の警告になる。
+  //    しかも Restore Full Backup の一番の出番は「データを失った後・新しい端末・Start fresh の後」
+  //    ＝まさに空のとき＝最も安全な場面で最も脅かす UI が出る、という逆転が起きていた。
+  //    前例：lib/flight-actions.tsx の confirmDeleteAll も、消すものが無ければ（n===0）確認を出さない。
   function restoreBackup() {
     if (!backup) { alert('This JSON is not a valid Infinite Flight Dashboard backup file.'); return; }
     const b = backup;
     const cur = DataSource.count;
     const noteCnt = Object.keys(b.memos).length;
+
+    // 実行本体。確認あり／なしの 2 経路から呼ぶので、ここに 1 回だけ書く（分岐で写経しない）。
+    const apply = () => {
+      DataSource.replaceAll(b.flights);
+      DataSource.addAirports(b.customAirports);
+      memoStore.replaceAll(b.memos);
+      onClose();
+      showToast(`✓ Backup restored — ${b.flights.length} flight${b.flights.length === 1 ? '' : 's'}, ${noteCnt} note${noteCnt === 1 ? '' : 's'}`);
+    };
+
+    // 失うものが無い＝フライト 0 件かつメモ 0 件なら確認なしで復元する。
+    // カスタム空港を見なくてよいのは addAirports がマージ（既存を上書きしない）だから。
+    // 直前の画面で「Full backup detected・件数・保存日」を見て「↺ Restore Backup」を押しているので、
+    // ここでの確認は情報を足さない＝ただの摩擦。
+    if (cur === 0 && memoStore.count === 0) { apply(); return; }
+
     requestConfirm({
       title: 'Restore Full Backup?',
       message: <>This will <strong>replace your current {cur} flight{cur === 1 ? '' : 's'} and all flight notes</strong> with
         the backup ({b.flights.length} flight{b.flights.length === 1 ? '' : 's'}, {noteCnt} note{noteCnt === 1 ? '' : 's'}
         {b.exportedAt ? `, saved ${b.exportedAt.slice(0, 10)}` : ''}).<br />This cannot be undone.</>,
       confirmLabel: '↺ Restore',
-      onConfirm: () => {
-        DataSource.replaceAll(b.flights);
-        DataSource.addAirports(b.customAirports);
-        memoStore.replaceAll(b.memos);
-        onClose();
-        showToast(`✓ Backup restored — ${b.flights.length} flight${b.flights.length === 1 ? '' : 's'}, ${noteCnt} note${noteCnt === 1 ? '' : 's'}`);
-      },
+      onConfirm: apply,
     });
   }
 
