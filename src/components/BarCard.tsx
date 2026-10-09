@@ -2,18 +2,19 @@ import { BAR_GRADIENTS } from '../lib/viz-colors';
 import { fmtHM } from '../lib/format';
 
 // Top-N 横バーのカード（旧 render.js renderBars + カード外枠の移植）。
-// Aircraft / Airlines / Routes / Airports / Countries / Cities で共用。
+// Aircraft / Airlines / Manufacturers / Sizes / Routes / Airports / Countries / Cities で共用。
 // ⚠️ 旧版の「All」トグルは拡大オーバーレイ（別モーダル）を開く＝後の手順。いまは onAll に notReady を渡し、
 //    表示は常に Top 5 のまま（active は Top 5 に固定）。
 export interface BarCardProps {
   title: string;
   colorKey: keyof typeof BAR_GRADIENTS;
   data: [string, number][]; // computeAll の sorted 済み（降順）
-  minsMap?: Record<string, number>; // 併記する総飛行時間（機材／航空会社のみ）
+  minsMap?: Record<string, number>; // 併記する総飛行時間（機材／航空会社／メーカー／サイズ）
+  labelOf?: (key: string) => string; // data のキーが id のとき表示名へ（メーカー／サイズ）
   onAll: () => void;
 }
 
-export function BarCard({ title, colorKey, data, minsMap, onAll }: BarCardProps) {
+export function BarCard({ title, colorKey, data, minsMap, labelOf, onAll }: BarCardProps) {
   const rows = data.slice(0, 5);
   // 旧 renderBars は「表示中の 5 件」で max / total を取る（share は Top5 内比率）。
   const max = rows[0]?.[1] || 1;
@@ -39,7 +40,7 @@ export function BarCard({ title, colorKey, data, minsMap, onAll }: BarCardProps)
             const share = ((count / total) * 100).toFixed(0);
             return (
               <div className="bar-row" key={label}>
-                <span className="bar-label">{label}</span>
+                <span className="bar-label">{labelOf ? labelOf(label) : label}</span>
                 <div className="bar-track">
                   <div className="bar-fill" style={{ width: `${pct}%`, background: `linear-gradient(90deg,${c1},${c2})` }}>{count}</div>
                 </div>

@@ -17,6 +17,7 @@ import { ChartExpandOverlay } from './expand/ChartExpandOverlay';
 import { TopFlightsOverlay } from './expand/TopFlightsOverlay';
 import { ChartTypeToggle } from './charts/ChartTypeToggle';
 import { useChartMode } from '../hooks/useChartMode';
+import { manufacturerLabel, sizeLabel } from '../data/aircraft';
 
 type BarExpand = { type: BarType; data: [string, number][]; minsMap?: Record<string, number> };
 type ChartExpand = 'continents' | 'year' | 'month' | 'weekday';
@@ -64,6 +65,12 @@ export function MainDashboard({ flights, themePref }: { flights: StoredFlight[];
       <div className="grid-2">
         <BarCard title="Top Aircraft" colorKey="aircraft" data={s.ac} minsMap={s.acMin} onAll={() => setBarExpand({ type: 'aircraft', data: s.ac, minsMap: s.acMin })} />
         <BarCard title="Top Airlines" colorKey="airlines" data={s.al} minsMap={s.alMin} onAll={() => setBarExpand({ type: 'airlines', data: s.al, minsMap: s.alMin })} />
+      </div>
+
+      {/* Manufacturers & Sizes（機材の分類・data/aircraft の id で集計し表示名で出す。総飛行時間を併記） */}
+      <div className="grid-2">
+        <BarCard title="Top Manufacturers" colorKey="manufacturers" data={s.mf} minsMap={s.mfMin} labelOf={manufacturerLabel} onAll={() => setBarExpand({ type: 'manufacturers', data: s.mf, minsMap: s.mfMin })} />
+        <BarCard title="Aircraft Sizes" colorKey="sizes" data={s.sz} minsMap={s.szMin} labelOf={sizeLabel} onAll={() => setBarExpand({ type: 'sizes', data: s.sz, minsMap: s.szMin })} />
       </div>
 
       {/* Routes & Airports */}

@@ -10,6 +10,8 @@ export const BAR_GRADIENTS: Record<string, [string, string]> = {
   airports: ['#00d68f', '#00a86b'],
   countries: ['#9d7aff', '#7b4dff'],
   cities: ['#ff8a3d', '#e06a1a'],
+  manufacturers: ['#1fc7b6', '#0e9488'],
+  sizes: ['#e05cff', '#b62de0'],
 };
 
 // 大陸ドーナツの配色（隣接ハイライトでも区別できる分散配色）。

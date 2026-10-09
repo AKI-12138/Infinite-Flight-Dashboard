@@ -4,14 +4,21 @@
 // ここには含めない（メニュー側が def.fixedOptions を直接読む）。
 // 戻り値のキーは FILTER_DEFS の `key`（＝data-menu / data-chip の値）に一致させる。
 import { AP } from '../data/airports';
+import { AIRCRAFT_SIZES, UNKNOWN_CLASS, aircraftManufacturer, aircraftSize, manufacturerLabel } from '../data/aircraft';
 import { _flightCountry, _flightCities, type Flight } from './compute';
 
 // 各データ由来フィルタの選択肢（string[]）。キーは def.key。
 export type FilterOptionsMap = Record<string, string[]>;
 
+// 'unknown'（未収録の機材）を末尾へ回す。
+function _unknownLast(ids: string[]): string[] {
+  return [...ids.filter((v) => v !== UNKNOWN_CLASS), ...ids.filter((v) => v === UNKNOWN_CLASS)];
+}
+
 export function availableOptions(flights: Flight[]): FilterOptionsMap {
   const years = new Set<string>(), airlines = new Set<string>(), aircraft = new Set<string>();
   const countries = new Set<string>();
+  const manufacturers = new Set<string>(), sizes = new Set<string>();
   // 空港軸：depAirport / arrAirport は向き別、airports（either・drilldown 用）は和集合。
   const depAp = new Set<string>(), arrAp = new Set<string>(), anyAp = new Set<string>();
   const cityset = new Set<string>();
@@ -21,6 +28,8 @@ export function availableOptions(flights: Flight[]): FilterOptionsMap {
     years.add(f.date.slice(0, 4));
     if (f.al) airlines.add(f.al);
     if (f.ac) aircraft.add(f.ac);
+    manufacturers.add(aircraftManufacturer(f.ac));
+    sizes.add(aircraftSize(f.ac));
     _flightCountry(f).forEach((c) => countries.add(c));
     _flightCities(f).forEach((c) => cityset.add(c));
     if (f.dep) {
@@ -38,6 +47,9 @@ export function availableOptions(flights: Flight[]): FilterOptionsMap {
     year: [...years].sort().reverse(),
     airline: [...airlines].sort(),
     aircraft: [...aircraft].sort(),
+    // 値は id。メーカーは表示名の ABC 順、サイズは大きい順（AIRCRAFT_SIZES の並び）。Unknown はどちらも末尾。
+    manufacturer: _unknownLast([...manufacturers].sort((a, b) => manufacturerLabel(a).localeCompare(manufacturerLabel(b)))),
+    size: [...Object.keys(AIRCRAFT_SIZES), UNKNOWN_CLASS].filter((k) => sizes.has(k)),
     country: [...countries].sort(),
     depAirport: [...depAp].sort(),
     arrAirport: [...arrAp].sort(),

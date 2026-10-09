@@ -123,6 +123,8 @@ function _writeFiltersToURL() {
   put('weekday', FilterState.weekdays);
   put('airline', FilterState.airlines);
   put('aircraft', FilterState.aircraft);
+  put('manufacturer', FilterState.manufacturers);
+  put('size', FilterState.sizes);
   put('country', FilterState.countries);
   put('scope', FilterState.scope);
   put('airport', FilterState.airports);
@@ -149,6 +151,9 @@ function _readFiltersFromURL() {
   FilterState.years = _parseCSVParam(p.get('year'));
   FilterState.airlines = _parseCSVParam(p.get('airline'));
   FilterState.aircraft = _parseCSVParam(p.get('aircraft'));
+  // メーカー／サイズも機材と同じく素通し（データに無い値は prune が除去）。
+  FilterState.manufacturers = _parseCSVParam(p.get('manufacturer'));
+  FilterState.sizes = _parseCSVParam(p.get('size'));
   FilterState.countries = _parseCSVParam(p.get('country'));
   const validScope = new Set(['domestic', 'international']);
   FilterState.scope = _parseCSVParam(p.get('scope')).filter((v) => validScope.has(v));

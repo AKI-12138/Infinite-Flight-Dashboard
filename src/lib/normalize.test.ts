@@ -65,7 +65,13 @@ describe('normalizeAircraft（機材コード正規化・別名表記の吸収�
   it('MAX8 short',                   () => expect(normalizeAircraft('MAX8')).toBe('B38M'));
   it('737MAX (defaults to MAX 8)',   () => expect(normalizeAircraft('737MAX')).toBe('B38M'));
   it('747-8I',                       () => expect(normalizeAircraft('747-8I')).toBe('B748'));
-  it('A320neo',                      () => expect(normalizeAircraft('A320neo')).toBe('A320'));
+  it('A320neo（ceo とは別機材）',     () => expect(normalizeAircraft('A320neo')).toBe('A20N'));
+  it('A20N passthrough',             () => expect(normalizeAircraft('A20N')).toBe('A20N'));
+  it('A19N passthrough',             () => expect(normalizeAircraft('A19N')).toBe('A19N'));
+  it('Airbus A321neo',               () => expect(normalizeAircraft('Airbus A321neo')).toBe('A21N'));
+  it('A321XLR → A21N',               () => expect(normalizeAircraft('A321XLR')).toBe('A21N'));
+  it('A320ceo stays A320',           () => expect(normalizeAircraft('A320ceo')).toBe('A320'));
+  it('A321 stays A321',              () => expect(normalizeAircraft('A321')).toBe('A321'));
   it('Embraer 190',                  () => expect(normalizeAircraft('EMB190')).toBe('E190'));
   it('CRJ-700',                      () => expect(normalizeAircraft('CRJ-700')).toBe('CRJ7'));
   it('unknown → compact form',       () => expect(normalizeAircraft('Foo-123')).toBe('FOO123'));

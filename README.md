@@ -29,10 +29,10 @@ Built for IF pilots who want to actually *see* their journey: which aircraft the
 ## What you can do
 
 - **See your stats at a glance** — total flights, hours, aircraft used, countries visited, all up top
-- **Beautiful charts for everything** — your top aircraft, top airlines, top routes, top airports, top countries; plus flights per year, per month, per weekday. The Continents card switches between **pie and bar**, Month / Weekday between **line and bar** — your choice is remembered
+- **Beautiful charts for everything** — your top aircraft, top airlines, **aircraft manufacturers and sizes** (widebody / narrowbody / regional / small), top routes, top airports, top countries; plus flights per year, per month, per weekday. The Continents card switches between **pie and bar**, Month / Weekday between **line and bar** — your choice is remembered
 - **A world map of your routes** — every flight drawn as a great-circle line, your hubs and airports marked
 - **Spin your routes on a 3D globe** — auto-rotating; drag to inspect from any angle, or pause the spin
-- **Powerful filtering** — a **customizable** quick bar (pick up to 6 chips; defaults: year, month, airline, aircraft, country, scope) plus an **⚙ Advanced filters** panel for everything else: departure / arrival airports, cities, countries and continents, within-vs-across-continent, and flight duration (buckets or a custom range) — with searchable menus, one-click **presets**, and your own **saveable presets**. Or just click any chart bar to drill in. Built-in year-over-year comparison shows how your flying has grown
+- **Powerful filtering** — a **customizable** quick bar (pick up to 6 chips; defaults: year, month, airline, aircraft, country, scope) plus an **⚙ Advanced filters** panel for everything else: aircraft manufacturer and size, departure / arrival airports, cities, countries and continents, within-vs-across-continent, and flight duration (buckets or a custom range) — with searchable menus, one-click **presets**, and your own **saveable presets**. Or just click any chart bar to drill in. Built-in year-over-year comparison shows how your flying has grown
 - **Flight notes for every flight** — a notes page per flight, styled like a paper logbook, for what stats can't hold: flight number & callsign (airline-aware suggestions), registration, OUT/OFF/ON/IN times — type local, **UTC is computed automatically** from each airport's timezone — taxi times (total auto-summed), V-speeds, takeoff/landing configuration, cruise altitude & Mach, distance, load & fuel, route, SID/STAR, runways, approach, alternate airport, **METARs decoded in plain English**, and free notes. Date, route, aircraft and airline fill in from your log automatically. Every field is optional; notes never affect your stats or CSV. Sort the Flight Log by which flights have notes
 - **Fix a flight without losing anything** — edit a logged flight's date, route, aircraft, airline or duration from the pencil button in the Flight Log; its notes stay attached
 - **Easy import** — paste your flight log in almost any format. The dashboard figures out dates, aircraft codes, and airline names automatically
@@ -217,7 +217,7 @@ Filtering has two layers that work together.
 
 - **Year** · **Month** · **Airline** · **Aircraft** · **Country/Region** · **Scope** (All / Domestic / International)
 
-**Make the bar yours** — open **⚙ Settings → Customize filter bar** to choose which chips live on the quick bar (up to 6, from all 20 filters including departure / arrival splits). Tick the ones you want and press **Done** — nothing changes until you do; select none to fall back to the default six.
+**Make the bar yours** — open **⚙ Settings → Customize filter bar** to choose which chips live on the quick bar (up to 6, from all 22 filters including departure / arrival splits). Tick the ones you want and press **Done** — nothing changes until you do; select none to fall back to the default six.
 
 **Advanced filters** — the **More** button (right of the bar) opens a panel with the full set, grouped by category:
 
@@ -225,7 +225,7 @@ Filtering has two layers that work together.
 - **Continental scope** — within a single continent vs across continents
 - **Flight duration** — pick buckets (under 1h · 1–3h · 3–6h · 6–10h · 10h+) or type a **custom hour range**
 - **Period** — a **from – to date range** (leave either side open for "since…" / "until…"); it combines with every other filter and stays in the URL for sharing
-- …plus Date (Year / Month / Weekday) and Aircraft / Airline, so everything lives in one place
+- …plus Date (Year / Month / Weekday) and Aircraft / Manufacturer / Size / Airline, so everything lives in one place
 
 Handy touches in the panel:
 
@@ -236,7 +236,7 @@ Handy touches in the panel:
 
 The dashboard updates live as you select. The **Comparing** card shows year-over-year deltas based on your current Year selection. The filter bar stays pinned to the top as you scroll.
 
-**Tip — click to filter:** open any card's expanded view and click a bar or point to filter the whole dashboard to it, then click the same one again to clear. Works on **Flights per Year / Month / Weekday** and **Top Aircraft / Airlines / Countries / Routes / Airports / Cities**.
+**Tip — click to filter:** open any card's expanded view and click a bar or point to filter the whole dashboard to it, then click the same one again to clear. Works on **Flights per Year / Month / Weekday** and **Top Aircraft / Airlines / Manufacturers / Aircraft Sizes / Countries / Routes / Airports / Cities**.
 
 ### Theme switching
 

@@ -5,33 +5,41 @@ import { filterStore } from '../../lib/filter-store';
 import { useModalKeyboard } from '../../hooks/useModalKeyboard';
 import { activatable } from '../../lib/a11y';
 import type { FilterStateShape } from '../../lib/compute';
+import { manufacturerLabel, sizeLabel } from '../../data/aircraft';
 
-export type BarType = keyof typeof BAR_GRADIENTS; // aircraft/airlines/routes/airports/countries/cities
+export type BarType = keyof typeof BAR_GRADIENTS; // aircraft/airlines/manufacturers/sizes/routes/airports/countries/cities
 
 const TITLES: Record<BarType, string> = {
   aircraft: 'Top Aircraft', airlines: 'Top Airlines', routes: 'Top Routes',
   airports: 'Top Airports', countries: 'Top Countries/Regions', cities: 'Top Cities',
+  manufacturers: 'Top Manufacturers', sizes: 'Aircraft Sizes',
 };
 const SUBTITLES: Record<BarType, string> = {
   aircraft: 'total aircraft types', airlines: 'total airlines', routes: 'total routes',
   airports: 'total airports', countries: 'total countries/regions', cities: 'total cities',
+  manufacturers: 'total manufacturers', sizes: 'total size classes',
 };
 // クリックでフィルタへ落とせる type → ドリルダウン種別（routes は dep+arr 分解）。
 const DRILL: Partial<Record<BarType, string>> = {
   aircraft: 'aircraft', airlines: 'airlines', countries: 'countries', airports: 'airports', cities: 'cities', routes: 'route',
+  manufacturers: 'manufacturers', sizes: 'sizes',
+};
+// data のキーが id の type → 表示名（ドリルダウンには id のまま渡す）。
+const LABEL_OF: Partial<Record<BarType, (key: string) => string>> = {
+  manufacturers: manufacturerLabel, sizes: sizeLabel,
 };
 
 type SortKey = 'count-desc' | 'count-asc' | 'time-desc' | 'time-asc' | 'name-asc' | 'name-desc';
 
-function sortData(data: [string, number][], minsMap: Record<string, number> | undefined, key: SortKey): [string, number][] {
+function sortData(data: [string, number][], minsMap: Record<string, number> | undefined, key: SortKey, labelOf: (k: string) => string): [string, number][] {
   const arr = data.slice();
   const minsOf = (l: string) => (minsMap && minsMap[l]) || 0;
   switch (key) {
     case 'count-asc': arr.sort((a, b) => a[1] - b[1]); break;
     case 'time-desc': arr.sort((a, b) => minsOf(b[0]) - minsOf(a[0])); break;
     case 'time-asc': arr.sort((a, b) => minsOf(a[0]) - minsOf(b[0])); break;
-    case 'name-asc': arr.sort((a, b) => String(a[0]).localeCompare(String(b[0]))); break;
-    case 'name-desc': arr.sort((a, b) => String(b[0]).localeCompare(String(a[0]))); break;
+    case 'name-asc': arr.sort((a, b) => labelOf(a[0]).localeCompare(labelOf(b[0]))); break;
+    case 'name-desc': arr.sort((a, b) => labelOf(b[0]).localeCompare(labelOf(a[0]))); break;
     default: arr.sort((a, b) => b[1] - a[1]); break; // count-desc
   }
   return arr;
@@ -51,8 +59,9 @@ export function ExpandedBarsOverlay({ open, type, data, minsMap, onClose }: {
   if (!open) return null;
 
   const drillKind = DRILL[type];
+  const labelOf = LABEL_OF[type] ?? String;
   const useTime = sort.startsWith('time') && !!minsMap;
-  const sorted = sortData(data, minsMap, sort);
+  const sorted = sortData(data, minsMap, sort, labelOf);
   const valueFor = (item: [string, number]) => (useTime ? (minsMap![item[0]] || 0) : item[1]);
   const [c1, c2] = BAR_GRADIENTS[type];
   const max = sorted.length ? Math.max(...sorted.map(valueFor)) || 1 : 1;
@@ -87,6 +96,7 @@ export function ExpandedBarsOverlay({ open, type, data, minsMap, onClose }: {
         <div className="expanded-scroll" id="expandedScroll">
           {sorted.map((item) => {
             const [label, count] = item;
+            const name = labelOf(label);
             const v = valueFor(item);
             const h = Math.max(24, (v / max) * maxH);
             const share = ((v / total) * 100).toFixed(0);
@@ -94,9 +104,9 @@ export function ExpandedBarsOverlay({ open, type, data, minsMap, onClose }: {
               <div
                 key={label}
                 className={'expanded-bar-item' + (drillKind ? ' is-drillable' : '')}
-                title={label}
+                title={name}
                 onClick={drillKind ? () => onBarClick(label) : undefined}
-                aria-label={drillKind ? `Filter by ${label}` : undefined}
+                aria-label={drillKind ? `Filter by ${name}` : undefined}
                 {...(drillKind ? activatable(() => onBarClick(label)) : {})}
               >
                 <div className="expanded-bar-stack">
@@ -105,7 +115,7 @@ export function ExpandedBarsOverlay({ open, type, data, minsMap, onClose }: {
                     {minsMap ? <span className="expanded-bar-time-in">{fmtHM(minsMap[label] || 0)}</span> : <span className="expanded-bar-count-in">{count}</span>}
                   </div>
                 </div>
-                <div className="expanded-bar-name">{label}</div>
+                <div className="expanded-bar-name">{name}</div>
                 <div className="expanded-bar-pct">{share}%</div>
               </div>
             );

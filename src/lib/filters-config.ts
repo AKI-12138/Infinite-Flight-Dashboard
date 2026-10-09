@@ -10,6 +10,7 @@
 //   - FilterState（compute.js）… _activeGeo / _cascadeAllow が参照（実行時）
 import { AP } from '../data/airports';
 import { FilterState, DURATION_BUCKETS } from './compute';
+import { manufacturerLabel, sizeLabel } from '../data/aircraft';
 
 // {value, label}：value は内部・URL・FilterState で使う ID、label は UI 表示文字列。
 export interface FilterOption { value: string; label: string; }
@@ -24,6 +25,7 @@ export interface FilterDef {
   cascade?: 'airport' | 'city' | 'country';  // 上位（大陸/国）→下位 のトップダウン絞り
   groupBy?: (v: string) => string;           // 大陸別グループ表示の見出し引き
   groupOrder?: string[];                      // グループ見出しの表示順
+  labelOf?: (v: string) => string;            // データ由来の値（id）→ 表示名。無ければ値をそのまま出す
 }
 
 // プリセット（複数軸の掛け合わせ）。
@@ -97,6 +99,9 @@ export const FILTER_DEFS: FilterDef[] = [
   },
   { key:'airline',  stateKey:'airlines',  all:'All Airlines',          order:'asc'  },
   { key:'aircraft', stateKey:'aircraft',  all:'All Aircraft',          order:'asc'  },
+  // 機材の分類（data/aircraft の id を値に持ち、表示名は labelOf で引く）。選択肢はデータに出てくるものだけ。
+  { key:'manufacturer', stateKey:'manufacturers', all:'All Manufacturers', order:'asc', labelOf:manufacturerLabel },
+  { key:'size',         stateKey:'sizes',         all:'All Sizes',         order:'asc', labelOf:sizeLabel },
   { key:'country',  stateKey:'countries', all:'All Countries/Regions', order:'asc', cascade:'country',
     groupBy:_countryContinentGroup, groupOrder:_CONTINENT_ORDER },
   { key:'scope',    stateKey:'scope',     all:'All Flights',           order:'asc',
@@ -139,7 +144,7 @@ export const FILTER_DEFS: FilterDef[] = [
     fixedOptions: DURATION_BUCKETS.map(b => ({ value:b.key, label:b.label })) },
 ];
 // 高度パネル内にある軸を列挙（⚙ ボタンのバッジ件数・active 判定用＝バーに出ない軸のみ）。
-export const _ADV_FILTER_KEYS = ['weekdays','airports','cities','continents','depAirports','arrAirports',
+export const _ADV_FILTER_KEYS = ['weekdays','manufacturers','sizes','airports','cities','continents','depAirports','arrAirports',
   'depCities','arrCities','depCountries','arrCountries','depContinents','arrContinents','contScope','durations','durationRange','dateRange'];
 
 // ============================ PRESETS（宣言的モデル） ============================

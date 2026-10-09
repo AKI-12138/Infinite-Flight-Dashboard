@@ -5,9 +5,9 @@ import { AP } from '../../data/airports';
 import { filterStore, DUR_MAX_SENTINEL, minToHoursStr } from '../../lib/filter-store';
 import { useFilterVersion } from '../../hooks/useFilterState';
 
-// option（string か {value,label}）を {value,label} に正規化。
-function normOpt(o: string | FilterOption): FilterOption {
-  return typeof o === 'object' ? o : { value: o, label: o };
+// option（string か {value,label}）を {value,label} に正規化。データ由来の値は def.labelOf があれば表示名へ。
+function normOpt(def: FilterDef, o: string | FilterOption): FilterOption {
+  return typeof o === 'object' ? o : { value: o, label: def.labelOf ? def.labelOf(o) : o };
 }
 // メニュー内検索の対象文字列（空港は都市名/IATA も含める）。旧 _optSearchText。
 function optSearchText(def: FilterDef, value: string, label: string): string {
@@ -26,7 +26,7 @@ export function ChipMenu({ def, dataOptions }: { def: FilterDef; dataOptions: st
   const [query, setQuery] = useState('');
   const selected = new Set((FilterState as unknown as Record<string, string[]>)[def.stateKey]);
 
-  const fullOptions: FilterOption[] = (def.fixedOptions || dataOptions).map(normOpt);
+  const fullOptions: FilterOption[] = (def.fixedOptions || dataOptions).map((o) => normOpt(def, o));
 
   // cascade（地理依存）で候補を絞る。選択済みは残す（解除できるように）。
   const allow = _cascadeAllow(def);

@@ -4,6 +4,11 @@ User-facing highlights for each version of **Infinite Flight Dashboard**. The ve
 matches the number in the dashboard footer. Bug fixes and small refinements are grouped into a
 single line; smaller or internal-only updates aren't listed.
 
+## v2.7 — 2026-10-09
+- **Manufacturer and aircraft size breakdowns** — two new cards (widebody / narrowbody / regional / small), with matching filters.
+- A319neo / A320neo / A321neo are now counted separately from their ceo versions.
+- Plus various bug fixes and small refinements.
+
 ## v2.6 — 2026-08-30
 - **Edit a flight you already logged** — change its date, route, aircraft, airline or duration without deleting it. Any notes you wrote stay attached.
 - Plus various bug fixes and small refinements.

@@ -1,7 +1,7 @@
 // =============================== CHIP META ===============================
 // フィルタチップの「表示メタ」（短い名前・ツールチップ）とカテゴリ構成を集約。
-// 以前は FilterBar（バーの6チップ）と AdvancedFilterPanel（全20軸のカテゴリ）に
-// 別々にハードコードしていたが、フェーズA（バーのカスタマイズ）で両者が同じ全20軸メタを
+// 以前は FilterBar（バーの6チップ）と AdvancedFilterPanel（全軸のカテゴリ）に
+// 別々にハードコードしていたが、フェーズA（バーのカスタマイズ）で両者が同じ全軸メタを
 // 参照する必要が出たため一本化した。key は FILTER_DEFS の key と一致させる。
 //
 // - title … チップのツールチップ（旧 index.html の markup を踏襲）。
@@ -41,6 +41,8 @@ export const CHIP_SECTIONS: { label: string; chips: ChipSpec[] }[] = [
   ] },
   { label: 'Aircraft / Airline', chips: [
     { key: 'aircraft', name: 'Aircraft' },
+    { key: 'manufacturer', name: 'Manufacturer' },
+    { key: 'size', name: 'Size', title: 'Widebody / Narrowbody / Regional / Small' },
     { key: 'airline', name: 'Airline' },
   ] },
   { label: 'Time', chips: [

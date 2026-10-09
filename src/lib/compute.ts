@@ -3,6 +3,7 @@
 // 依存: AP (airports.js)。flights は getFiltered の引数として受け取る
 //       （旧版はグローバル参照だったが、React 版では状態を明示的に渡す）。
 import { AP } from '../data/airports';
+import { aircraftManufacturer, aircraftSize } from '../data/aircraft';
 
 // フライト1件の内部形（正準形）。date=YYYY-MM-DD, t="1h30m", dep/arr=ICAO。
 export interface Flight {
@@ -54,6 +55,7 @@ export function _durationBucket(mins: number): string | null{
 // dateRange は ['YYYY-MM-DD','YYYY-MM-DD']（from/to・片側 '' で開区間）。[] = 無効。
 export interface FilterStateShape {
   years: string[]; airlines: string[]; aircraft: string[]; countries: string[];
+  manufacturers: string[]; sizes: string[];
   scope: string[]; months: string[]; weekdays: string[];
   airports: string[]; cities: string[]; continents: string[];
   depAirports: string[]; arrAirports: string[];
@@ -66,6 +68,9 @@ export const FilterState: FilterStateShape = {
   years: [],
   airlines: [],
   aircraft: [],
+  // 機材の分類（data/aircraft の MANUFACTURERS / AIRCRAFT_SIZES の id。未収録機材は 'unknown'）。
+  manufacturers: [],
+  sizes: [],
   countries: [],
   scope: [],
   months: [],
@@ -182,6 +187,13 @@ function _buildPredicates(): Array<(f: Flight) => boolean>{
   if(FilterState.aircraft.length){
     preds.push(f => FilterState.aircraft.includes(f.ac));
   }
+  // メーカー／サイズは機材コードから引く（未収録の機材は 'unknown' として一致判定）。
+  if(FilterState.manufacturers.length){
+    preds.push(f => FilterState.manufacturers.includes(aircraftManufacturer(f.ac)));
+  }
+  if(FilterState.sizes.length){
+    preds.push(f => FilterState.sizes.includes(aircraftSize(f.ac)));
+  }
   if(FilterState.countries.length){
     // dep / arr どちらかの所属国が選択集合に入っていれば一致
     preds.push(f => _flightCountry(f).some(c => FilterState.countries.includes(c)));
@@ -282,6 +294,8 @@ export function isAnyFilterActive(){
   return FilterState.years.length>0
       || FilterState.airlines.length>0
       || FilterState.aircraft.length>0
+      || FilterState.manufacturers.length>0
+      || FilterState.sizes.length>0
       || FilterState.countries.length>0
       || FilterState.scope.length>0
       || FilterState.months.length>0
@@ -337,6 +351,9 @@ export function computeAll(data: Flight[]){
   // 機材／航空会社ごとの「総飛行時間（分）」も並行集計。
   // バー表示で「回数 · 総時間」を併記するため。
   const acMin: Record<string, number>={}, alMin: Record<string, number>={};
+  // メーカー／サイズ別（キーは id。表示名への変換は画面側）。機材と同じく総飛行時間も併記する。
+  const mf: Record<string, number>={}, sz: Record<string, number>={};
+  const mfMin: Record<string, number>={}, szMin: Record<string, number>={};
   // 曜日別カウント。インデックスは Mon=0, Tue=1, ..., Sun=6（ISO-8601 風）。
   // Date#getDay() は Sun=0..Sat=6 を返すので (d+6) % 7 で Mon 起点へ。
   const wd: Record<number, number>={0:0,1:0,2:0,3:0,4:0,5:0,6:0};
@@ -350,6 +367,9 @@ export function computeAll(data: Flight[]){
     const mins=parseMin(f.t);
     acMin[f.ac]=(acMin[f.ac]||0)+mins;
     alMin[f.al]=(alMin[f.al]||0)+mins;
+    const mfId=aircraftManufacturer(f.ac), szId=aircraftSize(f.ac);
+    mf[mfId]=(mf[mfId]||0)+1; mfMin[mfId]=(mfMin[mfId]||0)+mins;
+    sz[szId]=(sz[szId]||0)+1; szMin[szId]=(szMin[szId]||0)+mins;
     // 曜日：YYYY-MM-DD を Date に渡すと UTC 解釈になり日付ズレの可能性があるため、
     // 明示的に Year/Month/Day で構築してローカル曜日を取る。
     const [yy,mm,dd]=f.date.split('-').map(Number);
@@ -367,5 +387,6 @@ export function computeAll(data: Flight[]){
     ac:sorted(ac), al:sorted(al), rt:sorted(rt), ap:sorted(ap), yr, mo, wd,
     co:sorted(co), ci:sorted(ci), ct:sorted(ct),
     acMin, alMin,
+    mf:sorted(mf), sz:sorted(sz), mfMin, szMin,
   };
 }

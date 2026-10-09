@@ -53,6 +53,7 @@ const flights: Flight[] = [
 // FilterState を毎回まっさらにしてから上書きするヘルパ（テスト間の状態漏れ防止）。
 function setFilter(o: Partial<FilterStateShape> = {}) {
   FilterState.years=[]; FilterState.airlines=[]; FilterState.aircraft=[];
+  FilterState.manufacturers=[]; FilterState.sizes=[];
   FilterState.countries=[]; FilterState.scope=[]; FilterState.months=[]; FilterState.weekdays=[];
   FilterState.airports=[]; FilterState.cities=[]; FilterState.continents=[];
   FilterState.depAirports=[]; FilterState.arrAirports=[];
@@ -215,7 +216,38 @@ describe('飛行時間フィルタ（durations バケット多選択）', () => 
 });
 
 describe('isAnyFilterActive（新軸も検知）', () => {
+  it('manufacturers 選択 → true', () => { setFilter({manufacturers:['boeing']}); expect(isAnyFilterActive()).toBe(true); });
+  it('sizes 選択 → true',         () => { setFilter({sizes:['wide']}); expect(isAnyFilterActive()).toBe(true); });
   it('depAirports 選択 → true', () => { setFilter({depAirports:['RJTT']}); expect(isAnyFilterActive()).toBe(true); });
   it('durations 選択 → true',   () => { setFilter({durations:['long']}); expect(isAnyFilterActive()).toBe(true); });
   it('contScope 2 個でも true', () => { setFilter({contScope:['intra','inter']}); expect(isAnyFilterActive()).toBe(true); });
+});
+
+// メーカー／サイズ（値は data/aircraft の id。未収録の機材は 'unknown'）。
+// 共通フィクスチャ（全 5 便）＝B738×2・B77W（Boeing）／A320・A333（Airbus）。未収録機材の便だけ別に足す。
+describe('メーカー／サイズのフィルタ述語', () => {
+  const withUnknown: Flight[] = [...flights, { date:'2025-12-30', dep:'RJTT', arr:'RJAA', ac:'FOO123', al:'ANA', t:'1h00m' }];
+  it('manufacturers boeing → 3 件', () => { setFilter({manufacturers:['boeing']}); expect(getFiltered(flights).length).toBe(3); });
+  it('manufacturers 多選択（boeing+airbus）→ 全 5 件', () => { setFilter({manufacturers:['boeing','airbus']}); expect(getFiltered(flights).length).toBe(5); });
+  it('sizes wide → 2 件（B77W・A333）', () => { setFilter({sizes:['wide']}); expect(getFiltered(flights).map(f=>f.ac).sort()).toEqual(['A333','B77W']); });
+  it('sizes narrow × manufacturers airbus → A320 のみ', () => {
+    setFilter({sizes:['narrow'], manufacturers:['airbus']});
+    expect(getFiltered(flights).map(f=>f.ac)).toEqual(['A320']);
+  });
+  it('未収録の機材は unknown で絞れる', () => {
+    setFilter({manufacturers:['unknown']}); expect(getFiltered(withUnknown).map(f=>f.ac)).toEqual(['FOO123']);
+    setFilter({sizes:['unknown']});         expect(getFiltered(withUnknown).map(f=>f.ac)).toEqual(['FOO123']);
+  });
+});
+
+describe('computeAll（メーカー／サイズの集計）', () => {
+  const s = computeAll(flights);
+  it('メーカー別（id・降順）', () => expect(s.mf).toEqual([['boeing',3],['airbus',2]]));
+  it('サイズ別（id・降順）', () => expect(s.sz).toEqual([['narrow',3],['wide',2]]));
+  it('総飛行時間も併記（Boeing＝1h+9h30m+2h）', () => expect(s.mfMin.boeing).toBe(60+570+120));
+  it('未収録の機材は unknown として数える（隠さない）', () => {
+    const u = computeAll([{ date:'2025-01-01', dep:'RJTT', arr:'RJAA', ac:'FOO123', al:'ANA', t:'1h00m' }]);
+    expect(u.mf).toEqual([['unknown',1]]);
+    expect(u.sz).toEqual([['unknown',1]]);
+  });
 });

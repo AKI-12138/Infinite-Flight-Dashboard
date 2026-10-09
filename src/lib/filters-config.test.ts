@@ -35,6 +35,7 @@ import {
 // FilterState を毎回まっさらにしてから上書きするヘルパ（compute.test と同一）。
 function setFilter(o: Partial<FilterStateShape> = {}) {
   FilterState.years=[]; FilterState.airlines=[]; FilterState.aircraft=[];
+  FilterState.manufacturers=[]; FilterState.sizes=[];
   FilterState.countries=[]; FilterState.scope=[]; FilterState.months=[]; FilterState.weekdays=[];
   FilterState.airports=[]; FilterState.cities=[]; FilterState.continents=[];
   FilterState.depAirports=[]; FilterState.arrAirports=[];

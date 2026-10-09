@@ -12,7 +12,7 @@ function chipLabel(def: FilterDef, values: string[]): string {
   if (values.length === 0) return def.all;
   const first = def.fixedOptions
     ? (def.fixedOptions.find((o) => o.value === values[0])?.label || values[0])
-    : values[0];
+    : (def.labelOf ? def.labelOf(values[0]) : values[0]);
   if (values.length === 1) return first;
   return first + ' +' + (values.length - 1);
 }
