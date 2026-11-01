@@ -131,6 +131,7 @@ export const AP: Record<string, AirportEntry> = {
   RJNA:{iata:"NKM",lat:35.2550,lng:136.9244,city:"Nagoya(NKM)",co:"Japan",ct:"Asia"},
   RJNK:{iata:"KMQ",lat:36.3939,lng:136.4067,city:"Komatsu",co:"Japan",ct:"Asia"},
   RJNO:{iata:"OKI",lat:36.1783,lng:133.3233,city:"Okinoshima",co:"Japan",ct:"Asia"},
+  RJNW:{iata:"NTQ",lat:37.2933,lng:136.9622,city:"Noto",co:"Japan",ct:"Asia"},
   RJNS:{iata:"FSZ",lat:34.7958,lng:138.1894,city:"Shizuoka",co:"Japan",ct:"Asia"},
   RJNT:{iata:"TOY",lat:36.6483,lng:137.1878,city:"Toyama",co:"Japan",ct:"Asia"},
   RJNY:{iata:"MMJ",lat:36.1781,lng:137.9228,city:"Matsumoto",co:"Japan",ct:"Asia"},
